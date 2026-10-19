@@ -1,0 +1,79 @@
+# =============================================================================
+# Dixi — .gitignore
+# Regla base: se versiona CÓDIGO y ESPECIFICACIÓN. No datos, no secretos,
+# no evidencia cruda, no artefactos de compilación, no pesos de modelos.
+# =============================================================================
+
+# --- Evidencia cruda de la auditoría -----------------------------------------
+# Los informes .md de docs/dixi-reverse-engineering/ SÍ se versionan.
+# Las capturas, dumps, logs y esquemas extraídos del equipo del usuario NO:
+# contienen rutas absolutas, identificadores de sesión y artefactos del
+# entorno local. Se conservan en disco como referencia de trabajo.
+docs/dixi-reverse-engineering/evidencia/*
+# ...excepto los scripts de reproducción, que son código de terceros y
+# no contienen datos del usuario.
+!docs/dixi-reverse-engineering/evidencia/scripts/
+!docs/dixi-reverse-engineering/evidencia/scripts/**
+
+# --- Node / frontend ---------------------------------------------------------
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.tsbuildinfo
+.eslintcache
+
+# --- Rust / Tauri ------------------------------------------------------------
+src-tauri/target/
+target/
+**/*.rs.bk
+*.pdb
+*.ilk
+*.exp
+*.lib
+
+# --- Pesos de modelos (se descargan aparte; nunca se versionan) --------------
+*.gguf
+*.ggml
+*.onnx
+*.wav
+models/
+models-cache/
+
+# --- Secretos y credenciales -------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.pfx
+*.p12
+secrets.json
+credentials.json
+
+# --- Temporal / artefactos de trabajo ----------------------------------------
+.tmp/
+.tmp-*/
+tmp/
+*.log
+*.tmp
+*.bak
+npm-debug.log*
+yarn-error.log*
+yarn.lock
+
+# --- Playwright --------------------------------------------------------------
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+playwright/.cache/
+
+# --- Sistema operativo / editores --------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
