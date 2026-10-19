@@ -401,18 +401,28 @@ impl StaticAsrProvider {
     /// Proveedor que siempre devuelve el mismo texto.
     pub fn fixed(id: &str, text: &str) -> Self {
         let text = text.to_string();
+        let id = id.to_string();
+        // Copia propia para la clausura: el closure debe vivir como 'static.
+        let result_provider = id.clone();
         Self {
-            id: id.to_string(),
-            display_name: id.to_string(),
-            behaviour: Box::new(move |_| Ok(TranscribeResult::simple(text.clone(), id, "static"))),
+            id: id.clone(),
+            display_name: id,
+            behaviour: Box::new(move |_| {
+                Ok(TranscribeResult::simple(
+                    text.clone(),
+                    result_provider.clone(),
+                    "static",
+                ))
+            }),
         }
     }
 
     /// Proveedor que siempre falla con el error indicado.
     pub fn failing(id: &str, error: AsrError) -> Self {
+        let id = id.to_string();
         Self {
-            id: id.to_string(),
-            display_name: id.to_string(),
+            id: id.clone(),
+            display_name: id,
             behaviour: Box::new(move |_| Err(error.clone())),
         }
     }

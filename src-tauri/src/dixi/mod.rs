@@ -46,7 +46,6 @@ pub mod hotkeys {
 /// Inserccion de texto en la aplicacion enfocada y manejo del portapapeles.
 pub mod paste {
     pub use crate::clipboard::paste;
-    pub(crate) use crate::paste_tx::TxState;
 }
 
 /// Persistencia local: SQLite y migraciones.

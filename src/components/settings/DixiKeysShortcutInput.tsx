@@ -11,21 +11,21 @@ import { toast } from "sonner";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { SECURE_INPUT_HELP_URL } from "../SecureInputWarning";
 
-interface HandyKeysShortcutInputProps {
+interface DixiKeysShortcutInputProps {
   descriptionMode?: "inline" | "tooltip";
   grouped?: boolean;
   shortcutId: string;
   disabled?: boolean;
 }
 
-interface HandyKeysEvent {
+interface DixiKeysEvent {
   modifiers: string[];
   key: string | null;
   is_key_down: boolean;
   hotkey_string: string;
 }
 
-export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
+export const DixiKeysShortcutInput: React.FC<DixiKeysShortcutInputProps> = ({
   descriptionMode = "tooltip",
   grouped = false,
   shortcutId,
@@ -63,7 +63,7 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
     }
 
     // Stop backend recording
-    await commands.stopHandyKeysRecording().catch(console.error);
+    await commands.stopDixiKeysRecording().catch(console.error);
 
     // Restore original binding
     if (originalBinding) {
@@ -118,7 +118,7 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
           unlistenRef.current();
           unlistenRef.current = null;
         }
-        await commands.stopHandyKeysRecording().catch(console.error);
+        await commands.stopDixiKeysRecording().catch(console.error);
         setIsRecording(false);
         setCurrentKeys("");
         currentKeysRef.current = "";
@@ -127,7 +127,7 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
         setOriginalBinding("");
       };
 
-      const unlisten = await listen<HandyKeysEvent>(
+      const unlisten = await listen<DixiKeysEvent>(
         "handy-keys-event",
         async (event) => {
           if (cleanup) return;
@@ -179,7 +179,7 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
         unlistenRef.current = null;
       }
       // Stop backend recording on unmount to prevent orphaned recording loops
-      commands.stopHandyKeysRecording().catch(console.error);
+      commands.stopDixiKeysRecording().catch(console.error);
     };
   }, [
     isRecording,
@@ -219,7 +219,7 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
     // capture just the modifier) — it also flips the warning banner on, so
     // the toast points at a visible explanation.
     try {
-      const result = await commands.startHandyKeysRecording(shortcutId);
+      const result = await commands.startDixiKeysRecording(shortcutId);
       if (result.status === "error") {
         if (String(result.error).includes("secure-input-active")) {
           toast.error(t("secureInput.recorderBlocked"), {

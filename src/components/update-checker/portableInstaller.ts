@@ -8,13 +8,17 @@
 // if asset names or the repo slug change, and it points at the immutable
 // `releases/download/v<version>/…` tag URL instead of a moving `latest` link.
 
+// Inherited from the upstream project, where these releases actually exist.
+// Dixi is not published and has no release server, so the update flow is not
+// mounted in the UI; the constant is kept only so the module still compiles
+// and can be reused if Dixi is ever distributed.
 export const PORTABLE_RELEASES_URL =
   "https://github.com/cjpais/Handy/releases/latest";
 
 /**
  * Pick the NSIS installer URL for the running target out of the update manifest.
  * Falls back to the generic releases page whenever there is no matching entry —
- * e.g. a portable install on a platform Handy ships no NSIS bundle for.
+ * e.g. a portable install on a platform Dixi ships no NSIS bundle for.
  *
  * @param rawJson `Update.rawJson`, the deserialized `latest.json` manifest
  * @param platformName value from `@tauri-apps/plugin-os` `platform()`

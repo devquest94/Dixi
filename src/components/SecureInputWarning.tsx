@@ -5,7 +5,9 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLink, TriangleAlert, X } from "lucide-react";
 import { commands, type SecureInputStatus } from "@/bindings";
 
-// Detailed remediation steps live in the docs rather than in the banner
+// Detailed remediation steps live in the upstream docs rather than in the
+// banner. The link points at Handy because that is where the
+// implementation (and its documentation) comes from: Dixi inherits it.
 export const SECURE_INPUT_HELP_URL =
   "https://handy.computer/docs/troubleshooting#shortcuts-stopped-working-on-macos-secure-input";
 
@@ -13,7 +15,7 @@ export const SECURE_INPUT_HELP_URL =
  * Compact warning banner shown while macOS Secure Input is stuck on.
  *
  * Secure Input (password fields, Terminal's "Secure Keyboard Entry", a stuck
- * loginwindow) blocks key events from reaching Handy's keyboard listener, so
+ * loginwindow) blocks key events from reaching Dixi's keyboard listener, so
  * keyed shortcuts silently stop firing (issue #1578). The backend monitor
  * emits `secure-input-changed` on state transitions; `sustained` filters out
  * the normal momentary activation from focusing a password field.

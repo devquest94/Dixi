@@ -6,13 +6,13 @@
      in App.css reference these, so a hex value lives in exactly one place. */
   --light-color-text: #0f0f0f;
   --light-color-background: #fbfbfb;
-  --light-color-logo-primary: #faa2ca;
-  --light-color-logo-stroke: #382731;
+  --light-color-logo-primary: #4f46e5;
+  --light-color-logo-stroke: #1e1b4b;
 
   --dark-color-text: #fbfbfb;
   --dark-color-background: #2c2b29;
-  --dark-color-logo-primary: #f28cbb;
-  --dark-color-logo-stroke: #fad1ed;
+  --dark-color-logo-primary: #818cf8;
+  --dark-color-logo-stroke: #c7d2fe;
 
   /* Semantic status colors. First used by SecureInputWarning; intended to
      replace the ad-hoc yellow-500/red-500 usages (e.g. ui/Alert.tsx) over

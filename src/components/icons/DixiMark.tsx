@@ -1,8 +1,8 @@
 /**
  * Marca de Dixi.
  *
- * Sustituye al glifo de Handy (una mano), que es un recurso de marca de
- * Handy y no forma parte de su licencia MIT.
+ * Sustituye al glifo de Dixi (una mano), que es un recurso de marca de
+ * Dixi y no forma parte de su licencia MIT.
  *
  * El motivo es una onda de voz simetrica de 5 barras: un indicador de nivel
  * de microfono. Es coherente con los iconos de bandeja de Dixi, que
