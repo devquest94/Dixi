@@ -26,6 +26,9 @@ dist-ssr/
 # --- Rust / Tauri ------------------------------------------------------------
 src-tauri/target/
 target/
+# Runtime de Visual C++ redistribuible, preparado por
+# scripts/stage-transcribe-libs.ps1. Es un artefacto de compilacion.
+src-tauri/transcribe-libs/
 **/*.rs.bk
 *.pdb
 *.ilk
@@ -39,6 +42,10 @@ target/
 *.wav
 models/
 models-cache/
+# ...excepcion: el detector de actividad de voz que el motor de audio carga
+# como recurso de la aplicacion. Es MIT (snakers4/silero-vad) y forma parte
+# del build, no de la descarga del usuario.
+!src-tauri/resources/models/silero-vad-v6.2-F32.gguf
 
 # --- Secretos y credenciales -------------------------------------------------
 .env

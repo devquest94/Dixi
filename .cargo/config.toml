@@ -1,0 +1,35 @@
+[build]
+
+# ---------------------------------------------------------------------------
+# Configuracion de compilacion del motor ASR (transcribe-cpp / ggml).
+#
+# PROBLEMA QUE RESUELVE
+# ---------------------
+# ggml detecta el ISA del host con `FindSIMD.cmake`, que en MSVC COMPILA Y
+# EJECUTA un programa de prueba por nivel. El nivel AVX-512 se prueba
+# ejecutando un binario con `/arch:AVX512`. En una CPU sin AVX-512 ese
+# binario muere con "Illegal instruction" y CMake 4.4 lo clasifica como
+# FAILED_TO_RUN, que es un error FATAL de configuracion (no un simple
+# "false"). El resultado: `transcribe-cpp-sys` no compila en ningun equipo
+# x86 sin AVX-512 con CMake >= 4.
+#
+# SOLUCION
+# --------
+# 1) `GGML_NATIVE=OFF` -> ggml NO incluye `FindSIMD.cmake` y por tanto no
+#    ejecuta ninguna prueba de ISA (se acaba el SIGILL en tiempo de build).
+# 2) Se habilitan EXPLICITAMENTE los niveles que la CPU de destino soporta,
+#    de modo que no se pierde rendimiento: el compilador recibe
+#    `/arch:AVX2` y las definiciones `GGML_AVX2/GGML_FMA/GGML_F16C/__BMI2__`.
+# 3) Los niveles AVX-512 y AVX-VNNI se dejan explicitamente OFF.
+#
+# PERFIL DE CPU DE REFERENCIA
+# ---------------------------
+# Intel Core i5-8300H (Coffee Lake, 4C/8T): SSE4.2, AVX, AVX2, FMA, F16C,
+# BMI2. SIN AVX-512 y SIN AVX-VNNI.
+#
+# `force = false` (por defecto) permite que una variable de entorno ya
+# existente tenga prioridad, para poder re-configurar sin editar este
+# fichero.
+# ---------------------------------------------------------------------------
+[env]
+TRANSCRIBE_CMAKE_ARGS = { value = "-DGGML_NATIVE=OFF -DGGML_SSE42=ON -DGGML_AVX=ON -DGGML_AVX2=ON -DGGML_FMA=ON -DGGML_F16C=ON -DGGML_BMI2=ON -DGGML_AVX_VNNI=OFF -DGGML_AVX512=OFF -DGGML_AVX512_VBMI=OFF -DGGML_AVX512_VNNI=OFF -DGGML_AVX512_BF16=OFF", force = false }
