@@ -1388,7 +1388,7 @@ fn worker_exe() -> io::Result<PathBuf> {
     if let Some((path, launched)) = LAUNCHED_EXE.get().and_then(Option::as_ref) {
         if file_id(path).ok().as_ref() != Some(launched) {
             return Err(io::Error::other(
-                "Handy was updated or moved while it was running; restart Handy",
+                "Dixi was updated or moved while it was running; restart Dixi",
             ));
         }
     }
@@ -1524,7 +1524,7 @@ mod tests {
 
     /// Faults are read by each worker at spawn, so set them before loading.
     fn set_fault(fault: Option<&str>, gpu_only: bool) {
-        let marker = std::env::temp_dir().join("handy-worker-fault-once");
+        let marker = std::env::temp_dir().join("dixi-worker-fault-once");
         let _ = std::fs::remove_file(&marker);
         std::env::remove_var("DIXI_WORKER_FAULT_ONCE");
         std::env::remove_var("DIXI_WORKER_FAULT_GPU_ONLY");
@@ -1954,7 +1954,7 @@ mod tests {
         };
         wait_in_flight(&engine, "transcription");
         // Cancel only once the worker is actually hung, not on its way there.
-        let marker = std::env::temp_dir().join("handy-worker-fault-once");
+        let marker = std::env::temp_dir().join("dixi-worker-fault-once");
         while !marker.exists() {
             thread::sleep(Duration::from_millis(1));
         }

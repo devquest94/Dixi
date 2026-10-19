@@ -868,10 +868,10 @@ mod tests {
 
     #[test]
     fn test_apply_custom_words_handles_unicode_punctuation() {
-        let text = "「Handee。」";
-        let custom_words = vec!["Handy".to_string()];
+        let text = "「Dixie。」";
+        let custom_words = vec!["Dixi".to_string()];
         let result = apply_custom_words(text, &custom_words, 0.5);
-        assert_eq!(result, "「Handy。」");
+        assert_eq!(result, "「Dixi。」");
     }
 
     #[test]

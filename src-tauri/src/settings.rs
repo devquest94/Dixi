@@ -1408,7 +1408,7 @@ mod tests {
             "overlay_position": "bottom",
             "debug_mode": false,
             "log_level": 2,
-            "custom_words": ["Handy", "cjpais"],
+            "custom_words": ["Dixi", "cjpais"],
             "model_unload_timeout": "min5",
             "word_correction_threshold": 0.18,
             "history_limit": 5,
@@ -1518,14 +1518,14 @@ mod tests {
         let map = stored.as_object_mut().unwrap();
         map.insert("paste_delay_ms".into(), serde_json::json!("sixty"));
         map.insert("sound_theme".into(), serde_json::json!(42));
-        map.insert("custom_words".into(), serde_json::json!(["handy"]));
+        map.insert("custom_words".into(), serde_json::json!(["dixi"]));
 
         assert!(serde_json::from_value::<AppSettings>(stored.clone()).is_err());
 
         let salvaged = salvage_settings(&stored);
         assert_eq!(salvaged.paste_delay_ms, default_paste_delay_ms());
         assert_eq!(salvaged.sound_theme, default_sound_theme());
-        assert_eq!(salvaged.custom_words, vec!["handy".to_string()]);
+        assert_eq!(salvaged.custom_words, vec!["dixi".to_string()]);
     }
 
     #[test]

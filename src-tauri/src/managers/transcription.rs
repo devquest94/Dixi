@@ -2167,7 +2167,7 @@ mod tests {
     fn fuzzy_correction_is_skipped_exactly_when_vocabulary_was_sent() {
         let settings = AppSettings {
             selected_language: "en".to_string(),
-            custom_words: vec!["Handy".to_string()],
+            custom_words: vec!["Dixi".to_string()],
             ..Default::default()
         };
         let evidence = OutputLanguageEvidence::UserSelected("en".to_string());
@@ -2175,23 +2175,23 @@ mod tests {
 
         // The model was already prompted with the term: leave its output alone.
         let prompted = post_process_transcription_text(
-            "i use handy every day".to_string(),
+            "i use dixi every day".to_string(),
             &settings,
             true,
             &evidence,
             &supported,
         );
-        assert_eq!(prompted, "i use handy every day");
+        assert_eq!(prompted, "i use dixi every day");
 
         // No vocabulary sent: the fuzzy post-correction fixes the casing.
         let corrected = post_process_transcription_text(
-            "i use handy every day".to_string(),
+            "i use dixi every day".to_string(),
             &settings,
             false,
             &evidence,
             &supported,
         );
-        assert_eq!(corrected, "i use Handy every day");
+        assert_eq!(corrected, "i use Dixi every day");
     }
 }
 
