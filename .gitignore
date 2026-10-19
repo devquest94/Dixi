@@ -39,15 +39,19 @@ src-tauri/transcribe-libs/
 *.gguf
 *.ggml
 *.onnx
-models/
-models-cache/
+# Ojo: `models/` (con barra) excluiria el DIRECTORIO entero, y git no puede
+# re-incluir un fichero cuyo directorio padre esta excluido. Por eso se
+# excluye el CONTENIDO (`models/*`), de modo que la excepcion de abajo si
+# surte efecto.
+models/*
+models-cache/*
 # ...excepcion: el detector de actividad de voz que el motor de audio carga
 # como recurso de la aplicacion. Es MIT (snakers4/silero-vad) y forma parte
 # del build, no de la descarga del usuario.
 !src-tauri/resources/models/silero-vad-v6.2-F32.gguf
-# Los efectos de sonido de la interfaz (marimba_start/stop.wav) SI son parte
-# de la aplicacion y se versionan. Las muestras de audio de prueba viven
-# fuera del repositorio, asi que no hace falta una regla para ellas.
+# Los efectos de sonido de la interfaz (marimba/pop start-stop.wav) SI son
+# parte de la aplicacion y se versionan. Las muestras de audio de prueba
+# viven fuera del repositorio, asi que no hace falta una regla para ellas.
 
 # --- Secretos y credenciales -------------------------------------------------
 .env
