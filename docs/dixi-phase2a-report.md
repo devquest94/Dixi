@@ -551,9 +551,33 @@ powershell -File scripts/measure-perf.ps1 -Exe <dixi.exe> `
 
 ## 11. Historial de commits
 
+Rama `feat/handy-foundation` (desde `develop`, desde `master`).
+
 | Commit | Contenido |
 |---|---|
 | `f562745` | `chore:` base del repositorio: los 16 informes de auditoría, README, LICENSE, NOTICE, `.gitignore` |
 | `1e50772` | `feat:` incorporación del núcleo de Handy como **línea base** (con las dos correcciones de plataforma documentadas) |
 | `60b5512` | `refactor:` reidentificación como Dixi (identidad, activos propios, contratos preservados) + módulos nuevos `dixi::dictation` y `dixi::asr` |
-| _pendiente_ | `chore:` cierre del flujo de actualizador, `tsx` como sustituto de `bun`, scripts de medición |
+| `5287ede` | `chore:` cierre del flujo de actualizador, `tsx` como sustituto de `bun`, scripts de medición, informe de la fase |
+| `9555d41` | `fix:` el modelo VAD empaquetado y el panel de modelos **no** estaban versionados (regla `models/` mal escrita) |
+
+### 11.1 Dos errores de `.gitignore` que el proceso de verificación destapó
+
+Merecen quedar escritos, porque son fáciles de repetir y tienen consecuencias
+silenciosas:
+
+1. **`*.wav` excluía los efectos de sonido de la interfaz.**
+   `src-tauri/resources/{marimba,pop}_{start,stop}.wav` son recursos que la
+   aplicación carga en tiempo de ejecución. Un clon nuevo compilaba, pero
+   sin sonidos de interfaz.
+2. **`models/` excluía el directorio completo**, y git **no puede re-incluir
+   un fichero cuyo directorio padre está excluido**. Dos consecuencias:
+   - la excepción del modelo Silero VAD (que el motor de audio carga como
+     recurso) **nunca surtió efecto**: el modelo no estaba en el repositorio;
+   - `src/components/settings/models/` (536 líneas: el panel de selección y
+     descarga de modelos) **tampoco estaba versionado**. Un clon nuevo no
+     habría compilado.
+
+La corrección es `models/*` (contenido) en lugar de `models/` (directorio).
+Se verificó con `git ls-files` que no queda ningún fichero de fuente fuera
+del control de versiones.
