@@ -559,7 +559,19 @@ Rama `feat/handy-foundation` (desde `develop`, desde `master`).
 | `1e50772` | `feat:` incorporación del núcleo de Handy como **línea base** (con las dos correcciones de plataforma documentadas) |
 | `60b5512` | `refactor:` reidentificación como Dixi (identidad, activos propios, contratos preservados) + módulos nuevos `dixi::dictation` y `dixi::asr` |
 | `5287ede` | `chore:` cierre del flujo de actualizador, `tsx` como sustituto de `bun`, scripts de medición, informe de la fase |
+| `844061b` | `fix:` los efectos de sonido de la interfaz no estaban versionados (regla `*.wav` demasiado amplia) |
 | `9555d41` | `fix:` el modelo VAD empaquetado y el panel de modelos **no** estaban versionados (regla `models/` mal escrita) |
+| `80747ee` | `docs:` informe técnico de la fase completado |
+| `f712e52` | `refactor:` última pasada de marca sobre las cadenas **visibles al usuario** (CLI, título de ventana, tooltip de bandeja, nombre del log, User-Agent, clase Win32 del pegado, nombre del worker) |
+
+### 11.0 Binarios
+
+| Binario | Tamaño | Nota |
+|---|---|---|
+| `src-tauri/target/release/dixi.exe` | 29,2 MB | build optimizado con LTO; 26 min 38 s en esta máquina |
+| `src-tauri/target/debug/dixi.exe` | 56,7 MB | build de depuración, para iterar |
+
+Ambos transcriben correctamente con `whisper-base` en CPU.
 
 ### 11.1 Dos errores de `.gitignore` que el proceso de verificación destapó
 
