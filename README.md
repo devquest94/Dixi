@@ -11,17 +11,31 @@ modelo ASR abierto e inserta el texto en la aplicación que tenía el foco.
 
 ## Estado actual
 
-**Fase 2A — construcción de la base funcional.** En curso.
+**Fase 2A — construcción de la base funcional.** Completada.
 
 | Entregable | Estado |
 |---|---|
-| Base de código reutilizada de Handy (MIT) | ✅ incorporada |
-| Arquitectura de módulos por responsabilidad | ✅ |
+| Base de código reutilizada de Handy (MIT) | ✅ incorporada, con atribución |
+| Identidad visual y nombre propios de Dixi | ✅ activos generados desde cero |
+| Arquitectura de módulos por responsabilidad (`dixi/`) | ✅ |
 | Flujo vertical: bandeja → atajo → captura → ASR → inserción | ✅ |
-| Modelo ASR local con procedencia y licencia verificadas | ✅ |
-| Pruebas automatizadas (Rust + TypeScript) | ✅ |
-| Medición de rendimiento | ✅ |
+| Abstracción de proveedores de ASR (preparación para MiniMax) | ✅ |
+| Modelo ASR local con procedencia y licencia verificadas | ✅ `whisper-base` Q8_0 |
+| Pruebas automatizadas (Rust + TypeScript) | ✅ 304 Rust + 3 guiones de frontend |
+| Medición de rendimiento | ✅ frente a los objetivos de la auditoría |
 | Módulos fuera de alcance (notetaker, MCP, snippets, transforms, …) | ❌ no implementados (Fase 2B) |
+
+**Informe completo**: [`docs/dixi-phase2a-report.md`](./docs/dixi-phase2a-report.md).
+
+### Resultados medidos
+
+| Objetivo | Objetivo | Medido |
+|---|---|---|
+| Arranque en frío | < 1,5 s | **195 ms** |
+| RAM en reposo | < 120 MB | **8 MB** privados · 36,5 MB de working set |
+| CPU en reposo | < 1 % | **0,0 %** |
+| CPU durante transcripción (4 núcleos) | ≤ 250 % | **49–190 %** |
+| Latencia de transcripción (whisper-base, CPU) | — | **~1 s** por frase corta |
 
 ---
 
@@ -98,16 +112,26 @@ notetaker y MCP. **Ninguno de esos módulos está implementado en esta fase.**
 ### Pasos
 
 ```powershell
+# 0. Runtime de Visual C++ a nivel de aplicacion (Tauri lo exige antes
+#    de compilar; upstream lo hace en su CI)
+powershell -File scripts/stage-transcribe-libs.ps1
+
 # 1. Dependencias de frontend
 npm.cmd install --ignore-scripts
 
-# 2. Build del núcleo Rust + empaquetado Tauri
+# 2. Build del nucleo Rust + empaquetado Tauri
 cd src-tauri
 cargo build --release
 
 # 3. Binario
 #    src-tauri/target/release/dixi.exe
 ```
+
+> **Nota sobre el perfil de CPU**: `.cargo/config.toml` fija
+> `GGML_NATIVE=OFF` y habilita explicitamente AVX2/FMA/F16C/BMI2. Sin esto,
+> ggml ejecuta una prueba de AVX-512 que muere con *Illegal instruction* en
+> CPUs sin AVX-512 y **CMake >= 4 lo trata como error fatal de configuracion**.
+> Ver el informe, seccion 3.2.
 
 Para desarrollo con recarga en caliente:
 
@@ -119,7 +143,7 @@ npm.cmd run tauri dev
 
 | Variable | Efecto |
 |---|---|
-| `DIXI_MODEL_DIR` | Ruta donde se guardan los pesos de los modelos ASR (por defecto: `%LOCALAPPDATA%\Dixi\models`) |
+| — | Los pesos de los modelos ASR se guardan en `%APPDATA%\com.dixi.app\models` (derivado del identificador de Tauri `com.dixi.app`) |
 
 ---
 
