@@ -539,7 +539,8 @@
         "exportEmpty": "エクスポートできる項目がありません。",
         "importInvalid": "このファイルは有効な辞書のエクスポートではありません。",
         "exportError": "辞書をエクスポートできませんでした。",
-        "importError": "辞書をインポートできませんでした。"
+        "importError": "辞書をインポートできませんでした。",
+        "overwriteTitle": "ファイルは既に存在します。置き換えますか？"
       }
     },
     "history": {

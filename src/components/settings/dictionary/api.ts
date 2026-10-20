@@ -40,9 +40,12 @@ export const importDictionaryEntries = (
  * Writes the dictionary to the JSON file the user chose. The backend owns the
  * file format and the filesystem access, so the webview never touches the
  * file itself. Returns how many entries were written.
+ *
+ * An existing file is only replaced when `overwrite` is set: the backend
+ * refuses otherwise, so the caller has to ask the user first.
  */
-export const exportDictionaryEntries = (path: string) =>
-  commands.exportDictionaryEntries(path);
+export const exportDictionaryEntries = (path: string, overwrite: boolean) =>
+  commands.exportDictionaryEntries(path, overwrite);
 
 /**
  * Adds the entries contained in the dictionary file the user chose. The

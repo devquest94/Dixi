@@ -539,7 +539,8 @@
         "exportEmpty": "没有可导出的条目。",
         "importInvalid": "该文件不是有效的词典导出文件。",
         "exportError": "无法导出词典。",
-        "importError": "无法导入词典。"
+        "importError": "无法导入词典。",
+        "overwriteTitle": "文件已存在。要替换吗？"
       }
     },
     "history": {

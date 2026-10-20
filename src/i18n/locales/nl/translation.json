@@ -539,7 +539,8 @@
         "exportEmpty": "Er zijn geen vermeldingen om te exporteren.",
         "importInvalid": "Het bestand is geen geldige woordenboekexport.",
         "exportError": "Het woordenboek kon niet worden geëxporteerd.",
-        "importError": "Het woordenboek kon niet worden geïmporteerd."
+        "importError": "Het woordenboek kon niet worden geïmporteerd.",
+        "overwriteTitle": "Het bestand bestaat al. Vervangen?"
       }
     },
     "history": {

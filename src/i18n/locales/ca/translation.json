@@ -539,7 +539,8 @@
         "exportEmpty": "No hi ha entrades per exportar.",
         "importInvalid": "El fitxer no és una exportació vàlida del diccionari.",
         "exportError": "No s'ha pogut exportar el diccionari.",
-        "importError": "No s'ha pogut importar el diccionari."
+        "importError": "No s'ha pogut importar el diccionari.",
+        "overwriteTitle": "El fitxer ja existe. Voleu substituir-lo?"
       }
     },
     "history": {

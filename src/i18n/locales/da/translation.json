@@ -539,7 +539,8 @@
         "exportEmpty": "Der er ingen poster at eksportere.",
         "importInvalid": "Filen er ikke en gyldig ordbogseksport.",
         "exportError": "Ordbogen kunne ikke eksporteres.",
-        "importError": "Ordbogen kunne ikke importeres."
+        "importError": "Ordbogen kunne ikke importeres.",
+        "overwriteTitle": "Filen findes allerede. Vil du erstatte den?"
       }
     },
     "history": {

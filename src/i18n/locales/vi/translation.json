@@ -539,7 +539,8 @@
         "exportEmpty": "Không có mục nào để xuất.",
         "importInvalid": "Tệp không phải là bản xuất từ điển hợp lệ.",
         "exportError": "Không thể xuất từ điển.",
-        "importError": "Không thể nhập từ điển."
+        "importError": "Không thể nhập từ điển.",
+        "overwriteTitle": "Tệp đã tồn tại. Bạn có muốn thay thế không?"
       }
     },
     "history": {

@@ -539,7 +539,8 @@
         "exportEmpty": "Det finns inga poster att exportera.",
         "importInvalid": "Filen är ingen giltig ordboksexport.",
         "exportError": "Ordboken kunde inte exporteras.",
-        "importError": "Ordboken kunde inte importeras."
+        "importError": "Ordboken kunde inte importeras.",
+        "overwriteTitle": "Filen finns redan. Ersätt den?"
       }
     },
     "history": {

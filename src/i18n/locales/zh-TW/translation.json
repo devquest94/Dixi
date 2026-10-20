@@ -539,7 +539,8 @@
         "exportEmpty": "沒有可匯出的項目。",
         "importInvalid": "此檔案不是有效的詞典匯出檔。",
         "exportError": "無法匯出詞典。",
-        "importError": "無法匯入詞典。"
+        "importError": "無法匯入詞典。",
+        "overwriteTitle": "檔案已存在。要取代嗎？"
       }
     },
     "history": {

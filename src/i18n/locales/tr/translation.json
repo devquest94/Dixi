@@ -539,7 +539,8 @@
         "exportEmpty": "Dışa aktarılacak kayıt yok.",
         "importInvalid": "Dosya geçerli bir sözlük dışa aktarımı değil.",
         "exportError": "Sözlük dışa aktarılamadı.",
-        "importError": "Sözlük içe aktarılamadı."
+        "importError": "Sözlük içe aktarılamadı.",
+        "overwriteTitle": "Dosya zaten var. Değiştirilsin mi?"
       }
     },
     "history": {

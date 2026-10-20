@@ -539,7 +539,8 @@
         "exportEmpty": "Brak wpisów do wyeksportowania.",
         "importInvalid": "Plik nie jest prawidłowym eksportem słownika.",
         "exportError": "Nie udało się wyeksportować słownika.",
-        "importError": "Nie udało się zaimportować słownika."
+        "importError": "Nie udało się zaimportować słownika.",
+        "overwriteTitle": "Plik już istnieje. Zastąpić go?"
       }
     },
     "history": {

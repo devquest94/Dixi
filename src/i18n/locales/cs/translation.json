@@ -539,7 +539,8 @@
         "exportEmpty": "Nejsou k dispozici žádné položky k exportu.",
         "importInvalid": "Soubor není platným exportem slovníku.",
         "exportError": "Slovník se nepodařilo exportovat.",
-        "importError": "Slovník se nepodařilo importovat."
+        "importError": "Slovník se nepodařilo importovat.",
+        "overwriteTitle": "Soubor už existuje. Nahradit ho?"
       }
     },
     "history": {

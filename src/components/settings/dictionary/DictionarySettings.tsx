@@ -228,16 +228,46 @@ export const DictionarySettings: React.FC = () => {
 
       // The backend owns the file format and the filesystem access: the
       // webview only chooses the destination.
-      const response = await exportDictionaryEntries(path);
+      //
+      // The backend refuses to replace an existing file unless it is told
+      // to, so an accidental double click cannot destroy a file the user had
+      // edited. The confirmation is asked here, in the app's own language.
+      const response = await exportDictionaryEntries(path, false);
       if (response.status === "ok") {
         toast.success(
           t("settings.dictionary.transfer.exportSuccess", {
             count: response.data,
           }),
         );
-      } else {
+        return;
+      }
+
+      if (!response.error.includes("already exists")) {
         toast.error(t("settings.dictionary.transfer.exportError"), {
           description: response.error,
+        });
+        return;
+      }
+
+      const confirmed = await ask(
+        t("settings.dictionary.transfer.overwriteTitle"),
+        {
+          title: t("settings.dictionary.transfer.overwriteTitle"),
+          kind: "warning",
+        },
+      );
+      if (!confirmed) return;
+
+      const replaced = await exportDictionaryEntries(path, true);
+      if (replaced.status === "ok") {
+        toast.success(
+          t("settings.dictionary.transfer.exportSuccess", {
+            count: replaced.data,
+          }),
+        );
+      } else {
+        toast.error(t("settings.dictionary.transfer.exportError"), {
+          description: replaced.error,
         });
       }
     } catch (error) {

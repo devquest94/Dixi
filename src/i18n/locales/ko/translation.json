@@ -539,7 +539,8 @@
         "exportEmpty": "내보낼 항목이 없습니다.",
         "importInvalid": "유효한 사전 내보내기 파일이 아닙니다.",
         "exportError": "사전을 내보내지 못했습니다.",
-        "importError": "사전을 가져오지 못했습니다."
+        "importError": "사전을 가져오지 못했습니다.",
+        "overwriteTitle": "파일이 이미 있습니다. 덮어쓰시겠습니까?"
       }
     },
     "history": {

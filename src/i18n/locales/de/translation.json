@@ -539,7 +539,8 @@
         "exportEmpty": "Es gibt keine Einträge zum Exportieren.",
         "importInvalid": "Die Datei ist kein gültiger Wörterbuch-Export.",
         "exportError": "Das Wörterbuch konnte nicht exportiert werden.",
-        "importError": "Das Wörterbuch konnte nicht importiert werden."
+        "importError": "Das Wörterbuch konnte nicht importiert werden.",
+        "overwriteTitle": "Die Datei existiert bereits. Ersetzen?"
       }
     },
     "history": {

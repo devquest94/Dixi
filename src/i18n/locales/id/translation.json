@@ -539,7 +539,8 @@
         "exportEmpty": "Tidak ada entri untuk diekspor.",
         "importInvalid": "Berkas bukan ekspor kamusus yang valid.",
         "exportError": "Kamusus tidak dapat diekspor.",
-        "importError": "Kamusus tidak dapat diimpor."
+        "importError": "Kamusus tidak dapat diimpor.",
+        "overwriteTitle": "Berkas sudah ada. Ganti?"
       }
     },
     "history": {

@@ -539,7 +539,8 @@
         "exportEmpty": "No hay entradas para exportar.",
         "importInvalid": "El archivo no es una exportación válida del diccionario.",
         "exportError": "No se pudo exportar el diccionario.",
-        "importError": "No se pudo importar el diccionario."
+        "importError": "No se pudo importar el diccionario.",
+        "overwriteTitle": "El archivo ya existe. ¿Querés reemplazarlo?"
       }
     },
     "history": {
