@@ -1,0 +1,20 @@
+# Frases de prueba — dictado en español argentino con términos técnicos en inglés
+#
+# Formato:  <id>|<lo que hay que decir>
+# Se usan para (a) generar audio de referencia con espeak-ng es-419 y
+# (b) documentar el guion manual de validación.
+#
+# Criterios: frases cortas (3-10 s), vocabulario rioplatense real (voseo,
+# lunfardo) mezclado con términos técnicos en inglés, que es el caso que la
+# auditoría marcó como prioritario.
+
+F1|Hola, esta es una prueba de dictado en español.
+F2|Fijate si podés revisar los logs del server antes de hacer el deploy.
+F3|El build me tiró un error, está medio quilombo, lo voy a chequear.
+F4|Hacé un commit, pusheá la branch y corré el deploy en Docker.
+F5|Quería preguntarte si el backup del servidor de producción quedó bien, porque ayer el log showed un timeout.
+F6|Atención: el deploy falla, no es un problema del código.
+F7|El servidor tenía cuarenta y cinco por ciento de la memoria usada.
+F8|El endpoint no responde, me parece que hay un timeout en el API gateway.
+F9|Che, ¿me pasás el archivo del backup? Lo necesito para el merge.
+F10|Revisá el stack trace del error, así vemos dónde se rompe el endpoint.

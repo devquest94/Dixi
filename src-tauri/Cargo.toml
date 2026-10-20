@@ -19,6 +19,20 @@ incremental = true # Compile your binary in smaller steps.
 name = "dixi_app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+[features]
+# Build de PRODUCCION.
+#
+# Sin esta caracteristica, `cargo build --release` genera un binario que NO
+# puede cargar su propio frontend: la WebView2 intenta conectarse al
+# servidor de desarrollo de Vite (http://localhost:1420) y, como no existe,
+# la interfaz queda en blanco, el frontend nunca ejecuta sus efectos y los
+# atajos globales NO se registran. El CLI de Tauri (`npm run tauri build`)
+# la activa por su cuenta; aqui se expone con un nombre propio para poder
+# compilar el binario suelto:
+#
+#   cargo build --release --features custom-protocol
+custom-protocol = ["tauri/custom-protocol"]
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 serde_json = "1"

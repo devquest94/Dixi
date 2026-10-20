@@ -119,13 +119,25 @@ powershell -File scripts/stage-transcribe-libs.ps1
 # 1. Dependencias de frontend
 npm.cmd install --ignore-scripts
 
-# 2. Build del nucleo Rust + empaquetado Tauri
+# 2. Build del nucleo Rust
+#    OBLIGATORIO --features custom-protocol: sin esta caracteristica el
+#    binario no puede cargar su propio frontend (la WebView2 busca el
+#    servidor de desarrollo de Vite, la UI queda en blanco y los atajos
+#    globales no se registran). Ver el informe de la Fase 2A.
 cd src-tauri
-cargo build --release
+cargo build --release --features custom-protocol
 
 # 3. Binario
 #    src-tauri/target/release/dixi.exe
 ```
+
+> **El `--features custom-protocol` no es opcional.** Sin él, `cargo build
+> --release` genera un binario que arranca pero queda inutilizable: la
+> WebView2 intenta conectarse a `http://localhost:1420` (el servidor de
+> desarrollo de Vite), el frontend no carga, la interfaz queda en blanco y
+> **los atajos globales nunca se registran**. El CLI de Tauri
+> (`npm run tauri build`) activa la característica por su cuenta y además
+> genera el instalador NSIS.
 
 > **Nota sobre el perfil de CPU**: `.cargo/config.toml` fija
 > `GGML_NATIVE=OFF` y habilita explicitamente AVX2/FMA/F16C/BMI2. Sin esto,
@@ -171,6 +183,13 @@ ficticio previamente generadas.
 
 ## Documentación
 
+- [`docs/validation-phase2a/PROCEDIMIENTO.md`](./docs/validation-phase2a/PROCEDIMIENTO.md) —
+  **cómo ejecutar Dixi, activar el dictado, configurar el micrófono y medir
+  la validación**. Punto de partida de la Fase 2B.
+- [`docs/dixi-phase2a-report.md`](./docs/dixi-phase2a-report.md) —
+  informe técnico de la Fase 2A: procedencia, licencias, arquitectura, los
+  bloqueos de compilación, la selección de modelo con mediciones, el
+  rendimiento frente a los objetivos y el trabajo futuro.
 - [`docs/dixi-reverse-engineering/`](./docs/dixi-reverse-engineering) —
   auditoría funcional de Wispr Flow (16 informes). Es la **especificación**
   de este proyecto: define el comportamiento esperado del pipeline de

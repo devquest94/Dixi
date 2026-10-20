@@ -348,6 +348,12 @@ proveedor local debe funcionar sin credenciales, y ése es el estado actual.
 
 ## 7. Rendimiento
 
+> **Aviso (corregido el 2026-10-19 tras la validación en escritorio).**
+> Las cifras de esta sección se tomaron sobre el modo **headless** del CLI
+> (`--transcribe-file`), que **no** abre la WebView2. La aplicación con su
+> interfaz gráfica consume bastante más. Las cifras reales del árbol completo
+> de procesos están en **§12.2**.
+
 Medido con `scripts/measure-perf.ps1` sobre el binario de depuración
 (`dixi.exe`) en la máquina de referencia, con el equipo **sin carga externa**
 (5,9 GB de RAM libres). Objetivo por objetivo:
@@ -593,3 +599,140 @@ silenciosas:
 La corrección es `models/*` (contenido) en lugar de `models/` (directorio).
 Se verificó con `git ls-files` que no queda ningún fichero de fuente fuera
 del control de versiones.
+
+---
+
+## 12. Validación en el escritorio (cierre de la Fase 2A)
+
+Validación ejecutada el 2026-10-19 sobre el escritorio Windows real, con la
+aplicación gráfica en marcha y el micrófono del equipo (Redragon Gaming
+Headset) conectado.
+
+### 12.1 Defecto crítico: el binario de producción no cargaba su frontend
+
+**Síntoma.** La app arrancaba, creaba la bandeja y el overlay, abría el
+micrófono y transcribía… pero **la ventana principal quedaba en blanco, el
+frontend nunca ejecutaba sus efectos y los atajos globales NO se
+registraban**:
+
+```
+[ERROR] Failed to register cancel shortcut: HandyKeysState not initialized
+```
+
+**Causa raíz.** `cargo build --release` **a secas** no habilita la
+característica `tauri/custom-protocol`. Sin ella, la WebView2 no carga los
+assets embebidos sino que intenta conectarse al **servidor de desarrollo de
+Vite** (`http://localhost:1420`). Comprobado por CDP:
+
+```
+# sin la caracteristica
+http://localhost:1420/            <- servidor de desarrollo, inexistente
+# con la caracteristica
+http://tauri.localhost/           <- assets embebidos, correcto
+```
+
+El CLI de Tauri (`npm run tauri build`) activa la característica por su
+cuenta, así que el flujo habitual de Tauri no sufre el problema; solo
+afecta a quien compile el binario suelto con cargo.
+
+**Estado.** Corregido. `src-tauri/Cargo.toml` expone ahora
+
+```toml
+[features]
+custom-protocol = ["tauri/custom-protocol"]
+```
+
+y el README, el informe y el procedimiento indican
+`cargo build --release --features custom-protocol`.
+
+**Impacto sobre la Fase 2A.** El binario entregado al final de la fase
+**no era un build de producción válido**. Las pruebas automatizadas pasaban
+igualmente porque no dependían del frontend. Es exactamente el tipo de
+defecto que solo aparece al ejecutar la aplicación de verdad.
+
+### 12.2 Consumo del árbol completo de procesos
+
+Medido con `scripts/measure-dixi-tree.ps1` (árbol por PID padre: app +
+WebView2 + worker de ASR), con la máquina descargada:
+
+| Magnitud | Reposo (GUI, sin modelo) | Durante la transcripción |
+|---|---|---|
+| RAM privada del árbol | **168,5 MB** (media) | pendiente de la prueba con voz |
+| — de los cuales WebView2 | 160,6 MB | |
+| — de los cuales `dixi.exe` | 7,3 MB | |
+| Working set del árbol | 312,8 MB | |
+| CPU del árbol | **0,0 %** (media y máximo) | |
+| Procesos del árbol | 7 | |
+
+**Objetivo de RAM en reposo (< 120 MB): NO se cumple con la interfaz
+gráfica abierta.** Se cumple de sobra para la aplicación pura sin WebView2
+(8 MB). El coste lo aporta el runtime de WebView2, que es un componente
+compartido del sistema, no código de Dixi. Conviene medir también el caso
+"app en bandeja con la ventana cerrada", que es el de uso diario real.
+
+### 12.3 Pipeline validado de extremo a extremo (sin voz)
+
+Con el atajo inyectado por `scripts/send-shortcut.ps1` (Ctrl+Espacio, 2,5 s)
+se recorren **todas** las etapas del pipeline y quedan registradas en el log:
+
+| Etapa | Evidencia en el log |
+|---|---|
+| Atajo global | `handy-keys event: binding=transcribe, hotkey=ctrl+space, state=Pressed` |
+| Inicio de la acción | `TranscribeAction::start called for binding: transcribe` |
+| Micrófono | `opened Micrófono (3- Redragon Gaming Headset) (WASAPI) in 63 ms at 48000 Hz, 1 ch; delivering 16000 Hz, 1 ch` |
+| VAD | `Initialized Silero VAD backend (512 samples/frame)` |
+| Indicador de bandeja | `tray apply: icon=resources/tray_recording.png` (icono propio de Dixi) |
+| Overlay | `overlay 'recording': show=5.8ms` |
+| Modelo | `Loaded transcribe-cpp model 'handy-computer/whisper-base-gguf/whisper-base-Q8_0.gguf' … bound backend 'CPU'` |
+| Atajo de cancelar | `Registered handy-keys shortcut: cancel -> Hotkey { modifiers: 0x0, key: Some(Escape) }` |
+| Primer audio | `first audio arrived 33.3ms after the stream started` |
+
+Lo único que **no** puede validarse sin voz humana es el contenido del
+texto transcrito y su inserción en Notepad.
+
+### 12.4 El ASR sobre voz sintética es MUCHO peor de lo que sugería la Fase 2A
+
+Las 10 frases de prueba en español rioplatense se transcribieron con
+`whisper-base` sobre audio de `espeak-ng` (voz `es-419`). Resultado:
+
+| Frase | Esperado | Obtenido |
+|---|---|---|
+| F1 | Hola, esta es una prueba de dictado en español. | Hola, esta es la nueva emigrador en español. |
+| F2 | Fijate si podés revisar los logs del server antes de hacer el deploy. | Hídate si pone a mi brotha los logs总 se le van de si noethere el neploI, |
+| F5 | …porque ayer el log showed un timeout. | Que día preguntarte si el bacú EMS realizarme promuzc appeals porque ha hierv´ el log swegundos y mewhile |
+| F8 | El endpoint no responde, me parece que hay un timeout en el API gateway. | El endpoint no responde, me parece que hay un timel de la peiga de guay. |
+| F10 | Revisa el stack trace del error, asi vemos donde se rompe el endpoint. | Elisa el tacto hace el error, así vemos con ese rompe el endpoint. |
+
+Dos de diez frases son **basura** y varias se degradan a mitad. Los términos
+en inglés (`deploy`, `endpoint`, `logs`, `servidor`, `memoria`,
+`código`, `merge`) sí se reconocen.
+
+**Lectura honesta:** la voz sintética de espeak-ng es un **proxy pobre** del
+habla humana. La Fase 2A afirmó que la exactitud con voz humana "puede ser
+sensiblemente mejor" sin medirlo; esta validación muestra que **el margen
+es mayor todavía de lo que se suponía**. La exactitud real sigue **sin
+medir**: es precisamente lo que aporta la prueba manual con voz.
+
+### 12.5 Otros defectos encontrados
+
+| # | Defecto | Gravedad | Estado |
+|---|---|---|---|
+| D1 | El build de producción no habilitaba `custom-protocol`: la app arrancaba sin UI y **sin atajos** | **crítico** | corregido |
+| D2 | `<title>handy</title>` en `index.html` y clave de localStorage `handy.theme` | bajo | corregido |
+| D3 | `Failed to apply autostart setting (enabled=false)`: aviso espurio en cada arranque | bajo | abierto (upstream) |
+| D4 | El prompt de post-procesado por defecto se guarda **deformado** (mojibake cp1252) en el store | bajo | reparado con `patch-settings.mjs`; la causa está en el upstream |
+| D5 | El CLI y la app **comparten el mismo fichero de log**: las transcripciones del CLI se mezclan con las de la app | bajo | conocido; documentado en el arnés |
+| D6 | La RAM en reposo de la GUI (168 MB) supera el objetivo de 120 MB, por el runtime de WebView2 | medio | **documentado**; medir el caso "sólo bandeja" |
+| D7 | Sin `custom-protocol` no hay forma de saber que el binario está mal: no hay aviso | medio | mitigado con la nota del README y el [`[features]` del manifiesto] |
+
+### 12.6 Estado de la fusión hacia `develop`
+
+| Comprobación | Resultado |
+|---|---|
+| `develop` es ancestro de `feat/handy-foundation` | ✅ ⇒ la fusión es un **fast-forward**, sin conflictos |
+| Commits pendientes | 8 (más los de esta validación) |
+| `master` es ancestro de `develop` | ✅ (no se toca `master`) |
+| Conflictos previsibles | ninguno |
+
+La fusión **no se ejecuta** hasta que el usuario confirme que el dictado
+funciona con su voz: ese es el criterio de aceptación y sigue **pendiente**.
