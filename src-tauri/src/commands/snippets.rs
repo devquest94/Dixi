@@ -161,6 +161,25 @@ pub struct SnippetInputRequest {
     pub required: bool,
 }
 
+/// The snippets that compete for the same trigger phrase.
+///
+/// The winner is the first entry: the longest trigger, then the highest
+/// priority, then the alphabetically first. The UI shows the rest so the
+/// user can see which rule is winning.
+#[tauri::command]
+#[specta::specta]
+pub async fn list_competing_snippets(
+    _app: AppHandle,
+    snippet_manager: State<'_, Arc<SnippetManager>>,
+    trigger: String,
+) -> Result<Vec<String>, String> {
+    Ok(snippet_manager
+        .competing_rules(&trigger)
+        .into_iter()
+        .map(|rule| rule.needle)
+        .collect())
+}
+
 /// Writes the snippets to a JSON file the user chose.
 #[tauri::command]
 #[specta::specta]

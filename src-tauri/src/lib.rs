@@ -14,7 +14,11 @@ pub mod engine_supervisor;
 mod helpers;
 mod input;
 mod llm_client;
-mod managers;
+// The managers are part of the crate's public surface: several of their
+// methods (the constructors that take an explicit path, for instance) exist
+// for the tests, and a private module would make the compiler report them as
+// dead code.
+pub mod managers;
 mod memory;
 pub mod minimax;
 mod overlay;
@@ -226,29 +230,14 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     };
 
     // The writing profiles, the snippets, the transforms and the local
-    // history share ONE database (the personal store). Each manager opens it
-    // on its own connection; if it cannot be opened, none of them works, and
-    // that is reported once instead of five times.
-    let personal_db_path = crate::managers::personal_store::PersonalStore::new(app_handle)
-        .ok()
-        .map(|store| store.db_path().to_path_buf());
-
-    let profile_manager = personal_db_path
-        .as_ref()
-        .and_then(|path| ProfileManager::with_db_path(path.clone()).ok())
-        .map(Arc::new);
-    let snippet_manager = personal_db_path
-        .as_ref()
-        .and_then(|path| SnippetManager::with_db_path(path.clone()).ok())
-        .map(Arc::new);
-    let transform_manager = personal_db_path
-        .as_ref()
-        .and_then(|path| TransformManager::with_db_path(path.clone()).ok())
-        .map(Arc::new);
-    let text_history_manager = personal_db_path
-        .as_ref()
-        .and_then(|path| TextHistoryManager::with_db_path(path.clone()).ok())
-        .map(Arc::new);
+    // history share ONE database (the personal store), the same one the
+    // dictionary uses. Each manager opens it on its own connection; if it
+    // cannot be opened, none of them works, and that is reported once
+    // instead of five times.
+    let profile_manager = ProfileManager::new(app_handle).ok().map(Arc::new);
+    let snippet_manager = SnippetManager::new(app_handle).ok().map(Arc::new);
+    let transform_manager = TransformManager::new(app_handle).ok().map(Arc::new);
+    let text_history_manager = TextHistoryManager::new(app_handle).ok().map(Arc::new);
 
     if profile_manager.is_none() {
         log::warn!("The writing profiles are unavailable: the personal database could not be opened");
@@ -842,6 +831,8 @@ pub fn run(cli_args: CliArgs) {
             commands::dictionary::get_dictionary_vocabulary,
             commands::dictionary::apply_dictionary_substitutions,
             commands::profiles::get_foreground_app,
+            commands::profiles::match_foreground_app,
+            commands::profiles::list_known_app_names,
             commands::profiles::list_writing_styles,
             commands::profiles::add_writing_style,
             commands::profiles::update_writing_style,
@@ -862,9 +853,11 @@ pub fn run(cli_args: CliArgs) {
             commands::snippets::set_snippet_enabled,
             commands::snippets::get_snippet_vocabulary,
             commands::snippets::expand_snippet,
+            commands::snippets::list_competing_snippets,
             commands::snippets::export_snippets,
             commands::snippets::import_snippets_from_file,
             commands::transforms::list_transforms,
+            commands::transforms::list_builtin_transforms,
             commands::transforms::add_transform,
             commands::transforms::update_transform,
             commands::transforms::delete_transform,
@@ -872,6 +865,7 @@ pub fn run(cli_args: CliArgs) {
             commands::transforms::run_transform,
             commands::transforms::get_transform_provider,
             commands::text_history::list_text_history,
+            commands::text_history::get_text_history_entry,
             commands::text_history::record_text_history,
             commands::text_history::last_undoable_change,
             commands::text_history::mark_text_change_undone,

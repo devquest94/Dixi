@@ -1080,6 +1080,545 @@ async applyDictionarySubstitutions(text: string, scope: string | null) : Promise
 }
 },
 /**
+ * The application that has the focus, when it can be determined.
+ */
+async getForegroundApp() : Promise<Result<ForegroundAppInfo | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_foreground_app") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Which of the given applications is the one that has the focus.
+ * 
+ * The comparison ignores the extension and the case, so `chrome` matches
+ * `chrome.exe`.
+ */
+async matchForegroundApp(names: string[]) : Promise<Result<string | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("match_foreground_app", { names }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The application names the profiles already know about.
+ * 
+ * It is a suggestion list for the user, not a registry: Dixi never
+ * enumerates the installed applications.
+ */
+async listKnownAppNames() : Promise<Result<string[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_known_app_names") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Every writing style.
+ */
+async listWritingStyles() : Promise<Result<WritingStyle[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_writing_styles") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Adds a custom writing style.
+ */
+async addWritingStyle(style: WritingStyleInput) : Promise<Result<WritingStyle, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("add_writing_style", { style }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Updates a writing style.
+ */
+async updateWritingStyle(id: string, style: WritingStyleInput) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("update_writing_style", { id, style }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Deletes a custom writing style.
+ */
+async deleteWritingStyle(id: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("delete_writing_style", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Every writing profile.
+ */
+async listWritingProfiles() : Promise<Result<WritingProfile[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_writing_profiles") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Adds a custom writing profile.
+ */
+async addWritingProfile(profile: WritingProfileInput) : Promise<Result<WritingProfile, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("add_writing_profile", { profile }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Updates a writing profile.
+ */
+async updateWritingProfile(id: string, profile: WritingProfileInput) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("update_writing_profile", { id, profile }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Deletes a custom writing profile.
+ */
+async deleteWritingProfile(id: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("delete_writing_profile", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Every rule bound to a specific application.
+ */
+async listProfileOverrides() : Promise<Result<ProfileOverride[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_profile_overrides") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Binds a rule to an application.
+ */
+async addProfileOverride(profileId: string, scopeValue: string, styleId: string | null, cleanupLevel: CleanupLevel | null) : Promise<Result<ProfileOverride, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("add_profile_override", { profileId, scopeValue, styleId, cleanupLevel }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Removes a rule bound to an application.
+ */
+async deleteProfileOverride(id: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("delete_profile_override", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The configuration that applies to one dictation.
+ * 
+ * `app_name` is the detected application; `manual_override` is a profile
+ * the user chose for this session only.
+ */
+async resolveWritingProfile(appName: string | null, manualOverride: string | null) : Promise<Result<EffectiveProfileInfo, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("resolve_writing_profile", { appName, manualOverride }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Every snippet, favourites first.
+ */
+async listSnippets() : Promise<Result<Snippet[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_snippets") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Adds a snippet.
+ */
+async addSnippet(snippet: SnippetInput) : Promise<Result<Snippet, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("add_snippet", { snippet }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Updates a snippet.
+ */
+async updateSnippet(id: string, snippet: SnippetInput) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("update_snippet", { id, snippet }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Deletes a snippet.
+ */
+async deleteSnippet(id: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("delete_snippet", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Stars or unstars a snippet.
+ */
+async setSnippetFavorite(id: string, favorite: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_snippet_favorite", { id, favorite }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Enables or disables a snippet.
+ */
+async setSnippetEnabled(id: string, enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_snippet_enabled", { id, enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The trigger phrases of the snippets that apply.
+ * 
+ * These are the phrases the ASR engine hears as vocabulary, so it can
+ * transcribe them correctly.
+ */
+async getSnippetVocabulary(appName: string | null, language: string | null) : Promise<Result<string[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_snippet_vocabulary", { appName, language }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Expands a snippet in a piece of text.
+ * 
+ * When the snippet needs a variable the user has not supplied, the answer
+ * says which one is missing: nothing is expanded until it is answered, so a
+ * fragment is never pasted half resolved.
+ */
+async expandSnippet(text: string, values: Partial<{ [key in string]: string }>, appName: string | null, language: string | null) : Promise<Result<SnippetExpansionResult, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("expand_snippet", { text, values, appName, language }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The snippets that compete for the same trigger phrase.
+ * 
+ * The winner is the first entry: the longest trigger, then the highest
+ * priority, then the alphabetically first. The UI shows the rest so the
+ * user can see which rule is winning.
+ */
+async listCompetingSnippets(trigger: string) : Promise<Result<string[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_competing_snippets", { trigger }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Writes the snippets to a JSON file the user chose.
+ */
+async exportSnippets(path: string, overwrite: boolean) : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("export_snippets", { path, overwrite }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Adds the snippets contained in a JSON file the user chose.
+ */
+async importSnippetsFromFile(path: string) : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("import_snippets_from_file", { path }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Every transform: the built-in catalogue and the custom ones.
+ */
+async listTransforms() : Promise<Result<Transform[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_transforms") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The built-in catalogue of transforms.
+ * 
+ * It is returned apart so the UI can offer the built-ins as a reference
+ * while the user writes their own.
+ */
+async listBuiltinTransforms() : Promise<Result<Transform[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_builtin_transforms") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Adds a custom transform.
+ */
+async addTransform(transform: TransformInput) : Promise<Result<Transform, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("add_transform", { transform }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Updates a transform.
+ */
+async updateTransform(id: string, transform: TransformInput) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("update_transform", { id, transform }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Deletes a custom transform. A built-in one can only be disabled.
+ */
+async deleteTransform(id: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("delete_transform", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Enables or disables a transform.
+ */
+async setTransformEnabled(id: string, enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_transform_enabled", { id, enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Runs a transform over a piece of text.
+ * 
+ * The original text is returned unchanged when anything goes wrong: the
+ * provider failed, the quota ran out, the connection dropped or the answer
+ * came back empty. The reason is reported apart, and never mixed into the
+ * text.
+ */
+async runTransform(id: string, text: string) : Promise<Result<TransformRunResult, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("run_transform", { id, text }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The provider a transform would use, so the UI can show it.
+ */
+async getTransformProvider(id: string) : Promise<Result<PostProcessProvider | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_transform_provider", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The local history of the text changes Dixi made.
+ */
+async listTextHistory(limit: number | null) : Promise<Result<TextHistoryEntry[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_text_history", { limit }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * One entry of the history.
+ */
+async getTextHistoryEntry(id: number) : Promise<Result<TextHistoryEntry | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_text_history_entry", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Records a change, so it can be reverted.
+ */
+async recordTextHistory(kind: HistoryKind, sourceId: string | null, appName: string | null, originalText: string, resultText: string) : Promise<Result<number | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("record_text_history", { kind, sourceId, appName, originalText, resultText }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The most recent change that can still be reverted.
+ */
+async lastUndoableChange() : Promise<Result<TextHistoryEntry | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("last_undoable_change") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Marks a change as reverted.
+ */
+async markTextChangeUndone(id: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("mark_text_change_undone", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Empties the local history.
+ */
+async clearTextHistory() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("clear_text_history") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * How long the history is kept, in days.
+ */
+async getTextHistoryRetention() : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_text_history_retention") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Sets how long the history is kept, in days. Zero means "until it is cleared".
+ */
+async setTextHistoryRetention(days: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_text_history_retention", { days }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Removes the entries that are older than the retention.
+ */
+async purgeTextHistory() : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("purge_text_history") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Compares two texts word by word.
+ * 
+ * This is what the user sees before a transformation replaces something.
+ */
+async diffText(original: string, result: string) : Promise<Result<TextDiffInfo, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("diff_text", { original, result }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The text that is selected in the application that has the focus.
+ */
+async captureSelection() : Promise<Result<SelectionInfo, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("capture_selection") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Replaces the selection, but only if it is still the one that was read.
+ * 
+ * When the selection changed while the transformation was running, nothing
+ * is written: the caller offers to copy the result instead.
+ */
+async replaceTextSelection(expectedText: string, expectedWindow: number, newText: string) : Promise<Result<boolean, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("replace_text_selection", { expectedText, expectedWindow, newText }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
  * Stub implementation for non-macOS platforms
  * Always returns false since laptop detection is macOS-specific
  */
@@ -1211,6 +1750,22 @@ export type ChineseScript =
  * Keep whatever script the model produced.
  */
 "as_transcribed" | "simplified" | "traditional"
+/**
+ * How aggressively the transcript is cleaned up.
+ */
+export type CleanupLevel = 
+/**
+ * Nothing is removed. The transcript is pasted as it came.
+ */
+"none" | 
+/**
+ * Fillers and repetitions are removed, and nothing else changes.
+ */
+"light" | 
+/**
+ * Fillers, repetitions and the obvious punctuation mistakes are fixed.
+ */
+"medium"
 export type ClipboardHandling = "dont_modify" | "copy_to_clipboard"
 export type CustomSounds = { start: boolean; stop: boolean }
 /**
@@ -1266,8 +1821,72 @@ export type DictionaryEntryKind =
  * Rewrites the transcript after transcription.
  */
 "substitution"
+/**
+ * One part of a diff.
+ */
+export type DiffSegmentInfo = { 
+/**
+ * `equal`, `inserted` or `removed`.
+ */
+kind: string; text: string }
+/**
+ * The configuration that applies to one dictation.
+ */
+export type EffectiveProfileInfo = { profile_id: string; profile_name: string; style_id: string; style_name: string; cleanup_level: CleanupLevel; ai_cleanup: boolean; format_rules: FormatRule[]; language: string | null; origin: ProfileOrigin }
+/**
+ * What is known about the application that has the focus.
+ */
+export type ForegroundAppInfo = { 
+/**
+ * The executable name, lowercased.
+ */
+process_name: string; 
+/**
+ * The title of the window, when it could be read.
+ */
+window_title: string | null }
+/**
+ * A deterministic rule applied to the text before it is pasted.
+ * 
+ * These rules are purely mechanical: they never need to understand the
+ * meaning of the text. Anything that does is a *transform*, and it needs an
+ * explicitly enabled LLM provider.
+ */
+export type FormatRule = 
+/**
+ * Capitalizes the first letter of every sentence.
+ */
+"capitalizeSentences" | 
+/**
+ * Makes sure the text ends with a full stop.
+ */
+"ensureFinalPeriod" | 
+/**
+ * Collapses runs of spaces into one.
+ */
+"collapseSpaces" | 
+/**
+ * Removes the space before a comma, a full stop or a closing bracket.
+ */
+"spaceBeforePunctuation"
 export type GpuDeviceOption = { id: string; name: string; total_vram_mb: number }
 export type HistoryEntry = { id: number; file_name: string; timestamp: number; saved: boolean; title: string; transcription_text: string; post_processed_text: string | null; post_process_prompt: string | null; post_process_requested: boolean }
+/**
+ * The kind of change that was recorded.
+ */
+export type HistoryKind = 
+/**
+ * A transform of an existing text.
+ */
+"transform" | 
+/**
+ * The expansion of a snippet.
+ */
+"snippet" | 
+/**
+ * A cleanup of the transcription.
+ */
+"cleanup"
 export type HistoryUpdatePayload = { action: "added"; entry: HistoryEntry } | { action: "updated"; entry: HistoryEntry } | { action: "deleted"; id: number } | { action: "toggled"; id: number }
 /**
  * Result of changing keyboard implementation
@@ -1342,6 +1961,50 @@ export type PostProcessProvider = { id: string; label: string; base_url: string;
  * (`low`, `medium`, `high`, `xhigh`, `max`). Only MiniMax does today.
  */
 supports_reasoning_effort?: boolean; api_format?: PostProcessApiFormat }
+/**
+ * Whether a style is one of the built-in ones.
+ */
+export type ProfileKind = "builtin" | "custom"
+/**
+ * Where the effective configuration came from.
+ */
+export type ProfileOrigin = 
+/**
+ * A manual override for this session: the user chose it explicitly.
+ */
+"manualOverride" | 
+/**
+ * A rule bound to the detected application.
+ */
+"appOverride" | 
+/**
+ * The profile that matched the detected application.
+ */
+"detectedProfile" | 
+/**
+ * Nothing matched: the global configuration applies.
+ */
+"global"
+/**
+ * A rule bound to one specific application.
+ */
+export type ProfileOverride = { id: string; profile_id: string; 
+/**
+ * What the rule is bound to. Only `app` is supported for now.
+ */
+scope_kind: string; 
+/**
+ * The executable name the rule applies to.
+ */
+scope_value: string; 
+/**
+ * The style this rule forces, when it forces one.
+ */
+style_id: string | null; 
+/**
+ * The cleanup level this rule forces, when it forces one.
+ */
+cleanup_level: CleanupLevel | null; created_at: number; updated_at: number }
 export type RecordingRetentionPeriod = "never" | "preserve_limit" | "days_3" | "weeks_2" | "months_3"
 /**
  * A retired ONNX model found on disk.
@@ -1381,6 +2044,26 @@ uncovered_bindings: string[];
  */
 recorder_blocked: boolean }
 /**
+ * A selection, ready to be shown.
+ */
+export type SelectionInfo = { 
+/**
+ * The selected text. Empty when nothing was selected.
+ */
+text: string; 
+/**
+ * The handle of the window that had the focus.
+ */
+window: number; 
+/**
+ * The handle of the focused control.
+ */
+control: number; 
+/**
+ * The name of the executable, when it could be read.
+ */
+app_name: string | null }
+/**
  * How the transcribe shortcut's key events drive a recording.
  */
 export type ShortcutActivation = 
@@ -1399,6 +2082,142 @@ export type ShortcutActivation =
  */
 "hold_or_toggle"
 export type ShortcutBinding = { id: string; name: string; description: string; default_binding: string; current_binding: string }
+/**
+ * A stored snippet.
+ */
+export type Snippet = { 
+/**
+ * The identifier of the snippet.
+ */
+id: string; 
+/**
+ * The name the user gave to the snippet.
+ */
+name: string; 
+/**
+ * The phrase that triggers the expansion.
+ */
+trigger_phrase: string; 
+/**
+ * The text written in place of the trigger, as a template.
+ */
+expansion: string; 
+/**
+ * The variables the template may use.
+ */
+variables: SnippetVariable[]; 
+/**
+ * The folder the snippet belongs to, when the user groups them.
+ */
+category: string | null; 
+/**
+ * The applications the snippet applies to. Empty means "everywhere".
+ */
+app_names: string[]; 
+/**
+ * The language the snippet applies to. Empty means "every language".
+ */
+language: string | null; 
+/**
+ * Whether the snippet is starred.
+ */
+is_favorite: boolean; 
+/**
+ * Whether the snippet is used at all.
+ */
+enabled: boolean; 
+/**
+ * How many times the snippet was expanded.
+ */
+usage_count: number; 
+/**
+ * When the snippet was created, in milliseconds since the epoch.
+ */
+created_at: number; 
+/**
+ * When the snippet was changed, in milliseconds since the epoch.
+ */
+updated_at: number }
+/**
+ * The result of expanding a snippet.
+ */
+export type SnippetExpansionResult = { 
+/**
+ * The expanded text, or the original text when nothing was expanded.
+ */
+text: string; 
+/**
+ * Whether a snippet was expanded.
+ */
+expanded: boolean; 
+/**
+ * The variable the user has to answer before the expansion can happen.
+ */
+needs_input: SnippetInputRequest | null }
+/**
+ * The writable fields of a snippet.
+ */
+export type SnippetInput = { 
+/**
+ * The name the user gave to the snippet.
+ */
+name: string; 
+/**
+ * The phrase that triggers the expansion.
+ */
+trigger_phrase: string; 
+/**
+ * The text written in place of the trigger, as a template.
+ */
+expansion: string; 
+/**
+ * The variables the template may use.
+ */
+variables?: SnippetVariable[]; 
+/**
+ * The folder the snippet belongs to.
+ */
+category?: string | null; 
+/**
+ * The applications the snippet applies to. Empty means "everywhere".
+ */
+app_names?: string[]; 
+/**
+ * The language the snippet applies to.
+ */
+language?: string | null; 
+/**
+ * Whether the snippet is starred.
+ */
+is_favorite?: boolean; 
+/**
+ * Whether the snippet is used at all.
+ */
+enabled?: boolean }
+/**
+ * A variable the user has to answer.
+ */
+export type SnippetInputRequest = { snippet_id: string; variable_name: string; 
+/**
+ * The text to show the user when asking for the value.
+ */
+prompt: string; required: boolean }
+/**
+ * A placeholder inside an expansion.
+ */
+export type SnippetVariable = { 
+/**
+ * The name used in the template: `{name}`.
+ */
+name: string; 
+/**
+ * Whether the expansion must stop until the value is known.
+ */
+required?: boolean; 
+/**
+ * The question to ask when the value is missing.
+ */
+prompt?: string }
 export type SoundTheme = "marimba" | "pop" | "custom"
 /**
  * Phase of the streaming overlay card, emitted to drive its UI state.
@@ -1433,14 +2252,145 @@ export type StreamTextEvent = { committed: string; tentative: string }
  */
 export type StreamWorkKind = "transcribing" | "polishing"
 /**
+ * A word-level diff, ready to be shown.
+ */
+export type TextDiffInfo = { segments: DiffSegmentInfo[]; inserted_words: number; removed_words: number; identical: boolean; 
+/**
+ * The text as it would read with the changes applied.
+ */
+result_text: string }
+/**
+ * One recorded change.
+ */
+export type TextHistoryEntry = { id: number; created_at: number; 
+/**
+ * The application the change was made in, when it was known.
+ */
+app_name: string | null; kind: HistoryKind; 
+/**
+ * The transform or snippet that caused the change.
+ */
+source_id: string | null; 
+/**
+ * The text before the change.
+ */
+original_text: string; 
+/**
+ * The text after the change.
+ */
+result_text: string; 
+/**
+ * Whether the change was already reverted.
+ */
+undone: boolean }
+/**
  * UI appearance mode. `System` follows the OS `prefers-color-scheme`; `Light`
  * and `Dark` force one of the two palettes Handy already ships.
  */
 export type Theme = "system" | "light" | "dark"
 export type TranscribeAcceleratorSetting = "auto" | "cpu" | "gpu"
+/**
+ * A stored transform.
+ */
+export type Transform = { id: string; name: string; kind: TransformKind; 
+/**
+ * The instruction sent to the model.
+ */
+prompt: string; 
+/**
+ * The provider this transform prefers. `None` means "the provider the
+ * caller passes".
+ */
+provider_id: string | null; 
+/**
+ * The model this transform pins. `None` means
+ * [`DEFAULT_TRANSFORM_MODEL`].
+ */
+model: string | null; shortcut: string | null; category: string | null; enabled: boolean; usage_count: number; created_at: number; updated_at: number }
+/**
+ * The writable fields of a transform.
+ */
+export type TransformInput = { name: string; prompt: string; provider_id: string | null; model: string | null; shortcut: string | null; category: string | null; enabled: boolean }
+/**
+ * What a transform is: part of the shipped catalogue, or written by the user.
+ */
+export type TransformKind = 
+/**
+ * Shipped with the app. Can be disabled, never deleted or renamed.
+ */
+"builtin" | 
+/**
+ * Written by the user. Can be edited and deleted.
+ */
+"custom"
+/**
+ * The result of running a transform.
+ */
+export type TransformRunResult = { 
+/**
+ * The transformed text, or the original text when it failed.
+ */
+text: string; 
+/**
+ * Whether the text was actually modified.
+ */
+changed: boolean; 
+/**
+ * Why it failed, when it failed.
+ */
+error: string | null }
 export type TypingTool = "auto" | "wtype" | "kwtype" | "dotool" | "ydotool" | "xdotool"
 export type VadBackend = "silero" | "earshot"
 export type WindowsMicrophonePermissionStatus = { supported: boolean; overall_access: PermissionAccess; device_access: PermissionAccess; app_access: PermissionAccess; desktop_app_access: PermissionAccess }
+/**
+ * A writing profile: a set of applications plus how to write in them.
+ */
+export type WritingProfile = { id: string; name: string; kind: ProfileKind; 
+/**
+ * The applications this profile applies to, by executable name.
+ * Empty means "everywhere", which is what the fallback profile uses.
+ */
+app_names: string[]; 
+/**
+ * The preferred language, when the profile forces one.
+ */
+language: string | null; 
+/**
+ * The style this profile points at.
+ */
+style_id: string; 
+/**
+ * Overrides the cleanup level of the style when present.
+ */
+cleanup_level: CleanupLevel | null; 
+/**
+ * Overrides the AI cleanup flag of the style when present.
+ */
+ai_cleanup: boolean | null; 
+/**
+ * Overrides the format rules of the style when present.
+ */
+format_rules: FormatRule[] | null; enabled: boolean; created_at: number; updated_at: number }
+/**
+ * The writable fields of a writing profile.
+ */
+export type WritingProfileInput = { name: string; app_names: string[]; language: string | null; style_id: string; cleanup_level: CleanupLevel | null; ai_cleanup: boolean | null; format_rules: FormatRule[] | null; enabled: boolean }
+/**
+ * A writing style.
+ */
+export type WritingStyle = { id: string; name: string; kind: ProfileKind; 
+/**
+ * The instruction sent to the model when the AI cleanup is enabled.
+ */
+base_prompt: string; cleanup_level: CleanupLevel; 
+/**
+ * Whether the AI cleanup may be used with this style.
+ */
+ai_cleanup: boolean; format_rules: FormatRule[]; enabled: boolean; created_at: number; updated_at: number }
+/**
+ * The writable fields of a writing style.
+ */
+export type WritingStyleInput = { name: string; base_prompt: string; cleanup_level: CleanupLevel; ai_cleanup: boolean; format_rules: FormatRule[]; enabled: boolean }
 
 /** tauri-specta globals **/
 

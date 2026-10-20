@@ -25,6 +25,19 @@ pub struct ForegroundAppInfo {
     pub window_title: Option<String>,
 }
 
+/// Which of the given applications is the one that has the focus.
+///
+/// The comparison ignores the extension and the case, so `chrome` matches
+/// `chrome.exe`.
+#[tauri::command]
+#[specta::specta]
+pub async fn match_foreground_app(names: Vec<String>) -> Result<Option<String>, String> {
+    let Some(foreground) = foreground_app() else {
+        return Ok(None);
+    };
+    Ok(names.into_iter().find(|name| foreground.matches(name)))
+}
+
 /// Every writing style.
 #[tauri::command]
 #[specta::specta]
@@ -121,6 +134,21 @@ pub async fn list_profile_overrides(
     profile_manager: State<'_, Arc<ProfileManager>>,
 ) -> Result<Vec<ProfileOverride>, String> {
     Ok(profile_manager.overrides())
+}
+
+/// The application names the profiles already know about.
+///
+/// It is a suggestion list for the user, not a registry: Dixi never
+/// enumerates the installed applications.
+#[tauri::command]
+#[specta::specta]
+pub async fn list_known_app_names(
+    _app: AppHandle,
+    profile_manager: State<'_, Arc<ProfileManager>>,
+) -> Result<Vec<String>, String> {
+    Ok(crate::managers::profiles::known_app_names(
+        &profile_manager.profiles(),
+    ))
 }
 
 /// Binds a rule to an application.

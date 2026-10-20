@@ -13,6 +13,16 @@ pub async fn list_transforms(
     Ok(transform_manager.list())
 }
 
+/// The built-in catalogue of transforms.
+///
+/// It is returned apart so the UI can offer the built-ins as a reference
+/// while the user writes their own.
+#[tauri::command]
+#[specta::specta]
+pub async fn list_builtin_transforms() -> Result<Vec<Transform>, String> {
+    Ok(TransformManager::builtin_catalogue())
+}
+
 /// Adds a custom transform.
 #[tauri::command]
 #[specta::specta]

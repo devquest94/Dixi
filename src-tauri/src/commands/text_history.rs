@@ -56,6 +56,17 @@ pub async fn mark_text_change_undone(
     history_manager.mark_undone(id)
 }
 
+/// One entry of the history.
+#[tauri::command]
+#[specta::specta]
+pub async fn get_text_history_entry(
+    _app: AppHandle,
+    history_manager: State<'_, Arc<TextHistoryManager>>,
+    id: i64,
+) -> Result<Option<TextHistoryEntry>, String> {
+    Ok(history_manager.get(id))
+}
+
 /// Empties the local history.
 #[tauri::command]
 #[specta::specta]
@@ -107,6 +118,7 @@ pub async fn diff_text(original: String, result: String) -> Result<TextDiffInfo,
     let inserted_words = diff.inserted_words;
     let removed_words = diff.removed_words;
     let identical = diff.is_identical();
+    let result_text = diff.result_text();
     Ok(TextDiffInfo {
         segments: diff
             .segments
@@ -124,6 +136,7 @@ pub async fn diff_text(original: String, result: String) -> Result<TextDiffInfo,
         inserted_words,
         removed_words,
         identical,
+        result_text,
     })
 }
 
@@ -134,6 +147,8 @@ pub struct TextDiffInfo {
     pub inserted_words: usize,
     pub removed_words: usize,
     pub identical: bool,
+    /// The text as it would read with the changes applied.
+    pub result_text: String,
 }
 
 /// One part of a diff.
