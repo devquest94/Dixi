@@ -695,6 +695,29 @@ pub fn change_selected_language_setting(app: AppHandle, language: String) -> Res
     Ok(())
 }
 
+/// Sets the transcription context: the free-text hint handed to the engine
+/// as its initial prompt (the language the user speaks, the domain they work
+/// in, or a sample of how their dictation reads).
+#[tauri::command]
+#[specta::specta]
+pub fn change_transcription_context_setting(
+    app: AppHandle,
+    context: String,
+) -> Result<(), String> {
+    let trimmed = context.trim();
+    if trimmed.chars().count() > crate::settings::MAX_TRANSCRIPTION_CONTEXT_LENGTH {
+        return Err(format!(
+            "The transcription context cannot be longer than {} characters",
+            crate::settings::MAX_TRANSCRIPTION_CONTEXT_LENGTH
+        ));
+    }
+
+    let mut settings = settings::get_settings(&app);
+    settings.transcription_context = trimmed.to_string();
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
 #[tauri::command]
 #[specta::specta]
 pub fn change_overlay_position_setting(app: AppHandle, position: String) -> Result<(), String> {

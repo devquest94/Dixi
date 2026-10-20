@@ -1236,6 +1236,11 @@ fn run_setup(info: &LoadedInfo, settings: &AppSettings, validated_language: &str
         language: run_plan.language,
         target_language: run_plan.target_language,
         vocabulary: vocabulary_for_model(info.supports_vocabulary, &settings.custom_words),
+        prompt: initial_prompt_for_model(
+            info.supports_initial_prompt,
+            &settings.transcription_context,
+            &settings.custom_words,
+        ),
         ..Default::default()
     };
 
@@ -1484,6 +1489,48 @@ fn vocabulary_for_model(supports_vocabulary: bool, custom_words: &[String]) -> V
     } else {
         Vec::new()
     }
+}
+
+/// The initial prompt (context hint) for models that accept one.
+///
+/// Whisper-family models take a short prompt that biases the decoder towards
+/// a language and a vocabulary. Dixi builds it from the user's transcription
+/// context plus the very terms it already sends as vocabulary, so the two
+/// never contradict each other.
+///
+/// A model that does not advertise the capability gets `None`: sending an
+/// unsupported prompt makes the engine warn on every single run.
+fn initial_prompt_for_model(
+    supports_initial_prompt: bool,
+    context: &str,
+    custom_words: &[String],
+) -> Option<String> {
+    if !supports_initial_prompt {
+        return None;
+    }
+
+    let context = context.trim();
+    let terms: Vec<&str> = custom_words
+        .iter()
+        .map(|word| word.trim())
+        .filter(|word| !word.is_empty())
+        .collect();
+
+    if context.is_empty() && terms.is_empty() {
+        return None;
+    }
+
+    let mut prompt = String::new();
+    if !context.is_empty() {
+        prompt.push_str(context);
+    }
+    if !terms.is_empty() {
+        if !prompt.is_empty() {
+            prompt.push('\n');
+        }
+        prompt.push_str(&terms.join(", "));
+    }
+    Some(prompt)
 }
 
 struct TranscribeCppRunPlan {

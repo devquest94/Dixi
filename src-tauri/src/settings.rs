@@ -441,6 +441,12 @@ pub struct AppSettings {
     pub log_level: LogLevel,
     #[serde(default)]
     pub custom_words: Vec<String>,
+    /// Free-text context handed to the engine as its initial prompt: the
+    /// language the user speaks, the domain they work in, or a sample of how
+    /// their dictation reads. Only models that advertise the initial-prompt
+    /// capability receive it.
+    #[serde(default)]
+    pub transcription_context: String,
     #[serde(default)]
     pub model_unload_timeout: ModelUnloadTimeout,
     #[serde(default = "default_word_correction_threshold")]
@@ -906,6 +912,11 @@ fn ensure_post_process_defaults(settings: &mut AppSettings) -> bool {
 
 pub const SETTINGS_STORE_PATH: &str = "settings_store.json";
 
+/// Maximum length of the transcription context (the engine's initial prompt),
+/// in characters. The prompt is prepended to every run, so a very long one
+/// would slow every single transcription down.
+pub const MAX_TRANSCRIPTION_CONTEXT_LENGTH: usize = 500;
+
 pub fn get_default_settings() -> AppSettings {
     #[cfg(target_os = "windows")]
     let default_shortcut = "ctrl+space";
@@ -984,6 +995,7 @@ pub fn get_default_settings() -> AppSettings {
         debug_mode: false,
         log_level: default_log_level(),
         custom_words: Vec::new(),
+        transcription_context: String::new(),
         model_unload_timeout: ModelUnloadTimeout::default(),
         word_correction_threshold: default_word_correction_threshold(),
         history_limit: default_history_limit(),
@@ -1409,6 +1421,7 @@ mod tests {
             "debug_mode": false,
             "log_level": 2,
             "custom_words": ["Dixi", "cjpais"],
+            "transcription_context": "",
             "model_unload_timeout": "min5",
             "word_correction_threshold": 0.18,
             "history_limit": 5,
