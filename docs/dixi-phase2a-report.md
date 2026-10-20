@@ -655,14 +655,15 @@ defecto que solo aparece al ejecutar la aplicación de verdad.
 Medido con `scripts/measure-dixi-tree.ps1` (árbol por PID padre: app +
 WebView2 + worker de ASR), con la máquina descargada:
 
-| Magnitud | Reposo (GUI, sin modelo) | Durante la transcripción |
+| Magnitud | Build de depuracion | **Build release (produccion)** |
 |---|---|---|
-| RAM privada del árbol | **168,5 MB** (media) | pendiente de la prueba con voz |
-| — de los cuales WebView2 | 160,6 MB | |
-| — de los cuales `dixi.exe` | 7,3 MB | |
-| Working set del árbol | 312,8 MB | |
-| CPU del árbol | **0,0 %** (media y máximo) | |
-| Procesos del árbol | 7 | |
+| RAM privada del arbol | 168,5 MB (media) | **227,6 MB** (media) / 232,4 MB (max) |
+| - de los cuales WebView2 | 160,6 MB | ~220 MB |
+| - de los cuales `dixi.exe` | 7,3 MB | ~7 MB |
+| Working set del arbol | 312,8 MB | 398,2 MB |
+| CPU del arbol | **0,0 %** (media) | 1,9 % (media), picos aislados de 26,7 % |
+| Procesos del arbol | 7 | 8 |
+| Durante la transcripcion | - | pendiente de la prueba con voz |
 
 **Objetivo de RAM en reposo (< 120 MB): NO se cumple con la interfaz
 gráfica abierta.** Se cumple de sobra para la aplicación pura sin WebView2
