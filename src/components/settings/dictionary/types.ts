@@ -1,41 +1,18 @@
 /**
  * Domain types for the personal dictionary.
  *
- * They mirror the shapes the Rust backend exposes through the Tauri commands.
- * They are declared here so the UI can be built before `src/bindings.ts` is
- * regenerated with the dictionary commands; the shapes are identical, so the
- * generated types can replace them without touching the components.
+ * The shapes come from the generated IPC bindings, so the frontend and the
+ * Rust backend cannot drift apart: `src/bindings.ts` is regenerated from the
+ * Rust command registry with `dixi.exe --export-bindings`.
  */
 
-export type DictionaryEntryKind = "term" | "substitution";
+import type {
+  DictionaryEntry,
+  DictionaryEntryInput,
+  DictionaryEntryKind,
+} from "@/bindings";
 
-export type DictionaryEntry = {
-  id: number;
-  term: string;
-  replacement: string;
-  kind: DictionaryEntryKind;
-  enabled: boolean;
-  scope: string;
-  case_sensitive: boolean;
-  whole_word: boolean;
-  hit_count: number;
-  created_at: number;
-  updated_at: number;
-  priority: number;
-  language: string | null;
-};
-
-export type DictionaryEntryInput = {
-  term: string;
-  replacement: string;
-  kind: DictionaryEntryKind;
-  enabled?: boolean;
-  scope?: string;
-  case_sensitive?: boolean;
-  whole_word?: boolean;
-  priority?: number;
-  language?: string | null;
-};
+export type { DictionaryEntry, DictionaryEntryInput, DictionaryEntryKind };
 
 /** Scope used when the backend has to fall back to a default. */
 export const DICTIONARY_GLOBAL_SCOPE = "global";
