@@ -16,9 +16,11 @@ mod input;
 mod llm_client;
 mod managers;
 mod memory;
+pub mod minimax;
 mod overlay;
 mod paste_tx;
 pub mod portable;
+mod release_contract;
 mod secure_input;
 mod settings;
 mod shortcut;
@@ -29,13 +31,13 @@ mod tray_i18n;
 mod utils;
 
 pub use cli::CliArgs;
-#[cfg(debug_assertions)]
 use specta_typescript::{BigIntExportBehavior, Typescript};
 use tauri_specta::{collect_commands, collect_events, Builder};
 pub use utils::env_flag_enabled;
 
 use env_filter::Builder as EnvFilterBuilder;
 use managers::audio::AudioRecordingManager;
+use managers::dictionary::DictionaryManager;
 use managers::history::HistoryManager;
 use managers::model::ModelManager;
 use managers::transcription::TranscriptionManager;
@@ -207,12 +209,25 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     );
     let history_manager =
         Arc::new(HistoryManager::new(app_handle).expect("Failed to initialize history manager"));
+    // The dictionary is optional infrastructure: a failure to open its
+    // database must not stop the app from starting, because everything except
+    // the dictionary works fine without it.
+    let dictionary_manager = match DictionaryManager::new(app_handle) {
+        Ok(manager) => Some(Arc::new(manager)),
+        Err(e) => {
+            log::warn!("Failed to initialize the personal dictionary: {e}");
+            None
+        }
+    };
 
     // Add managers to Tauri's managed state
     app_handle.manage(recording_manager.clone());
     app_handle.manage(model_manager.clone());
     app_handle.manage(transcription_manager.clone());
     app_handle.manage(history_manager.clone());
+    if let Some(manager) = dictionary_manager {
+        app_handle.manage(manager);
+    }
     app_handle.manage(tray::TrayState::new());
 
     // Note: Shortcuts are NOT initialized here.
@@ -661,6 +676,7 @@ pub fn run(cli_args: CliArgs) {
             shortcut::change_autostart_setting,
             shortcut::change_translate_to_english_setting,
             shortcut::change_selected_language_setting,
+            shortcut::change_transcription_context_setting,
             shortcut::change_overlay_position_setting,
             shortcut::change_overlay_style_setting,
             shortcut::change_debug_mode_setting,
@@ -768,6 +784,16 @@ pub fn run(cli_args: CliArgs) {
             commands::history::retry_history_entry_transcription,
             commands::history::update_history_limit,
             commands::history::update_recording_retention_period,
+            commands::dictionary::list_dictionary_entries,
+            commands::dictionary::add_dictionary_entry,
+            commands::dictionary::update_dictionary_entry,
+            commands::dictionary::delete_dictionary_entry,
+            commands::dictionary::set_dictionary_entry_enabled,
+            commands::dictionary::import_dictionary_entries,
+            commands::dictionary::import_dictionary_entries_from_file,
+            commands::dictionary::export_dictionary_entries,
+            commands::dictionary::get_dictionary_vocabulary,
+            commands::dictionary::apply_dictionary_substitutions,
             helpers::clamshell::is_laptop,
         ])
         .events(collect_events![
@@ -776,13 +802,23 @@ pub fn run(cli_args: CliArgs) {
             managers::transcription::StreamPhaseEvent,
         ]);
 
-    #[cfg(debug_assertions)] // <- Only export on non-release builds
-    specta_builder
-        .export(
-            Typescript::default().bigint(BigIntExportBehavior::Number),
-            "../src/bindings.ts",
-        )
-        .expect("Failed to export typescript bindings");
+    // The TypeScript bindings are the frontend's contract with the Rust
+    // command registry. They are written on debug builds and whenever
+    // --export-bindings is passed, so the contract can be regenerated from a
+    // release build without rebuilding the whole engine in debug mode.
+    if cfg!(debug_assertions) || cli_args.export_bindings {
+        specta_builder
+            .export(
+                Typescript::default().bigint(BigIntExportBehavior::Number),
+                "../src/bindings.ts",
+            )
+            .expect("Failed to export typescript bindings");
+    }
+
+    if cli_args.export_bindings {
+        println!("TypeScript bindings exported to ../src/bindings.ts");
+        return;
+    }
 
     let invoke_handler = specta_builder.invoke_handler();
 
