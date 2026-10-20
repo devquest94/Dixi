@@ -1,5 +1,5 @@
 use crate::utils;
-use log::{debug, warn};
+use log::{debug, error, warn};
 use serde::de::{self, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
 use specta::Type;
@@ -1119,21 +1119,92 @@ pub fn get_settings(app: &AppHandle) -> AppSettings {
         }
 
         if updated {
-            store.set("settings", serde_json::to_value(&settings).unwrap());
+            store.set("settings", settings_to_store_value(&settings));
         }
 
         settings
     } else {
         let default_settings = get_default_settings();
-        store.set("settings", serde_json::to_value(&default_settings).unwrap());
+        store.set("settings", settings_to_store_value(&default_settings));
         default_settings
     };
 
     if ensure_post_process_defaults(&mut settings) {
-        store.set("settings", serde_json::to_value(&settings).unwrap());
+        store.set("settings", settings_to_store_value(&settings));
     }
 
+    // The keys are protected on disk and in plain text in memory: the rest of
+    // the program works with them directly, and the protection happens at the
+    // storage boundary only.
+    unprotect_api_keys(&mut settings);
+
     settings
+}
+
+/// Serializes the settings for storage, protecting the API keys.
+///
+/// The provider keys are encrypted with DPAPI (see [`crate::secrets`]). A key
+/// that is already protected is left untouched, so writing the settings back
+/// does not encrypt it twice.
+///
+/// When a key cannot be protected it is **not** written in plain text: the
+/// stored value is emptied and the key is only kept in memory for the running
+/// session. Losing the key is better than leaking it to disk.
+fn settings_to_store_value(settings: &AppSettings) -> serde_json::Value {
+    let mut value = serde_json::to_value(settings).unwrap();
+
+    let Some(keys) = value
+        .get_mut("post_process_api_keys")
+        .and_then(|value| value.as_object_mut())
+    else {
+        return value;
+    };
+
+    for (provider, key) in keys.iter_mut() {
+        let Some(plaintext) = key.as_str() else {
+            continue;
+        };
+        if plaintext.is_empty() || crate::secrets::is_protected(plaintext) {
+            continue;
+        }
+        match crate::secrets::protect(plaintext) {
+            Ok(protected) => *key = serde_json::Value::String(protected),
+            Err(e) => {
+                error!("{e}");
+                error!(
+                    "The API key for provider '{provider}' was not written to disk. \
+                     It stays available for this session only."
+                );
+                *key = serde_json::Value::String(String::new());
+            }
+        }
+    }
+
+    value
+}
+
+/// Restores the plain-text API keys from their protected form.
+///
+/// A key that cannot be unprotected (for example because the settings file
+/// was copied from another machine, where DPAPI cannot decrypt it) is treated
+/// as lost: it is emptied and the user has to enter it again. The failure is
+/// logged, never the key.
+fn unprotect_api_keys(settings: &mut AppSettings) {
+    for (provider, key) in settings.post_process_api_keys.iter_mut() {
+        if key.is_empty() || !crate::secrets::is_protected(key) {
+            continue;
+        }
+        match crate::secrets::unprotect(key) {
+            Ok(plaintext) => *key = plaintext,
+            Err(e) => {
+                error!("{e}");
+                error!(
+                    "The API key for provider '{provider}' could not be unprotected and has to be entered again."
+                );
+                *key = String::new();
+            }
+        }
+    }
 }
 
 /// Rebuilds settings from a store value that failed to deserialize as a whole.
@@ -1304,7 +1375,7 @@ pub fn write_settings(app: &AppHandle, settings: AppSettings) {
         .store(crate::portable::store_path(SETTINGS_STORE_PATH))
         .expect("Failed to initialize store");
 
-    store.set("settings", serde_json::to_value(&settings).unwrap());
+    store.set("settings", settings_to_store_value(&settings));
 }
 
 pub fn get_bindings(app: &AppHandle) -> HashMap<String, ShortcutBinding> {

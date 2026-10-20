@@ -22,6 +22,7 @@ mod paste_tx;
 pub mod portable;
 mod release_contract;
 mod secure_input;
+mod secrets;
 mod settings;
 mod shortcut;
 mod signal_handle;
