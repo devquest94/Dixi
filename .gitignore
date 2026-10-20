@@ -74,6 +74,9 @@ npm-debug.log*
 yarn-error.log*
 yarn.lock
 
+# Salidas de las ejecuciones silenciosas (scripts/run-hidden.ps1)
+.logs/
+
 # --- Playwright --------------------------------------------------------------
 test-results/
 playwright-report/
