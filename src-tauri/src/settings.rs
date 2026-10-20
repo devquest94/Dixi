@@ -740,6 +740,19 @@ fn default_post_process_providers() -> Vec<PostProcessProvider> {
             supports_structured_output: true,
             api_format: PostProcessApiFormat::OpenAi,
         },
+        // MiniMax speaks the OpenAI Chat Completions shape on
+        // `https://api.minimax.io/v1`. Its responses carry an extra
+        // `base_resp` envelope (an error can arrive with HTTP 200) and split
+        // the reasoning from the answer; `crate::minimax` handles both.
+        PostProcessProvider {
+            id: "minimax".to_string(),
+            label: "MiniMax".to_string(),
+            base_url: "https://api.minimax.io/v1".to_string(),
+            allow_base_url_edit: false,
+            models_endpoint: Some("/models".to_string()),
+            supports_structured_output: false,
+            api_format: PostProcessApiFormat::OpenAi,
+        },
     ];
 
     // Note: We always include Apple Intelligence on macOS ARM64 without checking availability
