@@ -52,7 +52,7 @@ const DixiTextLogo = ({
         />
       ))}
       {/* The brand name is part of the logo, not a translatable string. */}
-      {/* eslint-disable-next-line i18next/no-literal-string */}
+      {/* eslint-disable i18next/no-literal-string */}
       <text
         x="94"
         y="76"
@@ -64,6 +64,7 @@ const DixiTextLogo = ({
       >
         Dixi
       </text>
+      {/* eslint-enable i18next/no-literal-string */}
     </svg>
   );
 };

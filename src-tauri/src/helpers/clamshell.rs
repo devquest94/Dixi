@@ -63,6 +63,9 @@ pub fn is_laptop() -> Result<bool, String> {
 
 #[cfg(test)]
 mod tests {
+    // Los dos casos solo existen en macOS; en el resto de plataformas este
+    // import no se usa y rustc avisaria de ello.
+    #[cfg(target_os = "macos")]
     use super::*;
 
     #[test]
