@@ -1031,15 +1031,8 @@ impl TranscriptionManager {
         let mut settings = get_settings(&self.app_handle);
         // The personal dictionary terms join the custom words, so they reach
         // the engine as vocabulary and take part in the same correction pass.
-        for term in self.dictionary_vocabulary() {
-            if !settings
-                .custom_words
-                .iter()
-                .any(|existing| existing.eq_ignore_ascii_case(&term))
-            {
-                settings.custom_words.push(term);
-            }
-        }
+        settings.custom_words =
+            merge_vocabulary(settings.custom_words, self.dictionary_vocabulary());
 
         // Validate selected language against the model's supported languages.
         // If the language isn't supported, fall back to "auto" to prevent errors.
@@ -1491,6 +1484,24 @@ fn vocabulary_for_model(supports_vocabulary: bool, custom_words: &[String]) -> V
     }
 }
 
+/// Merges the personal dictionary vocabulary into the custom words.
+///
+/// A term already present is not added again: the comparison ignores case, so
+/// the engine does not receive the same word twice and the fuzzy correction
+/// does not see a duplicate either.
+fn merge_vocabulary(custom_words: Vec<String>, vocabulary: Vec<String>) -> Vec<String> {
+    let mut merged = custom_words;
+    for term in vocabulary {
+        if !merged
+            .iter()
+            .any(|existing| existing.eq_ignore_ascii_case(&term))
+        {
+            merged.push(term);
+        }
+    }
+    merged
+}
+
 /// The initial prompt (context hint) for models that accept one.
 ///
 /// Whisper-family models take a short prompt that biases the decoder towards
@@ -1917,6 +1928,37 @@ pub fn get_available_accelerators(tm: &TranscriptionManager) -> AvailableAcceler
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_dictionary_vocabulary_joins_the_custom_words() {
+        let merged = merge_vocabulary(
+            vec!["Dixi".to_string()],
+            vec!["PostgreSQL".to_string(), "Entity Framework".to_string()],
+        );
+        assert_eq!(
+            merged,
+            vec![
+                "Dixi".to_string(),
+                "PostgreSQL".to_string(),
+                "Entity Framework".to_string()
+            ]
+        );
+    }
+
+    #[test]
+    fn a_word_already_in_the_custom_words_is_not_added_twice() {
+        let merged = merge_vocabulary(
+            vec!["Dixi".to_string()],
+            vec!["dixi".to_string(), "DIXI".to_string()],
+        );
+        assert_eq!(merged, vec!["Dixi".to_string()]);
+    }
+
+    #[test]
+    fn an_empty_dictionary_leaves_the_custom_words_untouched() {
+        let merged = merge_vocabulary(vec!["Dixi".to_string()], Vec::new());
+        assert_eq!(merged, vec!["Dixi".to_string()]);
+    }
 
     fn languages(codes: &[&str]) -> Vec<String> {
         codes.iter().map(|code| (*code).to_string()).collect()

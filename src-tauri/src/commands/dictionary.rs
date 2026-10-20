@@ -84,6 +84,39 @@ pub async fn import_dictionary_entries(
     dictionary_manager.import(&entries)
 }
 
+/// Writes the dictionary to a JSON file the user chose.
+///
+/// The backend owns the file format and the filesystem access, so the
+/// webview never touches the file itself. The path always comes from the
+/// native save dialog.
+///
+/// An existing file is only replaced when `overwrite` is set: the caller has
+/// to ask the user first.
+#[tauri::command]
+#[specta::specta]
+pub async fn export_dictionary_entries(
+    _app: AppHandle,
+    dictionary_manager: State<'_, Arc<DictionaryManager>>,
+    path: String,
+    overwrite: bool,
+) -> Result<usize, String> {
+    dictionary_manager.export_to_file(std::path::Path::new(&path), overwrite)
+}
+
+/// Reads a dictionary from a JSON file the user chose and adds its entries.
+///
+/// Entries that already exist are skipped. Returns how many entries were
+/// actually added.
+#[tauri::command]
+#[specta::specta]
+pub async fn import_dictionary_entries_from_file(
+    _app: AppHandle,
+    dictionary_manager: State<'_, Arc<DictionaryManager>>,
+    path: String,
+) -> Result<usize, String> {
+    dictionary_manager.import_from_file(std::path::Path::new(&path))
+}
+
 /// The vocabulary the ASR engine would receive for the given scope.
 #[tauri::command]
 #[specta::specta]
@@ -111,74 +144,4 @@ pub async fn apply_dictionary_substitutions(
     let scope = resolve_scope(&scope);
     let rules = dictionary_manager.substitution_rules(&scope);
     Ok(apply_substitutions(&text, &rules, None).text)
-}
-
-/// The on-disk shape of an exported dictionary.
-#[derive(serde::Serialize, serde::Deserialize)]
-struct DictionaryExport {
-    entries: Vec<DictionaryEntryInput>,
-}
-
-/// Writes the dictionary to a JSON file the user chose.
-///
-/// The file is written by the backend on purpose: the frontend's filesystem
-/// plugin is scoped to the application data directory, and widening that
-/// scope to every place a user might save a file would hand the webview
-/// more reach than the feature needs. The path always comes from the
-/// native save dialog, which is the user choosing the destination.
-#[tauri::command]
-#[specta::specta]
-pub async fn export_dictionary_entries(
-    _app: AppHandle,
-    dictionary_manager: State<'_, Arc<DictionaryManager>>,
-    path: String,
-) -> Result<usize, String> {
-    // A backup carries every entry, including the scoped ones, so that
-    // restoring it on another machine reproduces the same dictionary.
-    let entries = dictionary_manager.list();
-
-    let payload = DictionaryExport {
-        entries: entries
-            .iter()
-            .map(|entry| DictionaryEntryInput {
-                term: entry.term.clone(),
-                replacement: entry.replacement.clone(),
-                kind: entry.kind,
-                enabled: Some(entry.enabled),
-                scope: Some(entry.scope.clone()),
-                case_sensitive: Some(entry.case_sensitive),
-                whole_word: Some(entry.whole_word),
-                priority: Some(entry.priority),
-                language: entry.language.clone(),
-            })
-            .collect(),
-    };
-
-    let json = serde_json::to_string_pretty(&payload)
-        .map_err(|e| format!("Failed to serialize the dictionary: {e}"))?;
-
-    std::fs::write(&path, json)
-        .map_err(|e| format!("Failed to write the dictionary file '{path}': {e}"))?;
-
-    Ok(payload.entries.len())
-}
-
-/// Reads a dictionary from a JSON file the user chose and adds its entries.
-///
-/// Entries that already exist are skipped, so importing the same file twice
-/// changes nothing. Returns how many entries were actually added.
-#[tauri::command]
-#[specta::specta]
-pub async fn import_dictionary_entries_from_file(
-    _app: AppHandle,
-    dictionary_manager: State<'_, Arc<DictionaryManager>>,
-    path: String,
-) -> Result<usize, String> {
-    let text = std::fs::read_to_string(&path)
-        .map_err(|e| format!("Failed to read the dictionary file '{path}': {e}"))?;
-
-    let payload: DictionaryExport = serde_json::from_str(&text)
-        .map_err(|e| format!("'{path}' is not a valid dictionary file: {e}"))?;
-
-    dictionary_manager.import(&payload.entries)
 }

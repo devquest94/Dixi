@@ -63,8 +63,11 @@ static MIGRATIONS: &[M] = &[M::up(
     );",
 ),
 M::up(
+    // The replacement is part of the key on purpose: two rules may share a
+    // term and differ in what they write, and the priority is what decides
+    // between them. Only an exact repetition is refused.
     "CREATE UNIQUE INDEX IF NOT EXISTS idx_dictionary_unique
-        ON dictionary_entries (term COLLATE NOCASE, scope, kind);",
+        ON dictionary_entries (term COLLATE NOCASE, scope, kind, replacement);",
 ),
 // Priority and the per-entry language tag were part of the model from the
 // start, but they are added by a migration so an existing database picks
@@ -150,8 +153,15 @@ impl DictionaryManager {
     pub fn new(app_handle: &AppHandle) -> Result<Self, String> {
         let app_data_dir = app_data_dir(app_handle)
             .map_err(|e| format!("Failed to resolve the application data directory: {e}"))?;
-        let db_path = app_data_dir.join("dictionary.db");
+        Self::with_db_path(app_data_dir.join("dictionary.db"))
+    }
 
+    /// Opens (or creates) the dictionary database at an explicit path.
+    ///
+    /// The path-based constructor is the seam that keeps the manager
+    /// independent of the Tauri application handle, and it is what lets the
+    /// tests work on an isolated database.
+    pub fn with_db_path(db_path: PathBuf) -> Result<Self, String> {
         let manager = Self {
             db_path,
             entries: RwLock::new(Vec::new()),
@@ -271,7 +281,10 @@ impl DictionaryManager {
         )
         .map_err(|e| {
             if is_unique_violation(&e) {
-                format!("'{}' already exists in this scope", normalized.term)
+                format!(
+                    "A rule for '{}' with the same replacement already exists in this scope",
+                    normalized.term
+                )
             } else {
                 format!("Failed to add dictionary entry: {e}")
             }
@@ -315,7 +328,10 @@ impl DictionaryManager {
             )
             .map_err(|e| {
                 if is_unique_violation(&e) {
-                    format!("'{}' already exists in this scope", normalized.term)
+                    format!(
+                        "A rule for '{}' with the same replacement already exists in this scope",
+                        normalized.term
+                    )
                 } else {
                     format!("Failed to update dictionary entry: {e}")
                 }
@@ -399,6 +415,74 @@ impl DictionaryManager {
         Ok(added)
     }
 
+    /// Writes the dictionary to a JSON file.
+    ///
+    /// The file is written by the backend on purpose: the frontend's
+    /// filesystem plugin is scoped to the application data directory, and
+    /// widening that scope to every place a user might save a file would hand
+    /// the webview more reach than the feature needs.
+    ///
+    /// An existing file is only replaced when `overwrite` is set, so the
+    /// caller has to ask the user first. Returns how many entries were
+    /// written.
+    pub fn export_to_file(&self, path: &std::path::Path, overwrite: bool) -> Result<usize, String> {
+        validate_export_path(path, overwrite)?;
+
+        // A backup carries every entry, including the scoped ones, so that
+        // restoring it on another machine reproduces the same dictionary.
+        let payload = DictionaryFile {
+            entries: self
+                .list()
+                .iter()
+                .map(|entry| DictionaryEntryInput {
+                    term: entry.term.clone(),
+                    replacement: entry.replacement.clone(),
+                    kind: entry.kind,
+                    enabled: Some(entry.enabled),
+                    scope: Some(entry.scope.clone()),
+                    case_sensitive: Some(entry.case_sensitive),
+                    whole_word: Some(entry.whole_word),
+                    priority: Some(entry.priority),
+                    language: entry.language.clone(),
+                })
+                .collect(),
+        };
+
+        let json = serde_json::to_string_pretty(&payload)
+            .map_err(|e| format!("Failed to serialize the dictionary: {e}"))?;
+
+        std::fs::write(path, json).map_err(|e| match e.kind() {
+            std::io::ErrorKind::PermissionDenied => format!(
+                "'{}' cannot be written: the file is read-only or the folder is not writable.",
+                path.display()
+            ),
+            _ => format!("Failed to write '{}': {}", path.display(), e),
+        })?;
+
+        Ok(payload.entries.len())
+    }
+
+    /// Reads a dictionary from a JSON file and adds its entries.
+    ///
+    /// Entries that already exist are skipped, so importing the same file
+    /// twice changes nothing. Returns how many entries were actually added.
+    pub fn import_from_file(&self, path: &std::path::Path) -> Result<usize, String> {
+        validate_import_path(path)?;
+
+        let text = std::fs::read_to_string(path).map_err(|e| match e.kind() {
+            std::io::ErrorKind::PermissionDenied => format!(
+                "'{}' cannot be read: the file is locked or the user does not have permission.",
+                path.display()
+            ),
+            _ => format!("Failed to read '{}': {}", path.display(), e),
+        })?;
+
+        let payload: DictionaryFile = serde_json::from_str(&text)
+            .map_err(|e| format!("'{}' is not a valid dictionary file: {e}", path.display()))?;
+
+        self.import(&payload.entries)
+    }
+
     /// The vocabulary to hand to the ASR engine: enabled terms (and the
     /// search term of enabled substitutions), without duplicates.
     pub fn vocabulary(&self, scope: &str) -> Vec<String> {
@@ -434,8 +518,7 @@ impl DictionaryManager {
     }
 
     /// Records that the given entries fired during a transcription.
-    pub fn record_hits(&self, ids: &[i64]) {
-        if ids.is_empty() {
+    pub fn record_hits(&self, ids: &[i64]) {        if ids.is_empty() {
             return;
         }
         let Ok(conn) = self.connection() else {
@@ -620,6 +703,71 @@ fn apply_case_style(replacement: &str, matched: &str) -> String {
     replacement.to_string()
 }
 
+/// The on-disk shape of an exported dictionary.
+#[derive(Serialize, Deserialize)]
+pub struct DictionaryFile {
+    pub entries: Vec<DictionaryEntryInput>,
+}
+
+/// Checks that a destination is usable for an export.
+///
+/// The path comes from the native save dialog, so it is one the user chose.
+/// It still has to be absolute: a relative one would resolve against the
+/// working directory of the process, which is not what the user sees in the
+/// dialog.
+///
+/// An existing file is only replaced when the caller says so, which turns an
+/// accidental overwrite into a deliberate one.
+fn validate_export_path(path: &std::path::Path, overwrite: bool) -> Result<(), String> {
+    if path.as_os_str().is_empty() {
+        return Err("No destination file was chosen".to_string());
+    }
+    if !path.is_absolute() {
+        return Err(format!(
+            "The destination must be an absolute path: '{}'",
+            path.display()
+        ));
+    }
+    if path.is_dir() {
+        return Err(format!("'{}' is a folder, not a file", path.display()));
+    }
+    if path.exists() && !overwrite {
+        return Err(format!(
+            "'{}' already exists. Choose another name, or confirm that it can be replaced.",
+            path.display()
+        ));
+    }
+    if let Some(parent) = path.parent() {
+        if !parent.is_dir() {
+            return Err(format!("The folder '{}' does not exist", parent.display()));
+        }
+    }
+    Ok(())
+}
+
+/// Checks that a source is usable for an import.
+fn validate_import_path(path: &std::path::Path) -> Result<(), String> {
+    if path.as_os_str().is_empty() {
+        return Err("No file was chosen".to_string());
+    }
+    if !path.is_absolute() {
+        return Err(format!(
+            "The file must be an absolute path: '{}'",
+            path.display()
+        ));
+    }
+    if !path.exists() {
+        return Err(format!("'{}' does not exist", path.display()));
+    }
+    if path.is_dir() {
+        return Err(format!(
+            "'{}' is a folder, not a dictionary file",
+            path.display()
+        ));
+    }
+    Ok(())
+}
+
 /// A validated, normalized entry ready to be written.
 struct NormalizedEntry {
     term: String,
@@ -716,6 +864,9 @@ fn is_unique_violation(error: &rusqlite::Error) -> bool {
 pub fn find_entry(entries: &[DictionaryEntry], id: i64) -> Option<&DictionaryEntry> {
     entries.iter().find(|e| e.id == id)
 }
+
+#[cfg(test)]
+mod e2e_tests;
 
 #[cfg(test)]
 mod tests {
