@@ -277,6 +277,14 @@ async changePostProcessModelSetting(providerId: string, model: string) : Promise
     else return { status: "error", error: e  as any };
 }
 },
+async changePostProcessEffortSetting(providerId: string, effort: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_post_process_effort_setting", { providerId, effort }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async setPostProcessProvider(providerId: string) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("set_post_process_provider", { providerId }) };
@@ -1017,8 +1025,8 @@ async importDictionaryEntries(entries: DictionaryEntryInput[]) : Promise<Result<
 /**
  * Reads a dictionary from a JSON file the user chose and adds its entries.
  * 
- * Entries that already exist are skipped, so importing the same file twice
- * changes nothing. Returns how many entries were actually added.
+ * Entries that already exist are skipped. Returns how many entries were
+ * actually added.
  */
 async importDictionaryEntriesFromFile(path: string) : Promise<Result<number, string>> {
     try {
@@ -1031,15 +1039,16 @@ async importDictionaryEntriesFromFile(path: string) : Promise<Result<number, str
 /**
  * Writes the dictionary to a JSON file the user chose.
  * 
- * The file is written by the backend on purpose: the frontend's filesystem
- * plugin is scoped to the application data directory, and widening that
- * scope to every place a user might save a file would hand the webview
- * more reach than the feature needs. The path always comes from the
- * native save dialog, which is the user choosing the destination.
+ * The backend owns the file format and the filesystem access, so the
+ * webview never touches the file itself. The path always comes from the
+ * native save dialog.
+ * 
+ * An existing file is only replaced when `overwrite` is set: the caller has
+ * to ask the user first.
  */
-async exportDictionaryEntries(path: string) : Promise<Result<number, string>> {
+async exportDictionaryEntries(path: string, overwrite: boolean) : Promise<Result<number, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("export_dictionary_entries", { path }) };
+    return { status: "ok", data: await TAURI_INVOKE("export_dictionary_entries", { path, overwrite }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -1150,7 +1159,12 @@ selected_channel?: number | null; clamshell_microphone?: string | null; selected
  * their dictation reads. Only models that advertise the initial-prompt
  * capability receive it.
  */
-transcription_context?: string; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod; paste_method?: PasteMethod; clipboard_handling?: ClipboardHandling; auto_submit?: boolean; auto_submit_key?: AutoSubmitKey; post_process_enabled?: boolean; post_process_provider_id?: string; post_process_providers?: PostProcessProvider[]; post_process_api_keys?: SecretMap; post_process_models?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[]; post_process_selected_prompt_id?: string | null; mute_while_recording?: boolean; append_trailing_space?: boolean; app_language?: string; theme?: Theme; experimental_enabled?: boolean; lazy_stream_close?: boolean; keyboard_implementation?: KeyboardImplementation; show_tray_icon?: boolean; paste_delay_ms?: number; paste_delay_after_ms?: number; 
+transcription_context?: string; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod; paste_method?: PasteMethod; clipboard_handling?: ClipboardHandling; auto_submit?: boolean; auto_submit_key?: AutoSubmitKey; post_process_enabled?: boolean; post_process_provider_id?: string; post_process_providers?: PostProcessProvider[]; post_process_api_keys?: SecretMap; post_process_models?: Partial<{ [key in string]: string }>; 
+/**
+ * Reasoning depth per provider, for the providers that expose one.
+ * Values: `low`, `medium`, `high`, `xhigh`, `max`.
+ */
+post_process_efforts?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[]; post_process_selected_prompt_id?: string | null; mute_while_recording?: boolean; append_trailing_space?: boolean; app_language?: string; theme?: Theme; experimental_enabled?: boolean; lazy_stream_close?: boolean; keyboard_implementation?: KeyboardImplementation; show_tray_icon?: boolean; paste_delay_ms?: number; paste_delay_after_ms?: number; 
 /**
  * Debug-gated ("beta") receipt-sequenced paste: restore the clipboard only
  * after the target app actually reads the transcript, instead of after a
@@ -1322,7 +1336,12 @@ export type PostProcessApiFormat =
  * Anthropic Messages (`/messages`)
  */
 "anthropic"
-export type PostProcessProvider = { id: string; label: string; base_url: string; allow_base_url_edit?: boolean; models_endpoint?: string | null; supports_structured_output?: boolean; api_format?: PostProcessApiFormat }
+export type PostProcessProvider = { id: string; label: string; base_url: string; allow_base_url_edit?: boolean; models_endpoint?: string | null; supports_structured_output?: boolean; 
+/**
+ * The provider exposes a reasoning depth the user can choose
+ * (`low`, `medium`, `high`, `xhigh`, `max`). Only MiniMax does today.
+ */
+supports_reasoning_effort?: boolean; api_format?: PostProcessApiFormat }
 export type RecordingRetentionPeriod = "never" | "preserve_limit" | "days_3" | "weeks_2" | "months_3"
 /**
  * A retired ONNX model found on disk.
