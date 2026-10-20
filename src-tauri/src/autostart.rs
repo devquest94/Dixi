@@ -16,8 +16,13 @@ use tauri_plugin_autostart::ManagerExt;
 ///
 /// Errors are logged rather than returned: the preference is re-applied on
 /// every launch, so a transient failure self-heals and must not block
-/// startup. This mirrors the pre-existing behavior of ignoring
-/// enable()/disable() results.
+/// startup.
+///
+/// The current state is checked first. The auto-launch backends return an
+/// error when asked to disable an entry that was never registered (and the
+/// macOS `SMAppService` path already guarded against the equivalent), so
+/// calling enable()/disable() unconditionally produced a spurious warning on
+/// every launch for every user who had autostart off — the common case.
 pub fn apply_autostart(app: &AppHandle, enabled: bool) {
     #[cfg(target_os = "macos")]
     if macos::login_item_api_available() {
@@ -27,6 +32,23 @@ pub fn apply_autostart(app: &AppHandle, enabled: bool) {
     }
 
     let manager = app.autolaunch();
+
+    // Skip the write when the registry already matches the preference. A
+    // failure to read the current state is not fatal: fall through and let
+    // the write attempt report the real problem.
+    match manager.is_enabled() {
+        Ok(current) if current == enabled => {
+            log::debug!("Autostart already {}; nothing to do", state_label(enabled));
+            return;
+        }
+        Ok(current) => {
+            log::debug!("Autostart state changed ({} -> {})", state_label(current), state_label(enabled));
+        }
+        Err(e) => {
+            log::warn!("Failed to read autostart state: {}", e);
+        }
+    }
+
     let result = if enabled {
         manager.enable()
     } else {
@@ -38,6 +60,15 @@ pub fn apply_autostart(app: &AppHandle, enabled: bool) {
             enabled,
             e
         );
+    }
+}
+
+/// Human-readable name of an autostart state, for log messages.
+fn state_label(enabled: bool) -> &'static str {
+    if enabled {
+        "enabled"
+    } else {
+        "disabled"
     }
 }
 
