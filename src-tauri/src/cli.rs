@@ -61,4 +61,13 @@ pub struct CliArgs {
     /// Emit --transcribe-file results as JSON.
     #[arg(long)]
     pub json: bool,
+
+    /// Regenerate the TypeScript IPC bindings (`src/bindings.ts`) and exit.
+    ///
+    /// The bindings are the frontend's contract with the Rust command
+    /// registry. Regenerating them from a release build keeps that contract
+    /// verifiable without rebuilding the whole engine in debug mode, which is
+    /// the expensive part of the build on a constrained machine.
+    #[arg(long)]
+    pub export_bindings: bool,
 }

@@ -19,7 +19,8 @@
     "test:playwright": "playwright test",
     "test:playwright:ui": "playwright test --ui",
     "check:translations": "node scripts/check-translations.ts",
-    "check:model-languages": "node scripts/check-model-language-coverage.ts"
+    "check:model-languages": "node scripts/check-model-language-coverage.ts",
+    "check:release-protocol": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-release-protocol.ps1"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.16",
