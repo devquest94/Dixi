@@ -11,6 +11,8 @@ use crate::engine_supervisor::{
 use crate::managers::audio::AudioRecordingManager;
 use crate::managers::dictionary::{DictionaryEntry, DictionaryManager, GLOBAL_SCOPE};
 use crate::managers::model::ModelManager;
+use crate::managers::profiles::{apply_format_rules, CleanupLevel, FormatRule, ProfileManager};
+use crate::managers::snippets::SnippetManager;
 use crate::settings::{
     get_settings, AppSettings, ChineseScript, ModelUnloadTimeout, TranscribeAcceleratorSetting,
 };
@@ -898,8 +900,70 @@ impl TranscriptionManager {
         self.complete(started, samples, live)
     }
 
-    /// The dictionary vocabulary that applies right now.
+    /// Resolves the writing profile of the application that has the focus.
     ///
+    /// The cleanup level of the profile decides whether the fillers are
+    /// removed, and the format rules are applied at the end of the
+    /// transcription. When there is no profile — the manager could not be
+    /// opened, or there is none for this application — the global settings
+    /// apply unchanged.
+    fn resolve_writing_profile(&self, settings: &AppSettings) -> EffectiveSettings {
+        let mut effective = EffectiveSettings {
+            settings: settings.clone(),
+            format_rules: Vec::new(),
+        };
+
+        let Some(manager) = self.app_handle.try_state::<Arc<ProfileManager>>() else {
+            return effective;
+        };
+
+        let foreground = crate::managers::app_detection::foreground_app();
+        let resolved = manager.resolve(foreground.as_ref().map(|app| app.process_name.as_str()), None);
+
+        effective.format_rules = resolved.format_rules;
+        effective.settings.filler_word_removal_enabled = match resolved.cleanup_level {
+            CleanupLevel::None => false,
+            CleanupLevel::Light | CleanupLevel::Medium => true,
+        };
+
+        effective
+    }
+
+    /// Expands the snippets whose trigger appears in the text.
+    ///
+    /// A snippet whose trigger was dictated is replaced by its expansion. When
+    /// the expansion needs a variable the user has not supplied, the snippet is
+    /// **not** expanded: the trigger stays in the text. Nothing is ever
+    /// pasted half resolved, and the caller can ask for the missing value.
+    fn expand_snippets(&self, text: &str, language: Option<&str>) -> String {
+        let Some(manager) = self.app_handle.try_state::<Arc<SnippetManager>>() else {
+            return text.to_string();
+        };
+
+        let foreground = crate::managers::app_detection::foreground_app();
+        let values = std::collections::HashMap::new();
+
+        let expanded = manager.expand_in_text_with_id(
+            text,
+            &values,
+            foreground.as_ref().map(|app| app.process_name.as_str()),
+            language,
+        );
+
+        match expanded {
+            Some((id, crate::managers::snippets::Expansion::Text(expanded))) => {
+                if let Err(e) = manager.record_use(&id) {
+                    log::warn!("Failed to record the use of the snippet '{id}': {e}");
+                }
+                expanded
+            }
+            // A snippet that needs a variable is left as it is: the trigger
+            // stays in the text and the user is asked for the value.
+            _ => text.to_string(),
+        }
+    }
+
+    /// The dictionary vocabulary that applies right now.    ///
     /// The dictionary lives in its own database (see [`DictionaryManager`]);
     /// when it could not be opened there is simply no vocabulary, and the
     /// transcription runs exactly as before.
@@ -971,8 +1035,14 @@ impl TranscriptionManager {
             None => self.decode_batch(audio)?,
         };
         let settings = get_settings(&self.app_handle);
-        let (text, language) = finish_text(outcome, &settings);
+        // The writing profile of the application that has the focus decides
+        // how aggressive the cleanup is and which deterministic format rules
+        // are applied.
+        let effective = self.resolve_writing_profile(&settings);
+        let (text, language) = finish_text(outcome, &effective.settings);
         let final_result = self.apply_dictionary_rules(&text, language.as_deref());
+        let final_result = self.expand_snippets(&final_result, language.as_deref());
+        let final_result = apply_format_rules(&final_result, &effective.format_rules);
 
         let translation_note = if settings.translate_to_english {
             " (translated)"
@@ -1471,6 +1541,12 @@ fn with_model_detected_language(
         }
         (evidence, _) => evidence,
     }
+}
+
+/// The settings of one dictation, with the writing profile applied.
+struct EffectiveSettings {
+    settings: AppSettings,
+    format_rules: Vec<FormatRule>,
 }
 
 /// Custom words for transcribe-cpp's `vocabulary` slot, in priority order.

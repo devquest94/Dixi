@@ -41,6 +41,10 @@ use managers::audio::AudioRecordingManager;
 use managers::dictionary::DictionaryManager;
 use managers::history::HistoryManager;
 use managers::model::ModelManager;
+use managers::profiles::ProfileManager;
+use managers::snippets::SnippetManager;
+use managers::text_history::TextHistoryManager;
+use managers::transforms::TransformManager;
 use managers::transcription::TranscriptionManager;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::sync::Arc;
@@ -221,12 +225,53 @@ fn initialize_core_logic(app_handle: &AppHandle) {
         }
     };
 
+    // The writing profiles, the snippets, the transforms and the local
+    // history share ONE database (the personal store). Each manager opens it
+    // on its own connection; if it cannot be opened, none of them works, and
+    // that is reported once instead of five times.
+    let personal_db_path = crate::managers::personal_store::PersonalStore::new(app_handle)
+        .ok()
+        .map(|store| store.db_path().to_path_buf());
+
+    let profile_manager = personal_db_path
+        .as_ref()
+        .and_then(|path| ProfileManager::with_db_path(path.clone()).ok())
+        .map(Arc::new);
+    let snippet_manager = personal_db_path
+        .as_ref()
+        .and_then(|path| SnippetManager::with_db_path(path.clone()).ok())
+        .map(Arc::new);
+    let transform_manager = personal_db_path
+        .as_ref()
+        .and_then(|path| TransformManager::with_db_path(path.clone()).ok())
+        .map(Arc::new);
+    let text_history_manager = personal_db_path
+        .as_ref()
+        .and_then(|path| TextHistoryManager::with_db_path(path.clone()).ok())
+        .map(Arc::new);
+
+    if profile_manager.is_none() {
+        log::warn!("The writing profiles are unavailable: the personal database could not be opened");
+    }
+
     // Add managers to Tauri's managed state
     app_handle.manage(recording_manager.clone());
     app_handle.manage(model_manager.clone());
     app_handle.manage(transcription_manager.clone());
     app_handle.manage(history_manager.clone());
     if let Some(manager) = dictionary_manager {
+        app_handle.manage(manager);
+    }
+    if let Some(manager) = profile_manager {
+        app_handle.manage(manager);
+    }
+    if let Some(manager) = snippet_manager {
+        app_handle.manage(manager);
+    }
+    if let Some(manager) = transform_manager {
+        app_handle.manage(manager);
+    }
+    if let Some(manager) = text_history_manager {
         app_handle.manage(manager);
     }
     app_handle.manage(tray::TrayState::new());
@@ -796,6 +841,45 @@ pub fn run(cli_args: CliArgs) {
             commands::dictionary::export_dictionary_entries,
             commands::dictionary::get_dictionary_vocabulary,
             commands::dictionary::apply_dictionary_substitutions,
+            commands::profiles::get_foreground_app,
+            commands::profiles::list_writing_styles,
+            commands::profiles::add_writing_style,
+            commands::profiles::update_writing_style,
+            commands::profiles::delete_writing_style,
+            commands::profiles::list_writing_profiles,
+            commands::profiles::add_writing_profile,
+            commands::profiles::update_writing_profile,
+            commands::profiles::delete_writing_profile,
+            commands::profiles::list_profile_overrides,
+            commands::profiles::add_profile_override,
+            commands::profiles::delete_profile_override,
+            commands::profiles::resolve_writing_profile,
+            commands::snippets::list_snippets,
+            commands::snippets::add_snippet,
+            commands::snippets::update_snippet,
+            commands::snippets::delete_snippet,
+            commands::snippets::set_snippet_favorite,
+            commands::snippets::set_snippet_enabled,
+            commands::snippets::get_snippet_vocabulary,
+            commands::snippets::expand_snippet,
+            commands::snippets::export_snippets,
+            commands::snippets::import_snippets_from_file,
+            commands::transforms::list_transforms,
+            commands::transforms::add_transform,
+            commands::transforms::update_transform,
+            commands::transforms::delete_transform,
+            commands::transforms::set_transform_enabled,
+            commands::transforms::run_transform,
+            commands::transforms::get_transform_provider,
+            commands::text_history::list_text_history,
+            commands::text_history::record_text_history,
+            commands::text_history::last_undoable_change,
+            commands::text_history::mark_text_change_undone,
+            commands::text_history::clear_text_history,
+            commands::text_history::get_text_history_retention,
+            commands::text_history::set_text_history_retention,
+            commands::text_history::purge_text_history,
+            commands::text_history::diff_text,
             helpers::clamshell::is_laptop,
         ])
         .events(collect_events![

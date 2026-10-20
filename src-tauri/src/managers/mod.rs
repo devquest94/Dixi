@@ -8,6 +8,8 @@ pub mod model;
 pub mod model_capabilities;
 pub mod personal_store;
 pub mod profiles;
+pub mod snippets;
 pub mod text_engine;
 pub mod text_history;
+pub mod transforms;
 pub mod transcription;
