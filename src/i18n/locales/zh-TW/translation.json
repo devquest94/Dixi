@@ -421,6 +421,15 @@
           "placeholderWithOptions": "搜尋或選擇模型",
           "placeholderNoOptions": "輸入模型名稱",
           "refreshModels": "重新整理模型"
+        },
+        "effort": {
+          "title": "推理深度",
+          "description": "模型在回答前進行推理的程度。層級越深，耗時越長、費用越高。",
+          "low": "低",
+          "medium": "中",
+          "high": "高",
+          "xhigh": "極高",
+          "max": "最高"
         }
       },
       "prompts": {

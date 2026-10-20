@@ -421,6 +421,15 @@
           "placeholderWithOptions": "Vyhledejte nebo vyberte model",
           "placeholderNoOptions": "Zadejte název modelu",
           "refreshModels": "Obnovit modely"
+        },
+        "effort": {
+          "title": "Hloubka uvažování",
+          "description": "Jak hluboce model přemýšlí, než odpoví. Hlubší úrovně trvají déle a stojí víc.",
+          "low": "Nízká",
+          "medium": "Střední",
+          "high": "Vysoká",
+          "xhigh": "Velmi vysoké",
+          "max": "Maximální"
         }
       },
       "prompts": {

@@ -421,6 +421,15 @@
           "placeholderWithOptions": "Cari atau pilih model",
           "placeholderNoOptions": "Ketik nama model",
           "refreshModels": "Segarkan model"
+        },
+        "effort": {
+          "title": "Kedalaman penalaran",
+          "description": "Seberapa lama model berpikir sebelum menjawab. Tingkat yang lebih dalam memerlukan waktu lebih lama dan biaya lebih mahal.",
+          "low": "Rendah",
+          "medium": "Sedang",
+          "high": "Tinggi",
+          "xhigh": "Sangat tinggi",
+          "max": "Maksimum"
         }
       },
       "prompts": {

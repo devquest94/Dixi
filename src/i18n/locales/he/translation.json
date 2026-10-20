@@ -421,6 +421,15 @@
           "placeholderWithOptions": "חפש או בחר מודל",
           "placeholderNoOptions": "הקלד שם מודל",
           "refreshModels": "רענן מודלים"
+        },
+        "effort": {
+          "title": "עומק החשיבה",
+          "description": "כמה המודל חושב לפני שהוא עונה. רמות עמוקות יותר אורכות זמן רב יותר ועולות יותר.",
+          "low": "נמוכה",
+          "medium": "בינונית",
+          "high": "גבוהה",
+          "xhigh": "גבוה מאוד",
+          "max": "מקסימלית"
         }
       },
       "prompts": {

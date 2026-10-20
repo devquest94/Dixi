@@ -421,6 +421,15 @@
           "placeholderWithOptions": "Rechercher ou sélectionner un modèle",
           "placeholderNoOptions": "Tapez un nom de modèle",
           "refreshModels": "Actualiser les modèles"
+        },
+        "effort": {
+          "title": "Profondeur de raisonnement",
+          "description": "Le temps que le modèle consacre au raisonnement avant de répondre. Les niveaux plus profonds prennent plus de temps et coûtent plus cher.",
+          "low": "Faible",
+          "medium": "Moyen",
+          "high": "Élevé",
+          "xhigh": "Très élevé",
+          "max": "Maximum"
         }
       },
       "prompts": {

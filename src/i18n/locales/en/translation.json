@@ -421,6 +421,15 @@
           "placeholderWithOptions": "Search or select a model",
           "placeholderNoOptions": "Type a model name",
           "refreshModels": "Refresh models"
+        },
+        "effort": {
+          "title": "Reasoning depth",
+          "description": "How much the model reasons before answering. Deeper levels take longer and cost more.",
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High",
+          "xhigh": "Very high",
+          "max": "Max"
         }
       },
       "prompts": {

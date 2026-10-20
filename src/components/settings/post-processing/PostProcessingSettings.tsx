@@ -177,6 +177,25 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
           </div>
         </SettingContainer>
       )}
+
+      {!state.isAppleProvider && state.supportsReasoningEffort && (
+        <SettingContainer
+          title={t("settings.postProcessing.api.effort.title")}
+          description={t("settings.postProcessing.api.effort.description")}
+          descriptionMode="tooltip"
+          layout="stacked"
+          grouped={true}
+        >
+          <div className="flex items-center gap-2">
+            <Dropdown
+              options={state.effortOptions}
+              selectedValue={state.effort || null}
+              onSelect={state.handleEffortSelect}
+              disabled={state.isEffortUpdating}
+            />
+          </div>
+        </SettingContainer>
+      )}
     </>
   );
 };

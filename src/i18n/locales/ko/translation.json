@@ -421,6 +421,15 @@
           "placeholderWithOptions": "모델 검색 또는 선택",
           "placeholderNoOptions": "모델 이름 입력",
           "refreshModels": "모델 새로고침"
+        },
+        "effort": {
+          "title": "추론 깊이",
+          "description": "답변하기 전에 모델이 얼마나 깊게 생각하는지 정합니다. 더 깊은 수준은 시간이 더 걸리고 비용도 더듭니다.",
+          "low": "낮음",
+          "medium": "보통",
+          "high": "높음",
+          "xhigh": "매우 높음",
+          "max": "최대"
         }
       },
       "prompts": {

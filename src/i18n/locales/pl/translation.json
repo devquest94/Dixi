@@ -421,6 +421,15 @@
           "placeholderWithOptions": "Wyszukaj lub wybierz model",
           "placeholderNoOptions": "Wpisz nazwę modelu",
           "refreshModels": "Odśwież modele"
+        },
+        "effort": {
+          "title": "Głębia rozumowania",
+          "description": "Jak głęboko model rozważa sprawę przed odpowiedzią. Głębsze poziomy trwają dłużej i kosztują więcej.",
+          "low": "Niski",
+          "medium": "Średni",
+          "high": "Wysoki",
+          "xhigh": "Bardzo wysoki",
+          "max": "Maksymalny"
         }
       },
       "prompts": {

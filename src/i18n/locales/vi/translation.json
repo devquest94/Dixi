@@ -421,6 +421,15 @@
           "placeholderWithOptions": "Tìm kiếm hoặc chọn một mô hình",
           "placeholderNoOptions": "Nhập tên mô hình",
           "refreshModels": "Làm mới mô hình"
+        },
+        "effort": {
+          "title": "Độ sâu suy luận",
+          "description": "Mô hình suy luận nhiều trước khi trả lời. Mức sâu hơn tốn nhiều thời gian và chi phí hơn.",
+          "low": "Thấp",
+          "medium": "Trung bình",
+          "high": "Cao",
+          "xhigh": "Rất cao",
+          "max": "Tối đa"
         }
       },
       "prompts": {

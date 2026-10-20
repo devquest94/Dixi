@@ -421,6 +421,15 @@
           "placeholderWithOptions": "Model ara veya seç",
           "placeholderNoOptions": "Model adı yazın",
           "refreshModels": "Modelleri Yenile"
+        },
+        "effort": {
+          "title": "Akıl yürütme derinliği",
+          "description": "Model yanıtlamadan önce ne kadar düşünür. Daha derin seviyeler daha uzun sürer ve daha pahalıdır.",
+          "low": "Düşük",
+          "medium": "Orta",
+          "high": "Yüksek",
+          "xhigh": "Çok yüksek",
+          "max": "En yüksek"
         }
       },
       "prompts": {

@@ -1,5 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSettings } from "../../../hooks/useSettings";
+import { useSettingsStore } from "../../../stores/settingsStore";
 import {
   commands,
   type PostProcessApiFormat,
@@ -29,6 +31,11 @@ type PostProcessProviderState = {
   modelOptions: ModelOption[];
   isModelUpdating: boolean;
   isFetchingModels: boolean;
+  effort: string;
+  supportsReasoningEffort: boolean;
+  effortOptions: DropdownOption[];
+  handleEffortSelect: (value: string) => void;
+  isEffortUpdating: boolean;
   handleProviderSelect: (providerId: string) => void;
   handleModelSelect: (value: string) => void;
   handleModelCreate: (value: string) => void;
@@ -37,7 +44,21 @@ type PostProcessProviderState = {
 
 const APPLE_PROVIDER_ID = "apple_intelligence";
 
+/**
+ * The store implements the "effort" setting type, but its published signature
+ * only lists the older ones. The cast keeps the store untouched while letting
+ * this hook call the generic updater with the reasoning depth.
+ */
+type PostProcessSettingType = "base_url" | "api_key" | "model" | "effort";
+
+type UpdatePostProcessSetting = (
+  settingType: PostProcessSettingType,
+  providerId: string,
+  value: string,
+) => Promise<void>;
+
 export const usePostProcessProviderState = (): PostProcessProviderState => {
+  const { t } = useTranslation();
   const {
     settings,
     isUpdating,
@@ -49,6 +70,10 @@ export const usePostProcessProviderState = (): PostProcessProviderState => {
     fetchPostProcessModels,
     postProcessModelOptions,
   } = useSettings();
+
+  const updatePostProcessSetting = useSettingsStore(
+    (state) => state.updatePostProcessSetting,
+  ) as UpdatePostProcessSetting;
 
   // Settings are guaranteed to have providers after migration
   const providers = settings?.post_process_providers || [];
@@ -73,6 +98,12 @@ export const usePostProcessProviderState = (): PostProcessProviderState => {
   const apiFormat = selectedProvider?.api_format ?? "openai";
   const apiKey = settings?.post_process_api_keys?.[selectedProviderId] ?? "";
   const model = settings?.post_process_models?.[selectedProviderId] ?? "";
+  const effort = settings?.post_process_efforts?.[selectedProviderId] ?? "";
+
+  // Only some providers expose a reasoning depth (MiniMax today). The others
+  // must not show the control at all.
+  const supportsReasoningEffort =
+    selectedProvider?.supports_reasoning_effort === true;
 
   const providerOptions = useMemo<DropdownOption[]>(() => {
     return providers.map((provider) => ({
@@ -181,6 +212,13 @@ export const usePostProcessProviderState = (): PostProcessProviderState => {
     [selectedProviderId, updatePostProcessModel],
   );
 
+  const handleEffortSelect = useCallback(
+    (value: string) => {
+      void updatePostProcessSetting("effort", selectedProviderId, value);
+    },
+    [selectedProviderId, updatePostProcessSetting],
+  );
+
   const handleRefreshModels = useCallback(() => {
     if (isAppleProvider) return;
     void fetchPostProcessModels(selectedProviderId);
@@ -210,6 +248,22 @@ export const usePostProcessProviderState = (): PostProcessProviderState => {
     return options;
   }, [availableModelsRaw, model]);
 
+  // The reasoning depths the provider accepts. The values are the ones the
+  // backend stores; only the label is translated.
+  const effortOptions = useMemo<DropdownOption[]>(
+    () => [
+      { value: "low", label: t("settings.postProcessing.api.effort.low") },
+      {
+        value: "medium",
+        label: t("settings.postProcessing.api.effort.medium"),
+      },
+      { value: "high", label: t("settings.postProcessing.api.effort.high") },
+      { value: "xhigh", label: t("settings.postProcessing.api.effort.xhigh") },
+      { value: "max", label: t("settings.postProcessing.api.effort.max") },
+    ],
+    [t],
+  );
+
   const isBaseUrlUpdating = isUpdating(
     `post_process_base_url:${selectedProviderId}`,
   );
@@ -224,6 +278,9 @@ export const usePostProcessProviderState = (): PostProcessProviderState => {
   );
   const isFetchingModels = isUpdating(
     `post_process_models_fetch:${selectedProviderId}`,
+  );
+  const isEffortUpdating = isUpdating(
+    `post_process_effort:${selectedProviderId}`,
   );
 
   const isCustomProvider = selectedProvider?.id === "custom";
@@ -251,6 +308,11 @@ export const usePostProcessProviderState = (): PostProcessProviderState => {
     modelOptions,
     isModelUpdating,
     isFetchingModels,
+    effort,
+    supportsReasoningEffort,
+    effortOptions,
+    handleEffortSelect,
+    isEffortUpdating,
     handleProviderSelect,
     handleModelSelect,
     handleModelCreate,

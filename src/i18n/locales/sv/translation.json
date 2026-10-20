@@ -421,6 +421,15 @@
           "placeholderWithOptions": "Sök eller välj en modell",
           "placeholderNoOptions": "Ange ett modellnamn",
           "refreshModels": "Uppdatera modeller"
+        },
+        "effort": {
+          "title": "Resonansdjup",
+          "description": "Hur mycket modellen tänker innan den svarar. Djupare nivåer tar längre tid och kostar mer.",
+          "low": "Låg",
+          "medium": "Medel",
+          "high": "Hög",
+          "xhigh": "Mycket hög",
+          "max": "Maximal"
         }
       },
       "prompts": {

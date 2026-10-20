@@ -927,6 +927,21 @@ fn ensure_post_process_defaults(settings: &mut AppSettings) -> bool {
                     existing.api_format = provider.api_format;
                     changed = true;
                 }
+
+                // The reasoning depth is a capability of the provider, not a
+                // user choice: an installation that stored the provider before
+                // the capability existed has to pick it up, or the control
+                // would never appear for it.
+                if existing.supports_reasoning_effort != provider.supports_reasoning_effort {
+                    debug!(
+                        "Updating supports_reasoning_effort for provider '{}' from {} to {}",
+                        provider.id,
+                        existing.supports_reasoning_effort,
+                        provider.supports_reasoning_effort
+                    );
+                    existing.supports_reasoning_effort = provider.supports_reasoning_effort;
+                    changed = true;
+                }
             }
             None => {
                 // Provider doesn't exist, add it
@@ -956,6 +971,18 @@ fn ensure_post_process_defaults(settings: &mut AppSettings) -> bool {
                     .insert(provider.id.clone(), default_model);
                 changed = true;
             }
+        }
+
+        // The reasoning depth is seeded for the providers that expose one,
+        // so an installation that stored the provider before the capability
+        // existed does not show an empty control.
+        if provider.supports_reasoning_effort
+            && !settings.post_process_efforts.contains_key(&provider.id)
+        {
+            settings
+                .post_process_efforts
+                .insert(provider.id.clone(), default_post_process_effort());
+            changed = true;
         }
     }
 
@@ -1977,5 +2004,105 @@ mod tests {
         let out = format!("{:?}", map);
         assert!(!out.contains("secret"));
         assert!(out.contains("[REDACTED]"));
+    }
+
+    #[test]
+    fn a_stored_provider_picks_up_the_reasoning_depth_capability() {
+        // A store written before the capability existed has the provider
+        // without the flag and without an effort. Without the migration the
+        // control would never appear for it.
+        let mut settings = get_default_settings();
+        for provider in settings.post_process_providers.iter_mut() {
+            provider.supports_reasoning_effort = false;
+        }
+        settings.post_process_efforts.clear();
+
+        assert!(ensure_post_process_defaults(&mut settings));
+
+        let minimax = settings
+            .post_process_providers
+            .iter()
+            .find(|provider| provider.id == "minimax")
+            .expect("the MiniMax provider is registered");
+        assert!(minimax.supports_reasoning_effort);
+        assert_eq!(
+            settings
+                .post_process_efforts
+                .get("minimax")
+                .map(String::as_str),
+            Some("low")
+        );
+    }
+
+    #[test]
+    fn only_the_providers_that_expose_a_depth_get_an_effort() {
+        let settings = get_default_settings();
+        for provider in &settings.post_process_providers {
+            if provider.supports_reasoning_effort {
+                assert!(settings.post_process_efforts.contains_key(&provider.id));
+            } else {
+                assert!(!settings.post_process_efforts.contains_key(&provider.id));
+            }
+        }
+    }
+
+    #[test]
+    fn the_api_keys_are_protected_in_the_store_and_plain_in_memory() {
+        let mut settings = get_default_settings();
+        settings
+            .post_process_api_keys
+            .insert("openai".to_string(), "sk-secreto".to_string());
+
+        let stored = settings_to_store_value(&settings);
+        let keys = stored
+            .get("post_process_api_keys")
+            .and_then(|value| value.as_object())
+            .expect("the keys are in the store value");
+        let openai = keys.get("openai").and_then(|value| value.as_str()).unwrap();
+        assert!(
+            crate::secrets::is_protected(openai),
+            "the key must be protected in the store, got: {openai}"
+        );
+        assert!(!openai.contains("sk-secreto"));
+
+        // In memory it stays plain, so the rest of the program is unaffected.
+        let mut round_trip = settings;
+        unprotect_api_keys(&mut round_trip);
+        assert_eq!(
+            round_trip.post_process_api_keys.get("openai").map(String::as_str),
+            Some("sk-secreto")
+        );
+    }
+
+    #[test]
+    fn a_key_that_cannot_be_protected_is_not_written_in_plain_text() {
+        let mut settings = get_default_settings();
+        settings
+            .post_process_api_keys
+            .insert("openai".to_string(), "sk-secreto".to_string());
+
+        // A value that claims to be protected but is not valid makes the
+        // protection fail; the key must not reach the store in clear.
+        let mut broken = settings_to_store_value(&settings);
+        let keys = broken
+            .get_mut("post_process_api_keys")
+            .and_then(|value| value.as_object_mut())
+            .expect("the keys are in the store value");
+        keys.insert(
+            "openai".to_string(),
+            serde_json::Value::String("dpapi:v1:zz".to_string()),
+        );
+
+        // The broken value is left as it is: it is already marked as
+        // protected, and unprotecting it fails loudly instead of returning a
+        // plain secret.
+        let mut loaded: AppSettings =
+            serde_json::from_value(broken).expect("the settings still deserialize");
+        unprotect_api_keys(&mut loaded);
+        assert_eq!(
+            loaded.post_process_api_keys.get("openai").map(String::as_str),
+            Some(""),
+            "a key that cannot be unprotected is treated as lost"
+        );
     }
 }

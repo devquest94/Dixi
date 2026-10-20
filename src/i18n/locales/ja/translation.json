@@ -421,6 +421,15 @@
           "placeholderWithOptions": "モデルを検索または選択",
           "placeholderNoOptions": "モデル名を入力",
           "refreshModels": "モデルを更新"
+        },
+        "effort": {
+          "title": "推論の深さ",
+          "description": "回答するまでにモデルがどれだけ考えるか。深いレベルほど時間がかかり、コストも増えます。",
+          "low": "低",
+          "medium": "中",
+          "high": "高",
+          "xhigh": "非常に高い",
+          "max": "最大"
         }
       },
       "prompts": {

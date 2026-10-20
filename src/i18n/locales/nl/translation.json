@@ -421,6 +421,15 @@
           "placeholderWithOptions": "Zoek of selecteer een model",
           "placeholderNoOptions": "Typ een modelnaam",
           "refreshModels": "Modellen verversen"
+        },
+        "effort": {
+          "title": "Redeneerdiepte",
+          "description": "Hoeveel het model nadenkt voordat het antwoordt. Diepere niveaus duren langer en kosten meer.",
+          "low": "Laag",
+          "medium": "Gemiddeld",
+          "high": "Hoog",
+          "xhigh": "Zeer hoog",
+          "max": "Maximaal"
         }
       },
       "prompts": {

@@ -421,6 +421,15 @@
           "placeholderWithOptions": "Buscar ou selecionar um modelo",
           "placeholderNoOptions": "Digite o nome de um modelo",
           "refreshModels": "Atualizar modelos"
+        },
+        "effort": {
+          "title": "Profundidade do raciocínio",
+          "description": "Quanto o modelo raciocina antes de responder. Níveis mais profundos levam mais tempo e custam mais.",
+          "low": "Baixo",
+          "medium": "Médio",
+          "high": "Alto",
+          "xhigh": "Muito alto",
+          "max": "Máximo"
         }
       },
       "prompts": {

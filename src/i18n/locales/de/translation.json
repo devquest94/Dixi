@@ -421,6 +421,15 @@
           "placeholderWithOptions": "Modell suchen oder auswählen",
           "placeholderNoOptions": "Modellnamen eingeben",
           "refreshModels": "Modelle aktualisieren"
+        },
+        "effort": {
+          "title": "Denktiefe",
+          "description": "Wie lange das Modell vor der Antwort nachdenkt. Tiefere Stufen dauern länger und kosten mehr.",
+          "low": "Niedrig",
+          "medium": "Mittel",
+          "high": "Hoch",
+          "xhigh": "Sehr hoch",
+          "max": "Maximum"
         }
       },
       "prompts": {

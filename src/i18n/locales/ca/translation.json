@@ -421,6 +421,15 @@
           "placeholderWithOptions": "Cerqueu o seleccioneu un model",
           "placeholderNoOptions": "Escriviu el nom d'un model",
           "refreshModels": "Actualitzeu els models"
+        },
+        "effort": {
+          "title": "Profunditat del raonament",
+          "description": "Quant raona el model abans de respondre. Els nivells més profunds tarden més i costen més.",
+          "low": "Baix",
+          "medium": "Mitjà",
+          "high": "Alt",
+          "xhigh": "Molt alt",
+          "max": "Màxim"
         }
       },
       "prompts": {

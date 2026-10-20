@@ -421,6 +421,15 @@
           "placeholderWithOptions": "Søg eller vælg en model",
           "placeholderNoOptions": "Skriv et modelnavn",
           "refreshModels": "Opdater modeller"
+        },
+        "effort": {
+          "title": "Tænkedybde",
+          "description": "Hvor meget modellen tænker, før den svarer. Dybere niveauer tager længere tid og koster mere.",
+          "low": "Lav",
+          "medium": "Mellem",
+          "high": "Høj",
+          "xhigh": "Meget høj",
+          "max": "Maksimum"
         }
       },
       "prompts": {
