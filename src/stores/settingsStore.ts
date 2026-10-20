@@ -84,6 +84,34 @@ const DEFAULT_AUDIO_DEVICE: AudioDevice = {
   is_default: true,
 };
 
+/**
+ * Unwraps the `{ status: "ok" | "error" }` envelope that every generated
+ * Tauri command returns.
+ *
+ * The generated bindings do not throw for a business error: they resolve with
+ * `{ status: "error", error }`. Awaiting one directly therefore resolves
+ * *successfully*, so an optimistic store update survived a rejected write and
+ * the UI kept showing a value that was never persisted — for the
+ * post-processing prompt selection that meant the dropdown showed a prompt as
+ * selected while the setting on disk still pointed at the previous one.
+ *
+ * Callers that already inspect the result and throw are unaffected: their
+ * throw happens before this helper sees the value.
+ */
+function assertCommandSucceeded(result: unknown): void {
+  if (
+    typeof result === "object" &&
+    result !== null &&
+    "status" in result &&
+    (result as { status?: unknown }).status === "error"
+  ) {
+    const error = (result as { error?: unknown }).error;
+    throw new Error(
+      typeof error === "string" ? error : JSON.stringify(error ?? "unknown error"),
+    );
+  }
+}
+
 const settingUpdaters: {
   [K in keyof Settings]?: (value: Settings[K]) => Promise<unknown>;
 } = {
@@ -334,15 +362,19 @@ export const useSettingsStore = create<SettingsStore>()(
 
         const updater = settingUpdaters[key];
         if (updater) {
-          await updater(value);
+          assertCommandSucceeded(await updater(value));
         } else if (key !== "bindings" && key !== "selected_model") {
           console.warn(`No handler for setting: ${String(key)}`);
         }
       } catch (error) {
         console.error(`Failed to update setting ${String(key)}:`, error);
-        if (settings) {
-          set({ settings: { ...settings, [key]: originalValue } });
-        }
+        // Roll the single key back on top of the CURRENT state, so a
+        // concurrent change to another setting is not reverted with it.
+        set((state) => ({
+          settings: state.settings
+            ? { ...state.settings, [key]: originalValue }
+            : null,
+        }));
       } finally {
         setUpdating(updateKey, false);
       }
