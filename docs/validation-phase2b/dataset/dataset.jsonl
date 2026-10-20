@@ -1,0 +1,24 @@
+{"id":"es-001","language":"es","reference":"Hola, esta es una prueba de dictado en español.","audio":"../../validation-phase2a/audio-referencia/F1.wav","notes":"Reference audio F1: Spanish greeting with a plain sentence"}
+{"id":"es-002","language":"es","reference":"Fijate si podés revisar los logs del server antes de hacer el deploy.","audio":"../../validation-phase2a/audio-referencia/F2.wav","notes":"Reference audio F2: Rioplatense voseo with English technical nouns"}
+{"id":"es-003","language":"es","reference":"El build me tiró un error, está medio quilombo, lo voy a chequear.","audio":"../../validation-phase2a/audio-referencia/F3.wav","notes":"Reference audio F3: Colloquial Spanish with English loanword and accents"}
+{"id":"es-004","language":"es","reference":"Hacé un commit, pusheá la branch y corré el deploy en Docker.","audio":"../../validation-phase2a/audio-referencia/F4.wav","notes":"Reference audio F4: Imperative commands with English technical nouns"}
+{"id":"es-005","language":"es","reference":"Quería preguntarte si el backup del servidor de producción quedó bien, porque ayer el log showed un timeout.","audio":"../../validation-phase2a/audio-referencia/F5.wav","notes":"Reference audio F5: Long sentence with English verb inside Spanish"}
+{"id":"es-006","language":"es","reference":"Atención: el deploy falla, no es un problema del código.","audio":"../../validation-phase2a/audio-referencia/F6.wav","notes":"Reference audio F6: Spanish with colon punctuation and accents"}
+{"id":"es-007","language":"es","reference":"El servidor tenía cuarenta y cinco por ciento de la memoria usada.","audio":"../../validation-phase2a/audio-referencia/F7.wav","notes":"Reference audio F7: Spelled-out percentage"}
+{"id":"es-008","language":"es","reference":"El endpoint no responde, me parece que hay un timeout en el API gateway.","audio":"../../validation-phase2a/audio-referencia/F8.wav","notes":"Reference audio F8: English acronyms inside Spanish"}
+{"id":"es-009","language":"es","reference":"Che, ¿me pasás el archivo del backup? Lo necesito para el merge.","audio":"../../validation-phase2a/audio-referencia/F9.wav","notes":"Reference audio F9: Spanish with inverted question mark"}
+{"id":"es-010","language":"es","reference":"Revisá el stack trace del error, así vemos dónde se rompe el endpoint.","audio":"../../validation-phase2a/audio-referencia/F10.wav","notes":"Reference audio F10: English loanword with Spanish accents"}
+{"id":"es-011","language":"es","reference":"¿Dónde está el archivo de configuración?","audio":null,"notes":"Spanish question with inverted punctuation and diacritics"}
+{"id":"es-012","language":"es","reference":"El pingüino y la cigüeña anidaron.","audio":null,"notes":"Spanish with diaeresis (ü) in two different words"}
+{"id":"es-013","language":"es","reference":"La contraseña y el DNI son únicos.","audio":null,"notes":"Spanish with ñ and acute accents"}
+{"id":"es-014","language":"es","reference":"¿Cuánto cuesta el café? Solamente dos euros.","audio":null,"notes":"Spanish with inverted punctuation and accented vowels"}
+{"id":"es-015","language":"es","reference":"Añadir un término al glosario técnico.","audio":null,"notes":"Spanish with ñ and an acute accent on the first word"}
+{"id":"es-016","language":"es","reference":"El número de teléfono terminó en el 0800.","audio":null,"notes":"Spanish with acute accents and a numeric code"}
+{"id":"en-001","language":"en","reference":"The quick brown fox jumps over the lazy dog.","audio":null,"notes":"English pangram"}
+{"id":"en-002","language":"en","reference":"Could you deploy the build to production tonight?","audio":null,"notes":"English technical request"}
+{"id":"en-003","language":"en","reference":"Please review the pull request before the release.","audio":null,"notes":"English technical workflow"}
+{"id":"en-004","language":"en","reference":"The meeting starts at 9:30 in the main conference room.","audio":null,"notes":"English with a time expression and digits"}
+{"id":"es-en-001","language":"es-en","reference":"Vamos a hacer un deploy del backend ahora.","audio":null,"notes":"Code-switching: Spanish sentence with the English technical term deploy"}
+{"id":"es-en-002","language":"es-en","reference":"Necesito un review del pull request antes del merge.","audio":null,"notes":"Code-switching: Spanish with English technical terms"}
+{"id":"es-en-003","language":"es-en","reference":"El server está caído, hay que reiniciar el container.","audio":null,"notes":"Code-switching: Rioplatense Spanish with English infrastructure terms"}
+{"id":"es-en-004","language":"es-en","reference":"Voy a correr los tests y pushé el commit al repo.","audio":null,"notes":"Code-switching: Spanish with English development commands"}

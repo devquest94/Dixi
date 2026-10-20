@@ -22,6 +22,7 @@
 
 pub mod asr;
 pub mod dictation;
+pub mod evaluation;
 
 /// Captura de microfono y control de grabacion.
 pub mod audio {
