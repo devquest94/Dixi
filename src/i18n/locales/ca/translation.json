@@ -17,7 +17,11 @@
     "dictionary": "Diccionari",
     "history": "Historial",
     "debug": "Depuració",
-    "about": "Quant a"
+    "about": "Quant a",
+    "profiles": "Perfils d'escriptura",
+    "snippets": "Fragments",
+    "transforms": "Transformacions",
+    "textHistory": "Historial de text"
   },
   "onboarding": {
     "subtitle": "Per començar, trieu un model de transcripció",
@@ -733,6 +737,283 @@
           "description": "Biblioteca de tensors d'alt rendiment per a la inferència d'aprenentatge automàtic al dispositiu",
           "details": "La transcripció local de veu a text del Dixi es basa en el transcribe.cpp i el ggml. Gràcies a la gran feina de Georgi Gerganov i dels col·laboradors."
         }
+      }
+    },
+    "profiles": {
+      "title": "Perfils d'escriptura",
+      "description": "Trieu com escriu Dixi a cada aplicació: l'estil, el nivell de neteja i les regles de format.",
+      "detected": {
+        "title": "Aplicació detectada",
+        "description": "L'aplicació que té el focus ara mateix.",
+        "unknown": "No s'ha detectat cap aplicació",
+        "window": "Títol de la finestra",
+        "refresh": "Actualitza l'aplicació detectada"
+      },
+      "effective": {
+        "title": "Configuració efectiva",
+        "description": "El que farà servir Dixi per a l'aplicació detectada.",
+        "origin": "Origen"
+      },
+      "origin": {
+        "manualOverride": "Anul·lació manual per a aquesta sessió",
+        "appOverride": "Regla lligada a l'aplicació",
+        "detectedProfile": "El perfil que ha coincidit amb l'aplicació",
+        "global": "Configuració global"
+      },
+      "cleanup": {
+        "none": "Sense neteja",
+        "light": "Neteja lleu",
+        "medium": "Neteja mitjana"
+      },
+      "rule": {
+        "capitalizeSentences": "Capitalitzar les frases",
+        "ensureFinalPeriod": "Afegir el punt final",
+        "collapseSpaces": "Reduir els espais repetits",
+        "spaceBeforePunctuation": "Treure l'espai abans de la puntuació"
+      },
+      "styles": {
+        "title": "Estils d'escriptura",
+        "description": "L'estil diu com es neteja el text abans de scriure'l.",
+        "empty": "Encara no hi ha estils d'escriptura.",
+        "builtin": "Integrat",
+        "aiCleanupAllowed": "Amb aquest estil es pot fer servir la neteja amb IA.",
+        "noRules": "Sense regles de format"
+      },
+      "profiles": {
+        "title": "Perfils d'escriptura",
+        "description": "Un perfil agrupa les aplicacions que comparteixen la mateixa manera d'escriure.",
+        "empty": "Encara no hi ha perfils d'escriptura.",
+        "everywhere": "A tot arreu"
+      },
+      "overrides": {
+        "title": "Regles per aplicació",
+        "description": "Una regla imposa un estil o un nivell de neteja a una sola aplicació.",
+        "empty": "Encara no hi ha regles per aplicació.",
+        "inherit": "Utilitza el valor per defecte del perfil"
+      },
+      "form": {
+        "name": "Nom",
+        "namePlaceholder": "Per exemple: Formal",
+        "applications": "Aplicacions",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "Estil",
+        "language": "Idioma",
+        "languagePlaceholder": "es",
+        "basePrompt": "Instrucció base",
+        "basePromptPlaceholder": "La instrucció que es dona al model quan s'utilitza la neteja amb IA.",
+        "cleanupLevel": "Nivell de neteja",
+        "aiCleanup": "Neteja amb IA",
+        "formatRules": "Regles de format",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "El perfil",
+        "required": "Aquest camp és obligatori.",
+        "enabledDescription": "L'estil o el perfil desactivat no s'utilitza."
+      },
+      "manual": {
+        "title": "Anul·lació manual per a aquesta sessió",
+        "description": "Imposeix un perfil mentre duri aquesta sessió.",
+        "notPersisted": "Aquesta anul·lació no es desa: només dura fins que es tanqui Dixi.",
+        "none": "Sense anul·lació"
+      },
+      "actions": {
+        "add": "Afegir",
+        "edit": "Edita",
+        "save": "Desa",
+        "cancel": "Cancel·la",
+        "delete": "Elimina",
+        "builtinCannotDelete": "Un estil integrat no es pot esborrar, només es pot desactivar.",
+        "enabled": "Activat",
+        "disabled": "Desactivat"
+      },
+      "errors": {
+        "load": "No s'han pogut carregar els perfils d'escriptura.",
+        "action": "No es pot desar el perfil d'escriptura."
+      }
+    },
+    "snippets": {
+      "title": "Fragments",
+      "description": "Escriviu la frase una vegada i deixeu que Dixi l'expandeixi: fragments amb variables, a punt per pegar a qualsevol lloc.",
+      "list": {
+        "title": "Fragments",
+        "description": "Un fragment substitueix la frase activadora per la seva expansió.",
+        "empty": "Encara no hi ha fragments.",
+        "favorite": "Favorit",
+        "enabled": "Activat",
+        "everywhere": "A tot arreu",
+        "usageCount": "S'ha utilitzat {{count}} vegades",
+        "enabledDescription": "El fragment desactivat no s'expandeix."
+      },
+      "form": {
+        "name": "Nom",
+        "namePlaceholder": "Per exemple: Signatura",
+        "trigger": "Frase activadora",
+        "triggerPlaceholder": "signa",
+        "expansion": "Expansió",
+        "expansionPlaceholder": "Salutacions, {nom}",
+        "variables": "Variables",
+        "variablesDescription": "Declara les variables que fa servir l'expansió: el nom, si és obligatòria i la pregunta que es fa.",
+        "variableName": "Nom de la variable",
+        "variableRequired": "Obligatòria",
+        "variablePrompt": "La pregunta que es fa",
+        "addVariable": "Afegir una variable",
+        "removeVariable": "Elimina la variable",
+        "noVariables": "Aquest fragment no fa servir variables.",
+        "builtinVariables": "Els marcadors {fecha} i {hora} es resolen localment: no cal declarar-los.",
+        "category": "Categoria",
+        "categoryPlaceholder": "Per exemple: Correus",
+        "applications": "Aplicacions",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "Idioma",
+        "languagePlaceholder": "es",
+        "required": "Aquest camp és obligatori."
+      },
+      "preview": {
+        "title": "Previsualització",
+        "description": "Escriviu una frase amb la frase activadora i vegeu en què l'expandeix Dixi.",
+        "input": "Text per expandir",
+        "inputPlaceholder": "signa, moltes gràcies",
+        "inputRequired": "Escriu alguna cosa per expandir.",
+        "run": "Expandeix",
+        "expanded": "El fragment es va expandir.",
+        "notExpanded": "Cap fragment no coincideix amb aquest text.",
+        "retry": "Expandeix de nou"
+      },
+      "transfer": {
+        "title": "Importació i exportació",
+        "description": "Moveu els fragments entre ordinadors amb un fitxer JSON.",
+        "filesTitle": "Fitxer de fragments",
+        "export": "Exporta",
+        "import": "Importa",
+        "exportEmpty": "No hi ha fragments per exportar.",
+        "exportSuccess": "S'han exportat {{count}} fragments.",
+        "exportError": "No s'han pogut exportar els fragments.",
+        "importSuccess": "S'han importat {{count}} fragments.",
+        "importError": "No s'han pogut importar els fragments.",
+        "overwriteTitle": "El fitxer ja existeix. El vols substituir?"
+      },
+      "actions": {
+        "add": "Afegir",
+        "edit": "Edita",
+        "save": "Desa",
+        "cancel": "Cancel·la",
+        "delete": "Elimina"
+      },
+      "errors": {
+        "load": "No s'han pogut carregar els fragments.",
+        "action": "No es pot desar el fragment."
+      }
+    },
+    "transforms": {
+      "title": "Transformacions",
+      "description": "Converteix el text dictat en una altra cosa: el model el reescriu seguint la instrucció de cada transformació.",
+      "list": {
+        "title": "Transformacions",
+        "description": "Una transformació reescriu el text seguint la seva instrucció.",
+        "empty": "Encara no hi ha transformacions.",
+        "builtin": "Integrada",
+        "enabled": "Activada",
+        "provider": "Proveïdor",
+        "model": "Model",
+        "usageCount": "S'ha utilitzat {{count}} vegades",
+        "enabledDescription": "La transformació desactivada no s'executa."
+      },
+      "form": {
+        "name": "Nom",
+        "namePlaceholder": "Per exemple: Encurta-ho",
+        "prompt": "Instrucció",
+        "promptPlaceholder": "Reescriu el text de manera més concisa, conservant el sentit.",
+        "provider": "Proveïdor",
+        "providerDefault": "Proveïdor del postprocessament",
+        "model": "Model",
+        "modelPlaceholder": "El model per defecte",
+        "category": "Categoria",
+        "categoryPlaceholder": "Per exemple: Escriptura",
+        "required": "Aquest camp és obligatori."
+      },
+      "runner": {
+        "title": "Prova una transformació",
+        "description": "Escriviu un text, trieu les transformacions que voleu executar i vegeu el resultat abans d'aplicar-lo.",
+        "input": "Text per transformar",
+        "inputPlaceholder": "Escriviu el text que voleu transformar",
+        "inputRequired": "Escriu un text per transformar.",
+        "selectTransform": "Transformacions que s'executaran",
+        "selectRequired": "Trieu com a mínim una transformació.",
+        "run": "Executa",
+        "result": "Resultat",
+        "accept": "Accepta",
+        "accepted": "El resultat es va aplicar.",
+        "copy": "Copia",
+        "copied": "El resultat es va copiar.",
+        "captureSelection": "Utilitza el text seleccionat",
+        "selectionEmpty": "No hi ha cap text seleccionat a l'aplicació amb el focus.",
+        "selectionChanged": "El text seleccionat va canviar mentre s'executava la transformació, així que no s'ha escrit res. Copieu el resultat en comptes d'això."
+      },
+      "diff": {
+        "title": "Canvis",
+        "inserted": "{{count}} paraules afegides",
+        "removed": "{{count}} paraules eliminades",
+        "identical": "El text no ha canviat."
+      },
+      "actions": {
+        "add": "Afegir",
+        "edit": "Edita",
+        "save": "Desa",
+        "cancel": "Cancel·la",
+        "delete": "Elimina",
+        "builtinCannotEdit": "Una transformació integrada no es pot editar, només es pot desactivar.",
+        "builtinCannotDelete": "Una transformació integrada no es pot esborrar, només es pot desactivar."
+      },
+      "errors": {
+        "load": "No s'han pogut carregar les transformacions.",
+        "action": "No es pot desar la transformació."
+      }
+    },
+    "textHistory": {
+      "title": "Historial de text",
+      "description": "El registre local dels canvis que Dixi ha fet al text, per poder desfer l'últim.",
+      "list": {
+        "title": "Canvis registrats",
+        "description": "Les més recents primer.",
+        "empty": "Encara no hi ha cap canvi registrat.",
+        "application": "Aplicació",
+        "unknownApplication": "Aplicació desconeguda",
+        "undone": "Desfet"
+      },
+      "kind": {
+        "transform": "Transformació",
+        "snippet": "Fragment",
+        "cleanup": "Neteja"
+      },
+      "revert": {
+        "button": "Desfés",
+        "done": "El text original es va tornar a posar.",
+        "markDone": "Marca com a desfet",
+        "markedDone": "El canvi es va marcar com a desfet.",
+        "selectionEmpty": "Selecciona el text que es va canviar per desfer el canvi.",
+        "selectionMismatch": "El text seleccionat no és el que es va canviar, així que no s'ha escrit res.",
+        "selectionChanged": "La selecció va canviar mentre es desfeia, així que no s'ha escrit res."
+      },
+      "retention": {
+        "title": "Retenció",
+        "description": "Quant de temps es conserven els canvis abans de ser eliminats.",
+        "days": "Dies",
+        "zero": "Amb 0 dies l'historial es conserva fins que l'esborreu.",
+        "save": "Desa",
+        "saved": "La retenció es va desar.",
+        "purge": "Elimina ara els caducats",
+        "purged": "S'han eliminat {{count}} entrades.",
+        "invalid": "Introduïu un nombre de dies igual o superior a 0."
+      },
+      "actions": {
+        "clear": "Esborra l'historial",
+        "clearTitle": "Esborra l'historial",
+        "clearDescription": "Elimina tots els canvis registrats. No es pot desfer.",
+        "clearConfirm": "Voleu esborrar tota l'historial?",
+        "cleared": "L'historial es va esborrar."
+      },
+      "errors": {
+        "load": "No s'ha pogut carregar l'historial de text.",
+        "action": "No es pot desfer el canvi."
       }
     }
   },

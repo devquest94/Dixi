@@ -17,7 +17,11 @@
     "dictionary": "Sözlük",
     "history": "Geçmiş",
     "debug": "Hata Ayıklama",
-    "about": "Hakkında"
+    "about": "Hakkında",
+    "profiles": "Yazma profilleri",
+    "snippets": "Paragrafçıklar",
+    "transforms": "Dönüşümler",
+    "textHistory": "Metin geçmişi"
   },
   "onboarding": {
     "subtitle": "Başlamak için bir transkripsiyon modeli seçin",
@@ -733,6 +737,283 @@
       "whatsNewUpdates": {
         "label": "Yenilikleri Göster",
         "description": "Dixi güncellemelerinden sonra sürüm notlarını göster"
+      }
+    },
+    "profiles": {
+      "title": "Yazma profilleri",
+      "description": "Dixi'nin her uygulamada nasıl yazacağını seçin: stil, temizleme düzeyi ve biçimlendirme kuralları.",
+      "detected": {
+        "title": "Algılanan uygulama",
+        "description": "Şu anda odakta olan uygulama.",
+        "unknown": "Hiçbir uygulama algılanmadı",
+        "window": "Pencere başlığı",
+        "refresh": "Algılanan uygulamayı yenile"
+      },
+      "effective": {
+        "title": "Geçerli yapılandırma",
+        "description": "Dixi, algılanan uygulama için neyi kullanacak.",
+        "origin": "Kaynak"
+      },
+      "origin": {
+        "manualOverride": "Bu oturum için elle geçersiz kılma",
+        "appOverride": "Uygulamaya bağlı kural",
+        "detectedProfile": "Uygulamanın eşleştiği profil",
+        "global": "Genel yapılandırma"
+      },
+      "cleanup": {
+        "none": "Temizleme yok",
+        "light": "Hafif temizleme",
+        "medium": "Orta düzey temizleme"
+      },
+      "rule": {
+        "capitalizeSentences": "Cümleleri büyük harfle başlat",
+        "ensureFinalPeriod": "Sona nokta ekle",
+        "collapseSpaces": "Yinelenen boşlukları birleştir",
+        "spaceBeforePunctuation": "Noktalama işaretlerinden önceki boşluğu kaldır"
+      },
+      "styles": {
+        "title": "Yazma stilleri",
+        "description": "Stil, metnin yazılmadan önce nasıl temizlendiğini belirtir.",
+        "empty": "Henüz yazma stili yok.",
+        "builtin": "Yerleşik",
+        "aiCleanupAllowed": "Bu stille yapay zekâ temizleme kullanılabilir.",
+        "noRules": "Biçimlendirme kuralı yok"
+      },
+      "profiles": {
+        "title": "Yazma profilleri",
+        "description": "Bir profil, aynı şekilde yazan uygulamaları bir araya getirir.",
+        "empty": "Henüz yazma profili yok.",
+        "everywhere": "Her yerde"
+      },
+      "overrides": {
+        "title": "Uygulama başına kurallar",
+        "description": "Bir kural, tek bir uygulama için stil veya temizleme düzeyi dayatır.",
+        "empty": "Henüz uygulama kuralları yok.",
+        "inherit": "Profilin varsayılan değerini kullan"
+      },
+      "form": {
+        "name": "Ad",
+        "namePlaceholder": "Örneğin: Resmi",
+        "applications": "Uygulamalar",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "Stil",
+        "language": "Dil",
+        "languagePlaceholder": "es",
+        "basePrompt": "Temel istem",
+        "basePromptPlaceholder": "Yapay zekâ temizleme kullanılırken modele verilen talimat.",
+        "cleanupLevel": "Temizleme düzeyi",
+        "aiCleanup": "Yapay zekâ temizleme",
+        "formatRules": "Biçimlendirme kuralları",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "Profil",
+        "required": "Bu alan zorunludur.",
+        "enabledDescription": "Devre dışı bırakılan stil veya profil kullanılmaz."
+      },
+      "manual": {
+        "title": "Bu oturum için elle geçersiz kılma",
+        "description": "Bu oturum boyunca bir profili zorla uygula.",
+        "notPersisted": "Bu geçersiz kılma kaydedilmez: yalnızca Dixi kapanana kadar geçerlidir.",
+        "none": "Geçersiz kılma yok"
+      },
+      "actions": {
+        "add": "Ekle",
+        "edit": "Düzenle",
+        "save": "Kaydet",
+        "cancel": "İptal",
+        "delete": "Sil",
+        "builtinCannotDelete": "Yerleşik bir stil silinemez, yalnızca devre dışı bırakılabilir.",
+        "enabled": "Etkin",
+        "disabled": "Devre dışı"
+      },
+      "errors": {
+        "load": "Yazma profilleri yüklenemedi.",
+        "action": "Yazma profili kaydedilemedi."
+      }
+    },
+    "snippets": {
+      "title": "Paragrafçıklar",
+      "description": "Cümleyi bir kez yazın, genişletmesini Dixi'ye bırakın: değişkenli paragrafçıklar her yere yapıştırılmaya hazır.",
+      "list": {
+        "title": "Paragrafçıklar",
+        "description": "Bir paragrafçık, tetikleme ifadesini genişletilmiş hâliyle değiştirir.",
+        "empty": "Henüz paragrafçık yok.",
+        "favorite": "Favori",
+        "enabled": "Etkin",
+        "everywhere": "Her yerde",
+        "usageCount": "{{count}} kez kullanıldı",
+        "enabledDescription": "Devre dışı bırakılan paragrafçık genişletilmez."
+      },
+      "form": {
+        "name": "Ad",
+        "namePlaceholder": "Örneğin: İmza",
+        "trigger": "Tetikleme ifadesi",
+        "triggerPlaceholder": "imza",
+        "expansion": "Genişletme",
+        "expansionPlaceholder": "Saygılarımızla, {ad}",
+        "variables": "Değişkenler",
+        "variablesDescription": "Genişletmenin kullandığı değişkenleri tanımlayın: adı, zorunlu olup olmadığı ve sorulan soru.",
+        "variableName": "Değişken adı",
+        "variableRequired": "Zorunlu",
+        "variablePrompt": "Sorulacak soru",
+        "addVariable": "Bir değişken ekle",
+        "removeVariable": "Değişkeni kaldır",
+        "noVariables": "Bu paragrafçık değişken kullanmıyor.",
+        "builtinVariables": "{fecha} ve {hora} yer tutucuları yerel olarak çözülür: bildirmeniz gerekmez.",
+        "category": "Kategori",
+        "categoryPlaceholder": "Örneğin: E-posta",
+        "applications": "Uygulamalar",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "Dil",
+        "languagePlaceholder": "es",
+        "required": "Bu alan zorunludur."
+      },
+      "preview": {
+        "title": "Önizleme",
+        "description": "Tetikleme ifadesi olan bir cümle yazın ve Dixi'nin nasıl genişleteceğini görün.",
+        "input": "Genişletilecek metin",
+        "inputPlaceholder": "imza, şimdiden teşekkürler",
+        "inputRequired": "Genişletilecek bir şeyler yazın.",
+        "run": "Genişlet",
+        "expanded": "Paragrafçık genişletildi.",
+        "notExpanded": "Bu metinle eşleşen paragrafçık yoktu.",
+        "retry": "Yeniden genişlet"
+      },
+      "transfer": {
+        "title": "İçe ve dışa aktarma",
+        "description": "Paragrafçıklarını bir JSON dosyasıyla makineler arasında taşıyın.",
+        "filesTitle": "Paragrafçık dosyası",
+        "export": "Dışa aktar",
+        "import": "İçe aktar",
+        "exportEmpty": "Dışa aktarılacak paragrafçık yok.",
+        "exportSuccess": "{{count}} paragrafçık dışa aktarıldı.",
+        "exportError": "Paragrafçıklar dışa aktarılamadı.",
+        "importSuccess": "{{count}} paragrafçık içe aktarıldı.",
+        "importError": "Paragrafçıklar içe aktarılamadı.",
+        "overwriteTitle": "Dosya zaten var. Değiştirilsin mi?"
+      },
+      "actions": {
+        "add": "Ekle",
+        "edit": "Düzenle",
+        "save": "Kaydet",
+        "cancel": "İptal",
+        "delete": "Sil"
+      },
+      "errors": {
+        "load": "Paragrafçıklar yüklenemedi.",
+        "action": "Paragrafçık kaydedilemedi."
+      }
+    },
+    "transforms": {
+      "title": "Dönüşümler",
+      "description": "Sözlü yazılan metni başka bir şeye dönüştürün: model her dönüşümün talimatına göre metni yeniden yazar.",
+      "list": {
+        "title": "Dönüşümler",
+        "description": "Bir dönüşüm, bir talimatı izleyerek metni modelle yeniden yazar.",
+        "empty": "Henüz dönüşüm yok.",
+        "builtin": "Yerleşik",
+        "enabled": "Etkin",
+        "provider": "Sağlayıcı",
+        "model": "Model",
+        "usageCount": "{{count}} kez kullanıldı",
+        "enabledDescription": "Devre dışı bırakılan dönüşüm çalıştırılmaz."
+      },
+      "form": {
+        "name": "Ad",
+        "namePlaceholder": "Örneğin: Kısalt",
+        "prompt": "Talimat",
+        "promptPlaceholder": "Anlamı koruyarak metni daha kısa biçimde yeniden yazın.",
+        "provider": "Sağlayıcı",
+        "providerDefault": "Son işlem sağlayıcısı",
+        "model": "Model",
+        "modelPlaceholder": "Varsayılan model",
+        "category": "Kategori",
+        "categoryPlaceholder": "Örneğin: Yazım",
+        "required": "Bu alan zorunludur."
+      },
+      "runner": {
+        "title": "Bir dönüşüm deneyin",
+        "description": "Bir metin yazın, çalıştırılacak dönüşümleri seçin ve uygulamadan önce sonucu görün.",
+        "input": "Dönüştürülecek metin",
+        "inputPlaceholder": "Dönüştürmek istediğiniz metni yazın",
+        "inputRequired": "Dönüştürülecek bir metin yazın.",
+        "selectTransform": "Çalıştırılacak dönüşümler",
+        "selectRequired": "En az bir dönüşüm seçin.",
+        "run": "Çalıştır",
+        "result": "Sonuç",
+        "accept": "Kabul et",
+        "accepted": "Sonuç uygulandı.",
+        "copy": "Kopyala",
+        "copied": "Sonuç kopyalandı.",
+        "captureSelection": "Seçili metni kullan",
+        "selectionEmpty": "Odakta olan uygulamada seçili metin yok.",
+        "selectionChanged": "Dönüşüm çalışırken seçili metin değişti, bu yüzden hiçbir şey yazılmadı. Bunun yerine sonucu kopyalayın."
+      },
+      "diff": {
+        "title": "Değişiklikler",
+        "inserted": "{{count}} kelime eklendi",
+        "removed": "{{count}} kelime silindi",
+        "identical": "Metin değişmedi."
+      },
+      "actions": {
+        "add": "Ekle",
+        "edit": "Düzenle",
+        "save": "Kaydet",
+        "cancel": "İptal",
+        "delete": "Sil",
+        "builtinCannotEdit": "Yerleşik bir dönüşüm düzenlenemez, yalnızca devre dışı bırakılabilir.",
+        "builtinCannotDelete": "Yerleşik bir dönüşüm silinemez, yalnızca devre dışı bırakılabilir."
+      },
+      "errors": {
+        "load": "Dönüşümler yüklenemedi.",
+        "action": "Dönüşüm kaydedilemedi."
+      }
+    },
+    "textHistory": {
+      "title": "Metin geçmişi",
+      "description": "Dixi'nin metninizde yaptığı değişikliklerin yerel kaydı; sonuncusunu geri alabilirsiniz.",
+      "list": {
+        "title": "Kaydedilen değişiklikler",
+        "description": "En yeniler önce.",
+        "empty": "Henüz kaydedilmiş değişiklik yok.",
+        "application": "Uygulama",
+        "unknownApplication": "Bilinmeyen uygulama",
+        "undone": "Geri alındı"
+      },
+      "kind": {
+        "transform": "Dönüşüm",
+        "snippet": "Paragrafçık",
+        "cleanup": "Temizleme"
+      },
+      "revert": {
+        "button": "Geri al",
+        "done": "Özgün metin geri konuldu.",
+        "markDone": "Geri alınmış olarak işaretle",
+        "markedDone": "Değişiklik geri alınmış olarak işaretlendi.",
+        "selectionEmpty": "Değişikliği geri almak için değişen metni seçin.",
+        "selectionMismatch": "Seçili metin değişen metin değil, bu yüzden hiçbir şey yazılmadı.",
+        "selectionChanged": "Geri alma sırasında seçim değişti, bu yüzden hiçbir şey yazılmadı."
+      },
+      "retention": {
+        "title": "Saklama süresi",
+        "description": "Değişiklikler silinene kadar ne kadar süre saklanır.",
+        "days": "Gün",
+        "zero": "0 gün ile geçmiş, siz temizleyene kadar saklanır.",
+        "save": "Kaydet",
+        "saved": "Saklama süresi kaydedildi.",
+        "purge": "Süresi dolanları şimdi kaldır",
+        "purged": "{{count}} kayıt kaldırıldı.",
+        "invalid": "0 veya daha büyük bir gün sayısı girin."
+      },
+      "actions": {
+        "clear": "Geçmişi temizle",
+        "clearTitle": "Geçmişi temizle",
+        "clearDescription": "Kaydedilmiş tüm değişiklikleri kaldırır. Bu geri alınamaz.",
+        "clearConfirm": "Geçmişin tamamını temizlemek istiyor musunuz?",
+        "cleared": "Geçmiş temizlendi."
+      },
+      "errors": {
+        "load": "Metin geçmişi yüklenemedi.",
+        "action": "Değişiklik geri alınamadı."
       }
     }
   },

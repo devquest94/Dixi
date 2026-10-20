@@ -17,7 +17,11 @@
     "history": "السجل",
     "debug": "تصحيح الأخطاء",
     "about": "حول",
-    "models": "النماذج"
+    "models": "النماذج",
+    "profiles": "ملفات الكتابة",
+    "snippets": "المقتطفات",
+    "transforms": "التحويلات",
+    "textHistory": "سجلّ النصوص"
   },
   "onboarding": {
     "subtitle": "للبدء، اختر نموذج التفريغ الصوتي",
@@ -733,6 +737,283 @@
       "rescan": {
         "label": "إعادة الفحص",
         "tooltip": "إعادة الفحص بحثًا عن النماذج المضافة إلى مجلد النماذج أو ذاكرة Hugging Face التخزينية المؤقتة خارج Dixi"
+      }
+    },
+    "profiles": {
+      "title": "ملفات الكتابة",
+      "description": "اختر كيف يكتب Dixi في كل تطبيق: النمط ومستوى التنظيف وقواعد التنسيق.",
+      "detected": {
+        "title": "التطبيق المكتشف",
+        "description": "التطبيق الذي يحتوي على التركيز الآن.",
+        "unknown": "لم يتم اكتشاف أي تطبيق",
+        "window": "عنوان النافذة",
+        "refresh": "تحديث التطبيق المكتشف"
+      },
+      "effective": {
+        "title": "الإعدادات الفعّالة",
+        "description": "ما سيستخدمه Dixi للتطبيق المكتشف.",
+        "origin": "المصدر"
+      },
+      "origin": {
+        "manualOverride": "تجاوز يدوي لهذه الجلسة",
+        "appOverride": "قاعدة مرتبطة بالتطبيق",
+        "detectedProfile": "الملف الذي طابقه التطبيق",
+        "global": "الإعدادات العامة"
+      },
+      "cleanup": {
+        "none": "بلا تنظيف",
+        "light": "تنظيف خفيف",
+        "medium": "تنظيف متوسط"
+      },
+      "rule": {
+        "capitalizeSentences": "تكبير أول كل جملة",
+        "ensureFinalPeriod": "إضافة نقطة في النهاية",
+        "collapseSpaces": "دمج المسافات المتكررة",
+        "spaceBeforePunctuation": "إزالة المسافة قبل علامات الترقيم"
+      },
+      "styles": {
+        "title": "أنماط الكتابة",
+        "description": "النمط يحدد كيف يُنظَّف النص قبل كتابته.",
+        "empty": "لا توجد أنماط كتابة بعد.",
+        "builtin": "مدمج",
+        "aiCleanupAllowed": "يمكن استخدام التنظيف بالذكاء الاصطناعي مع هذا النمط.",
+        "noRules": "بلا قواعد تنسيق"
+      },
+      "profiles": {
+        "title": "ملفات الكتابة",
+        "description": "الملف يجمع التطبيقات التي تشترك في طريقة الكتابة نفسها.",
+        "empty": "لا توجد ملفات كتابة بعد.",
+        "everywhere": "في كل التطبيقات"
+      },
+      "overrides": {
+        "title": "قواعد لكل تطبيق",
+        "description": "القاعدة تفرض نمطًا أو مستوى تنظيف لتطبيق واحد فقط.",
+        "empty": "لا توجد قواعد للتطبيقات بعد.",
+        "inherit": "استخدام افتراضي الملف"
+      },
+      "form": {
+        "name": "الاسم",
+        "namePlaceholder": "مثال: رسمي",
+        "applications": "التطبيقات",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "النمط",
+        "language": "اللغة",
+        "languagePlaceholder": "es",
+        "basePrompt": "التعليمات الأساسية",
+        "basePromptPlaceholder": "التعليمات التي تُعطى للنموذج عند استخدام التنظيف بالذكاء الاصطناعي.",
+        "cleanupLevel": "مستوى التنظيف",
+        "aiCleanup": "التنظيف بالذكاء الاصطناعي",
+        "formatRules": "قواعد التنسيق",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "الملف",
+        "required": "Este campo es obligatorio.",
+        "enabledDescription": "النمط أو الملف المعطّل لا يُستخدم."
+      },
+      "manual": {
+        "title": "تجاوز يدوي لهذه الجلسة",
+        "description": "فرض ملف طوال مدة هذه الجلسة.",
+        "notPersisted": "لا يتم حفظ هذا التجاوز: ينتهي فقط عند إغلاق Dixi.",
+        "none": "بلا تجاوز"
+      },
+      "actions": {
+        "add": "إضافة",
+        "edit": "تعديل",
+        "save": "حفظ",
+        "cancel": "إلغاء",
+        "delete": "حذف",
+        "builtinCannotDelete": "لا يمكن حذف النمط المدمج، يمكن تعطيله فقط.",
+        "enabled": "مُفعّل",
+        "disabled": "مُعطّل"
+      },
+      "errors": {
+        "load": "تعذّر تحميل ملفات الكتابة.",
+        "action": "تعذّر حفظ ملف الكتابة."
+      }
+    },
+    "snippets": {
+      "title": "المقتطفات",
+      "description": "اكتب العبارة مرة واحدة ودع Dixi يوسّعها: مقتطفات مع متغيرات، جاهزة للّصق في أي مكان.",
+      "list": {
+        "title": "المقتطفات",
+        "description": "يحلّ المقتطف محلّ عبارة التشغيل بتوسيعه.",
+        "empty": "لا توجد مقتطفات بعد.",
+        "favorite": "المفضّلة",
+        "enabled": "مُفعّل",
+        "everywhere": "في كل التطبيقات",
+        "usageCount": "استُخدم {{count}} مرة",
+        "enabledDescription": "المقتطف المعطّل لا يُوسَّع."
+      },
+      "form": {
+        "name": "الاسم",
+        "namePlaceholder": "مثال: التوقيع",
+        "trigger": "عبارة التشغيل",
+        "triggerPlaceholder": "تحياتي",
+        "expansion": "التوسيع",
+        "expansionPlaceholder": "تحياتي، {name}",
+        "variables": "المتغيّرات",
+        "variablesDescription": "صرّح بالمتغيّرات التي يستخدمها التوسيع: الاسم، وهل هو إلزامي، والسؤال الذي يُطرح.",
+        "variableName": "اسم المتغيّر",
+        "variableRequired": "إلزامي",
+        "variablePrompt": "السؤال الذي يُطرح",
+        "addVariable": "إضافة متغيّر",
+        "removeVariable": "إزالة المتغيّر",
+        "noVariables": "هذا المقتطف لا يستخدم متغيّرات.",
+        "builtinVariables": "العناصر {fecha} و{hora} تُحَلّ محليًا: لا حاجة لإعلانها.",
+        "category": "الفئة",
+        "categoryPlaceholder": "مثال: البريد الإلكتروني",
+        "applications": "التطبيقات",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "اللغة",
+        "languagePlaceholder": "es",
+        "required": "هذا الحقل إلزامي."
+      },
+      "preview": {
+        "title": "معاينة",
+        "description": "اكتب جملةً تحتوي عبارة التشغيل وشاهد ما سيوسّعها إليه Dixi.",
+        "input": "النص المراد توسيعه",
+        "inputPlaceholder": "تحياتي، شكرًا جزيلًا",
+        "inputRequired": "اكتب شيئًا لتوسيعه.",
+        "run": "توسيع",
+        "expanded": "تم توسيع المقتطف.",
+        "notExpanded": "لم يطابق أي مقتطف هذا النص.",
+        "retry": "التوسيع مرة أخرى"
+      },
+      "transfer": {
+        "title": "الاستيراد والتصدير",
+        "description": "انقل المقتطفات بين الأجهزة بملف JSON.",
+        "filesTitle": "ملف المقتطفات",
+        "export": "تصدير",
+        "import": "استيراد",
+        "exportEmpty": "لا توجد مقتطفات للتصدير.",
+        "exportSuccess": "تم تصدير المقتطفات: {{count}}",
+        "exportError": "تعذّر تصدير المقتطفات.",
+        "importSuccess": "تم استيراد المقتطفات: {{count}}",
+        "importError": "تعذّر استيراد المقتطفات.",
+        "overwriteTitle": "الملف موجود بالفعل. هل تريد استبداله؟"
+      },
+      "actions": {
+        "add": "إضافة",
+        "edit": "تعديل",
+        "save": "حفظ",
+        "cancel": "إلغاء",
+        "delete": "حذف"
+      },
+      "errors": {
+        "load": "تعذّر تحميل المقتطفات.",
+        "action": "تعذّر حفظ المقتطف."
+      }
+    },
+    "transforms": {
+      "title": "التحويلات",
+      "description": "حوّل النص المنطوق إلى شيء آخر: يعيد النموذج كتابته وفق تعليمات كل تحويل.",
+      "list": {
+        "title": "التحويلات",
+        "description": "يعيد التحويل كتابة النص وفق تعليمته.",
+        "empty": "لا توجد تحويلات بعد.",
+        "builtin": "مدمج",
+        "enabled": "مُفعّل",
+        "provider": "المزوّد",
+        "model": "النموذج",
+        "usageCount": "استُخدم {{count}} مرة",
+        "enabledDescription": "التحويل المعطّل لا يُشغَّل."
+      },
+      "form": {
+        "name": "الاسم",
+        "namePlaceholder": "مثال: اختصره",
+        "prompt": "التعليمات",
+        "promptPlaceholder": "أعد كتابة النص，使其 أكثر إيجازًا مع الحفاظ على المعنى.",
+        "provider": "المزوّد",
+        "providerDefault": "مزوّد المعالجة اللاحقة",
+        "model": "النموذج",
+        "modelPlaceholder": "النموذج الافتراضي",
+        "category": "الفئة",
+        "categoryPlaceholder": "مثال: الكتابة",
+        "required": "هذا الحقل إلزامي."
+      },
+      "runner": {
+        "title": "جرّب تحويلًا",
+        "description": "اكتب نصًا، واختر التحويلات التي تريد تشغيلها، وشاهد النتيجة قبل تطبيقها.",
+        "input": "النص المراد تحويله",
+        "inputPlaceholder": "اكتب النص الذي تريد تحويله",
+        "inputRequired": "اكتب نصًا لتحويله.",
+        "selectTransform": "التحويلات التي ستُشغَّل",
+        "selectRequired": "اختر تحويلًا واحدًا على الأقل.",
+        "run": "تشغيل",
+        "result": "النتيجة",
+        "accept": "قبول",
+        "accepted": "تم تطبيق النتيجة.",
+        "copy": "نسخ",
+        "copied": "تم نسخ النتيجة.",
+        "captureSelection": "استخدام النص المحدّد",
+        "selectionEmpty": "لا يوجد نص محدّد في التطبيق الذي له التركيز.",
+        "selectionChanged": "تغيّر النص المحدّد أثناء تشغيل التحويل، لذلك لم يُكتب أي شيء. انسخ النتيجة بدلًا من ذلك."
+      },
+      "diff": {
+        "title": "التغييرات",
+        "inserted": "{{count}} كلمة مضافة",
+        "removed": "{{count}} كلمة محذوفة",
+        "identical": "لم يتغيّر النص."
+      },
+      "actions": {
+        "add": "إضافة",
+        "edit": "تعديل",
+        "save": "حفظ",
+        "cancel": "إلغاء",
+        "delete": "حذف",
+        "builtinCannotEdit": "لا يمكن تعديل التحويل المدمج، يمكن تعطيله فقط.",
+        "builtinCannotDelete": "لا يمكن حذف التحويل المدمج، يمكن تعطيله فقط."
+      },
+      "errors": {
+        "load": "تعذّر تحميل التحويلات.",
+        "action": "تعذّر حفظ التحويل."
+      }
+    },
+    "textHistory": {
+      "title": "سجلّ النصوص",
+      "description": "السجلّ المحلي للتغييرات التي أجراها Dixi على نصّك، لتتمكن من التراجع عن آخر تغيير.",
+      "list": {
+        "title": "التغييرات المسجّلة",
+        "description": "الأحدث أولًا.",
+        "empty": "لا توجد تغييرات مسجّلة بعد.",
+        "application": "التطبيق",
+        "unknownApplication": "تطبيق غير معروف",
+        "undone": "تم التراجع عنه"
+      },
+      "kind": {
+        "transform": "تحويل",
+        "snippet": "مقتطف",
+        "cleanup": "تنظيف"
+      },
+      "revert": {
+        "button": "تراجع",
+        "done": "أُعيد النص الأصلي إلى مكانه.",
+        "markDone": "وسم كمراجَع عنه",
+        "markedDone": "وُسم التغيير كمراجَع عنه.",
+        "selectionEmpty": "حدّد النص الذي تغيّر للتراجع عن التغيير.",
+        "selectionMismatch": "النص المحدّد ليس هو النص الذي تغيّر، لذلك لم يُكتب أي شيء.",
+        "selectionChanged": "تغيّر التحديد أثناء التراجع، لذلك لم يُكتب أي شيء."
+      },
+      "retention": {
+        "title": "مدة الاحتفاظ",
+        "description": "كم من الوقت تبقى التغييرات قبل حذفها.",
+        "days": "أيام",
+        "zero": "مع 0 يوم يبقى السجلّ حتى تمسحه.",
+        "save": "حفظ",
+        "saved": "تم حفظ مدة الاحتفاظ.",
+        "purge": "احذف المنتهية الآن",
+        "purged": "أُزيلت {{count}} مدخلات.",
+        "invalid": "أدخل عددًا من الأيام أكبر من أو يساوي 0."
+      },
+      "actions": {
+        "clear": "مسح السجلّ",
+        "clearTitle": "مسح السجلّ",
+        "clearDescription": "يحذف كل التغييرات المسجّلة. لا يمكن التراجع عن ذلك.",
+        "clearConfirm": "هل تريد مسح السجلّ بالكامل؟",
+        "cleared": "تم مسح السجلّ."
+      },
+      "errors": {
+        "load": "تعذّر تحميل سجلّ النصوص.",
+        "action": "تعذّر التراجع عن التغيير."
       }
     }
   },

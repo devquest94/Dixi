@@ -17,7 +17,11 @@
     "dictionary": "Słownik",
     "history": "Historia",
     "debug": "Debugowanie",
-    "about": "O programie"
+    "about": "O programie",
+    "profiles": "Profile pisania",
+    "snippets": "Wstawki",
+    "transforms": "Transformacje",
+    "textHistory": "Historia tekstu"
   },
   "onboarding": {
     "subtitle": "Aby rozpocząć, wybierz model transkrypcji",
@@ -733,6 +737,283 @@
       "whatsNewUpdates": {
         "label": "Pokaż nowości",
         "description": "Pokazuj informacje o wydaniu po aktualizacjach Dixi"
+      }
+    },
+    "profiles": {
+      "title": "Profile pisania",
+      "description": "Wybierz, jak Dixi pisze w każdej aplikacji: styl, poziom czyszczenia i reguły formatowania.",
+      "detected": {
+        "title": "Wykryta aplikacja",
+        "description": "Aplikacja, która ma teraz fokus.",
+        "unknown": "Nie wykryto żadnej aplikacji",
+        "window": "Tytuł okna",
+        "refresh": "Odśwież wykrytą aplikację"
+      },
+      "effective": {
+        "title": "Obowiązująca konfiguracja",
+        "description": "Czego użyje Dixi dla wykrytej aplikacji.",
+        "origin": "Pochodzenie"
+      },
+      "origin": {
+        "manualOverride": "Ręczne nadpisanie na tę sesję",
+        "appOverride": "Reguła powiązana z aplikacją",
+        "detectedProfile": "Profil dopasowany do aplikacji",
+        "global": "Konfiguracja globalna"
+      },
+      "cleanup": {
+        "none": "Bez czyszczenia",
+        "light": "Lekkie czyszczenie",
+        "medium": "Średnie czyszczenie"
+      },
+      "rule": {
+        "capitalizeSentences": "Wielkie litery na początku zdań",
+        "ensureFinalPeriod": "Dodać kropkę na końcu",
+        "collapseSpaces": "Złącz powtórzone spacje",
+        "spaceBeforePunctuation": "Usuń spację przed interpunkcją"
+      },
+      "styles": {
+        "title": "Style pisania",
+        "description": "Styl określa, jak tekst jest czyszczony przed zapisaniem.",
+        "empty": "Nie ma jeszcze żadnych stylów pisania.",
+        "builtin": "Wbudowany",
+        "aiCleanupAllowed": "Z tym stylem można użyć czyszczenia przez AI.",
+        "noRules": "Bez reguł formatowania"
+      },
+      "profiles": {
+        "title": "Profile pisania",
+        "description": "Profil grupuje aplikacje, które piszą w ten sam sposób.",
+        "empty": "Nie ma jeszcze żadnych profili pisania.",
+        "everywhere": "Wszędzie"
+      },
+      "overrides": {
+        "title": "Reguły dla aplikacji",
+        "description": "Reguła wymusza styl lub poziom czyszczenia dla jednej aplikacji.",
+        "empty": "Nie ma jeszcze żadnych reguł dla aplikacji.",
+        "inherit": "Użyj domyślnej wartości profilu"
+      },
+      "form": {
+        "name": "Nazwa",
+        "namePlaceholder": "Na przykład: Formalny",
+        "applications": "Aplikacje",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "Styl",
+        "language": "Język",
+        "languagePlaceholder": "es",
+        "basePrompt": "Instrukcja bazowa",
+        "basePromptPlaceholder": "Instrukcja przekazywana modelowi, gdy używane jest czyszczenie przez AI.",
+        "cleanupLevel": "Poziom czyszczenia",
+        "aiCleanup": "Czyszczenie przez AI",
+        "formatRules": "Reguły formatowania",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "Profil",
+        "required": "To pole jest wymagane.",
+        "enabledDescription": "Wyłączony styl ani profil nie są używane."
+      },
+      "manual": {
+        "title": "Ręczne nadpisanie na tę sesję",
+        "description": "Wymuś profil na czas trwania tej sesji.",
+        "notPersisted": "To nadpisanie nie jest zapisywane: obowiązuje tylko do zamknięcia Dixi.",
+        "none": "Bez nadpisania"
+      },
+      "actions": {
+        "add": "Dodaj",
+        "edit": "Edytuj",
+        "save": "Zapisz",
+        "cancel": "Anuluj",
+        "delete": "Usuń",
+        "builtinCannotDelete": "Wbudowanego stylu nie można usunąć, można go tylko wyłączyć.",
+        "enabled": "Włączony",
+        "disabled": "Wyłączony"
+      },
+      "errors": {
+        "load": "Nie udało się wczytać profili pisania.",
+        "action": "Nie udało się zapisać profilu pisania."
+      }
+    },
+    "snippets": {
+      "title": "Wstawki",
+      "description": "Napisz frazę raz i pozwól Dixi ją rozwinąć: wstawki ze zmiennymi, gotowe do wklejenia wszędzie.",
+      "list": {
+        "title": "Wstawki",
+        "description": "Wstawka zastępuje frazę wyzwalającą swoim rozwinięciem.",
+        "empty": "Nie ma jeszcze żadnych wstawek.",
+        "favorite": "Ulubiony",
+        "enabled": "Włączony",
+        "everywhere": "Wszędzie",
+        "usageCount": "Użyto {{count}} razy",
+        "enabledDescription": "Wyłączona wstawka nie jest rozwijana."
+      },
+      "form": {
+        "name": "Nazwa",
+        "namePlaceholder": "Na przykład: Podpis",
+        "trigger": "Fraza wyzwalająca",
+        "triggerPlaceholder": "podpis",
+        "expansion": "Rozwinięcie",
+        "expansionPlaceholder": "Z poważaniem, {nazwa}",
+        "variables": "Zmienne",
+        "variablesDescription": "Zadeklaruj zmienne, których używa rozwinięcie: nazwę, czy jest wymagana, i pytanie, które zostanie zadane.",
+        "variableName": "Nazwa zmiennej",
+        "variableRequired": "Wymagana",
+        "variablePrompt": "Pytanie, które zostanie zadane",
+        "addVariable": "Dodaj zmienną",
+        "removeVariable": "Usuń zmienną",
+        "noVariables": "Ta wstawka nie używa zmiennych.",
+        "builtinVariables": "Symbole {fecha} i {hora} są rozwiązywane lokalnie: nie musisz ich deklarować.",
+        "category": "Kategoria",
+        "categoryPlaceholder": "Na przykład: E-maile",
+        "applications": "Aplikacje",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "Język",
+        "languagePlaceholder": "es",
+        "required": "To pole jest wymagane."
+      },
+      "preview": {
+        "title": "Podgląd",
+        "description": "Wpisz zdanie z frazą wyzwalającą i zobacz, w co je Dixi rozwinie.",
+        "input": "Tekst do rozwinięcia",
+        "inputPlaceholder": "podpis, z góry dziękuję",
+        "inputRequired": "Napisz coś do rozwinięcia.",
+        "run": "Rozwiń",
+        "expanded": "Wstawka została rozwinięta.",
+        "notExpanded": "Żadna wstawka nie pasuje do tego tekstu.",
+        "retry": "Rozwiń ponownie"
+      },
+      "transfer": {
+        "title": "Import i eksport",
+        "description": "Przenieś wstawki między komputerami za pomocą pliku JSON.",
+        "filesTitle": "Plik wstawek",
+        "export": "Eksportuj",
+        "import": "Importuj",
+        "exportEmpty": "Brak wstawek do wyeksportowania.",
+        "exportSuccess": "Wyeksportowano {{count}} wstawek.",
+        "exportError": "Nie udało się wyeksportować wstawek.",
+        "importSuccess": "Zaimportowano {{count}} wstawek.",
+        "importError": "Nie udało się zaimportować wstawek.",
+        "overwriteTitle": "Plik już istnieje. Chcesz go zastąpić?"
+      },
+      "actions": {
+        "add": "Dodaj",
+        "edit": "Edytuj",
+        "save": "Zapisz",
+        "cancel": "Anuluj",
+        "delete": "Usuń"
+      },
+      "errors": {
+        "load": "Nie udało się wczytać wstawek.",
+        "action": "Nie udało się zapisać wstawki."
+      }
+    },
+    "transforms": {
+      "title": "Transformacje",
+      "description": "Zamień zdiktyowany tekst w coś innego: model przepisuje go zgodnie z instrukcją każdej transformacji.",
+      "list": {
+        "title": "Transformacje",
+        "description": "Transformacja przepisuje tekst modelem, według instrukcji.",
+        "empty": "Nie ma jeszcze żadnych transformacji.",
+        "builtin": "Wbudowana",
+        "enabled": "Włączona",
+        "provider": "Dostawca",
+        "model": "Model",
+        "usageCount": "Użyto {{count}} razy",
+        "enabledDescription": "Wyłączona transformacja nie jest uruchamiana."
+      },
+      "form": {
+        "name": "Nazwa",
+        "namePlaceholder": "Na przykład: Skróć",
+        "prompt": "Instrukcja",
+        "promptPlaceholder": "Przepisz tekst zwięźlej, zachowując sens.",
+        "provider": "Dostawca",
+        "providerDefault": "Dostawca postprocessingu",
+        "model": "Model",
+        "modelPlaceholder": "Model domyślny",
+        "category": "Kategoria",
+        "categoryPlaceholder": "Na przykład: Pisanie",
+        "required": "To pole jest wymagane."
+      },
+      "runner": {
+        "title": "Wypróbuj transformację",
+        "description": "Napisz tekst, wybierz transformacje do uruchomienia i zobacz wynik, zanim go zastosujesz.",
+        "input": "Tekst do transformacji",
+        "inputPlaceholder": "Wpisz tekst, który chcesz przekształcić",
+        "inputRequired": "Napisz tekst do przekształcenia.",
+        "selectTransform": "Transformacje do uruchomienia",
+        "selectRequired": "Wybierz co najmniej jedną transformację.",
+        "run": "Uruchom",
+        "result": "Wynik",
+        "accept": "Przyjmij",
+        "accepted": "Wynik został zastosowany.",
+        "copy": "Kopiuj",
+        "copied": "Wynik został skopiowany.",
+        "captureSelection": "Użyj zaznaczonego tekstu",
+        "selectionEmpty": "W aplikacji z fokusem nie zaznaczono tekstu.",
+        "selectionChanged": "Zaznaczony tekst zmienił się w trakcie transformacji, więc nic nie zapisano. Skopiuj zamiast tego wynik."
+      },
+      "diff": {
+        "title": "Zmiany",
+        "inserted": "Dodano {{count}} słów",
+        "removed": "Usunięto {{count}} słów",
+        "identical": "Tekst się nie zmienił."
+      },
+      "actions": {
+        "add": "Dodaj",
+        "edit": "Edytuj",
+        "save": "Zapisz",
+        "cancel": "Anuluj",
+        "delete": "Usuń",
+        "builtinCannotEdit": "Wbudowanej transformacji nie można edytować, można ją tylko wyłączyć.",
+        "builtinCannotDelete": "Wbudowanej transformacji nie można usunąć, można ją tylko wyłączyć."
+      },
+      "errors": {
+        "load": "Nie udało się wczytać transformacji.",
+        "action": "Nie udało się zapisać transformacji."
+      }
+    },
+    "textHistory": {
+      "title": "Historia tekstu",
+      "description": "Lokalny zapis zmian, które Dixi wprowadził w tekście, aby można było cofnąć ostatnią.",
+      "list": {
+        "title": "Zarejestrowane zmiany",
+        "description": "Najnowsze najpierw.",
+        "empty": "Nie ma jeszcze żadnych zarejestrowanych zmian.",
+        "application": "Aplikacja",
+        "unknownApplication": "Nieznana aplikacja",
+        "undone": "Cofnięto"
+      },
+      "kind": {
+        "transform": "Transformacja",
+        "snippet": "Wstawka",
+        "cleanup": "Czyszczenie"
+      },
+      "revert": {
+        "button": "Cofnij",
+        "done": "Przywrócono oryginalny tekst.",
+        "markDone": "Oznacz jako cofnięte",
+        "markedDone": "Zmiana została oznaczona jako cofnięta.",
+        "selectionEmpty": "Zaznacz zmieniony tekst, aby cofnąć zmianę.",
+        "selectionMismatch": "Zaznaczony tekst to nie tekst zmieniony, więc nic nie zapisano.",
+        "selectionChanged": "Zaznaczenie zmieniło się w trakcie cofania, więc nic nie zapisano."
+      },
+      "retention": {
+        "title": "Okres przechowywania",
+        "description": "Jak długo zmiany są przechowywane, zanim zostaną usunięte.",
+        "days": "Dni",
+        "zero": "Przy 0 dniach historia jest przechowywana, dopóki jej nie usuniesz.",
+        "save": "Zapisz",
+        "saved": "Okres przechowywania został zapisany.",
+        "purge": "Usuń teraz wygasłe",
+        "purged": "Usunięto {{count}} wpisów.",
+        "invalid": "Podaj liczbę dni większą lub równą 0."
+      },
+      "actions": {
+        "clear": "Wyczyść historię",
+        "clearTitle": "Wyczyść historię",
+        "clearDescription": "Usuwa wszystkie zarejestrowane zmiany. Nie można tego cofnąć.",
+        "clearConfirm": "Czy chcesz wyczyścić całą historię?",
+        "cleared": "Historia została wyczyszczona."
+      },
+      "errors": {
+        "load": "Nie udało się wczytać historii tekstu.",
+        "action": "Nie udało się cofnąć zmiany."
       }
     }
   },

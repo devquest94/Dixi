@@ -17,7 +17,11 @@
     "dictionary": "מילון",
     "history": "היסטוריה",
     "debug": "ניפוי שגיאות",
-    "about": "אודות"
+    "about": "אודות",
+    "profiles": "פרופילי כתיבה",
+    "snippets": "קטעי טקסט",
+    "transforms": "טרנספורמציות",
+    "textHistory": "היסטוריית טקסט"
   },
   "onboarding": {
     "subtitle": "כדי להתחיל, בחר מודל תמלול",
@@ -733,6 +737,283 @@
       "whatsNewUpdates": {
         "label": "הצג מה חדש",
         "description": "הצג הערות גרסה לאחר עדכוני Dixi"
+      }
+    },
+    "profiles": {
+      "title": "פרופילי כתיבה",
+      "description": "בחרו כיצד Dixi כותב בכל יישום: הסגנון, רמת הניקוי וכללי העיצוב.",
+      "detected": {
+        "title": "יישום שזוהה",
+        "description": "היישום שיש לו מיקוד כרגע.",
+        "unknown": "לא זוהה אף יישום",
+        "window": "כותרת החלון",
+        "refresh": "רענן את היישום שזוהה"
+      },
+      "effective": {
+        "title": "תצורה בתוקף",
+        "description": "מה ש־Dixi ישתמש עבור היישום שזוהה.",
+        "origin": "מקור"
+      },
+      "origin": {
+        "manualOverride": "דריסה ידנית להפעלה זו",
+        "appOverride": "כלל הקשור ליישום",
+        "detectedProfile": "הפרופיל שהיישום התאים לו",
+        "global": "תצורה גלובלית"
+      },
+      "cleanup": {
+        "none": "ללא ניקוי",
+        "light": "ניקוי קל",
+        "medium": "ניקוי בינוני"
+      },
+      "rule": {
+        "capitalizeSentences": "אותיות גדולות בתחילת המשפטים",
+        "ensureFinalPeriod": "הוספת נקודה בסוף",
+        "collapseSpaces": "מיזוג רווחים חוזרים",
+        "spaceBeforePunctuation": "הסרת הרווח לפני סימן הפסיק"
+      },
+      "styles": {
+        "title": "סגנונות כתיבה",
+        "description": "סגנון קובע כיצד הטקסט מנוקה לפני הכתיבה.",
+        "empty": "אין עדיין סגנונות כתיבה.",
+        "builtin": "מובנה",
+        "aiCleanupAllowed": "אפשר להשתמש בניקוי הבינה המלאכותית עם הסגנון הזה.",
+        "noRules": "ללא כללי עיצוב"
+      },
+      "profiles": {
+        "title": "פרופילי כתיבה",
+        "description": "פרופיל מקבץ את היישומים שכתבים באותו אופן.",
+        "empty": "אין עדיין פרופילי כתיבה.",
+        "everywhere": "בכל מקום"
+      },
+      "overrides": {
+        "title": "כללים לכל יישום",
+        "description": "כלל מכריע על סגנון או רמת ניקוי עבור יישום יחיד.",
+        "empty": "אין עדיין כללים ליישומים.",
+        "inherit": "להשתמש בברירת המחדל של הפרופיל"
+      },
+      "form": {
+        "name": "שם",
+        "namePlaceholder": "לדוגמה: רשמי",
+        "applications": "יישומים",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "סגנון",
+        "language": "שפה",
+        "languagePlaceholder": "es",
+        "basePrompt": "הנחיה בסיסית",
+        "basePromptPlaceholder": "ההנחיה שניתנת למודל כאשר משתמשים בניקוי הבינה המלאכותית.",
+        "cleanupLevel": "רמת ניקוי",
+        "aiCleanup": "ניקוי בבינה מלאכותית",
+        "formatRules": "כללי עיצוב",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "פרופיל",
+        "required": "שדה זה הוא חובה.",
+        "enabledDescription": "סגנון או פרופיל מושבת אינו נמצא בשימוש."
+      },
+      "manual": {
+        "title": "דריסה ידנית להפעלה זו",
+        "description": "כפו פרופיל לכל הפעלה הזו.",
+        "notPersisted": "דריסה זו אינה נשמרת: היא תקיים רק עד לסגירת Dixi.",
+        "none": "ללא דריסה"
+      },
+      "actions": {
+        "add": "הוספה",
+        "edit": "עריכה",
+        "save": "שמירה",
+        "cancel": "ביטול",
+        "delete": "מחיקה",
+        "builtinCannotDelete": "סגנון מובנה אי אפשר למחוק, רק להשבית.",
+        "enabled": "מופעל",
+        "disabled": "מושבת"
+      },
+      "errors": {
+        "load": "לא ניתן לטעון את פרופילי הכתיבה.",
+        "action": "לא ניתן לשמור את פרופיל הכתיבה."
+      }
+    },
+    "snippets": {
+      "title": "קטעי טקסט",
+      "description": "כתבו משפטה פעם אחת ותנו ל־Dixi לפרש אותו: קטעי טקסט עם משתנים, מוכנים להדבקה בכל מקום.",
+      "list": {
+        "title": "קטעי טקסט",
+        "description": "קטע טקסט מחליף את ביטוי ההפעלה בפרושו.",
+        "empty": "אין עדיין קטעי טקסט.",
+        "favorite": "מועדף",
+        "enabled": "מופעל",
+        "everywhere": "בכל מקום",
+        "usageCount": "שימש {{count}} פעמים",
+        "enabledDescription": "קטע טקסט מושבת אינו מורחב."
+      },
+      "form": {
+        "name": "שם",
+        "namePlaceholder": "לדוגמה: חתימה",
+        "trigger": "ביטוי ההפעלה",
+        "triggerPlaceholder": "חתימה",
+        "expansion": "פרוש",
+        "expansionPlaceholder": "בברכה, {שם}",
+        "variables": "משתנים",
+        "variablesDescription": "הגדירו את המשתנים שהפרוש משתמש בהם: השם, האם הוא חובה, והשאלה שנשאלת.",
+        "variableName": "שם המשתנה",
+        "variableRequired": "חובה",
+        "variablePrompt": "השאלה לשאול",
+        "addVariable": "הוספת משתנה",
+        "removeVariable": "הסרת המשתנה",
+        "noVariables": "לקטע הטקסט הזה אין משתנים.",
+        "builtinVariables": "ממלאי המקום {fecha} ו{hora} נפתרים מקומית: אין צורך להצהיר עליהם.",
+        "category": "קטגוריה",
+        "categoryPlaceholder": "לדוגמה: דוא״ל",
+        "applications": "יישומים",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "שפה",
+        "languagePlaceholder": "es",
+        "required": "שדה זה הוא חובה."
+      },
+      "preview": {
+        "title": "תצוגה מקדימה",
+        "description": "הקלידו משפט עם ביטוי ההפעלה וראו למה Dixי מרחיב אותו.",
+        "input": "טקסט לפרישה",
+        "inputPlaceholder": "חתימה, תודה מראש",
+        "inputRequired": "כתבו משהו לפרישה.",
+        "run": "הרחב",
+        "expanded": "קטע הטקסט הורחב.",
+        "notExpanded": "אף קטע טקסט לא התאים לטקסט הזה.",
+        "retry": "הרחב שוב"
+      },
+      "transfer": {
+        "title": "ייבוא וייצוא",
+        "description": "העבירו קטעי טקסט בין מחשבים עם קובץ JSON.",
+        "filesTitle": "קובץ קטעי הטקסט",
+        "export": "ייצוא",
+        "import": "ייבוא",
+        "exportEmpty": "אין קטעי טקסט לייצוא.",
+        "exportSuccess": "יוצאו {{count}} קטעי טקסט.",
+        "exportError": "לא ניתן לייצא את קטעי הטקסט.",
+        "importSuccess": "יובאו {{count}} קטעי טקסט.",
+        "importError": "לא ניתן לייבא את קטעי הטקסט.",
+        "overwriteTitle": "הקובץ כבר קיים. האם להחליף אותו?"
+      },
+      "actions": {
+        "add": "הוספה",
+        "edit": "עריכה",
+        "save": "שמירה",
+        "cancel": "ביטול",
+        "delete": "מחיקה"
+      },
+      "errors": {
+        "load": "לא ניתן לטעון את קטעי הטקסט.",
+        "action": "לא ניתן לשמור את קטע הטקסט."
+      }
+    },
+    "transforms": {
+      "title": "טרנספורמציות",
+      "description": "הפכו טקסט מוקתח למשהו אחר: המודל כותב אותו מחדש לפי ההנחיה של כל טרנספורמציה.",
+      "list": {
+        "title": "טרנספורמציות",
+        "description": "טרנספורמציה כותבת מחדש את הטקסט בעזרת מודל, לפי הנחיה.",
+        "empty": "אין עדיין טרנספורמציות.",
+        "builtin": "מובנה",
+        "enabled": "מופעלת",
+        "provider": "ספק",
+        "model": "מודל",
+        "usageCount": "שימש {{count}} פעמים",
+        "enabledDescription": "טרנספורמציה מושבתת אינה מורצת."
+      },
+      "form": {
+        "name": "שם",
+        "namePlaceholder": "לדוגמה: קצר יותר",
+        "prompt": "הנחיה",
+        "promptPlaceholder": "כתבו מחדש את הטקסט בקיצור, תוך שמירת המשמעות.",
+        "provider": "ספק",
+        "providerDefault": "הספק של העיבוד־הלאחרי",
+        "model": "מודל",
+        "modelPlaceholder": "המודל כברירת מחדל",
+        "category": "קטגוריה",
+        "categoryPlaceholder": "לדוגמה: כתיבה",
+        "required": "שדה זה הוא חובה."
+      },
+      "runner": {
+        "title": "נסו טרנספורמציה",
+        "description": "כתבו טקסט, בחרו את הטרנספורמציות להרצה וראו את התוצאה לפני שמחילים אותה.",
+        "input": "טקסט להמרה",
+        "inputPlaceholder": "הקלידו את הטקסט שברצונכם להמיר",
+        "inputRequired": "כתבו טקסט להמרה.",
+        "selectTransform": "טרנספורמציות להרצה",
+        "selectRequired": "בחרו לפחות טרנספורמציה אחת.",
+        "run": "הרץ",
+        "result": "תוצאה",
+        "accept": "אישור",
+        "accepted": "התוצאה הוחלה.",
+        "copy": "העתקה",
+        "copied": "התוצאה הועתקה.",
+        "captureSelection": "השתמש בטקסט הנבחר",
+        "selectionEmpty": "אין טקסט נבחר ביישום שיש לו מיקוד.",
+        "selectionChanged": "הטקסט הנבחר השתנה תוך כדי הרצת הטרנספורמציה, ולכן לא נכתב דבר. העתיקו את התוצאה במקום."
+      },
+      "diff": {
+        "title": "שינויים",
+        "inserted": "{{count}} מילים נוספו",
+        "removed": "{{count}} מילים הוסרו",
+        "identical": "הטקסט לא השתנה."
+      },
+      "actions": {
+        "add": "הוספה",
+        "edit": "עריכה",
+        "save": "שמירה",
+        "cancel": "ביטול",
+        "delete": "מחיקה",
+        "builtinCannotEdit": "טרנספורמציה מובנה אי אפשר לערוך, רק להשבית.",
+        "builtinCannotDelete": "טרנספורמציה מובנה אי אפשר למחוק, רק להשבית."
+      },
+      "errors": {
+        "load": "לא ניתן לטעון את הטרנספורמציות.",
+        "action": "לא ניתן לשמור את הטרנספורמציה."
+      }
+    },
+    "textHistory": {
+      "title": "היסטוריית טקסט",
+      "description": "הרשום המקומי של השינויים ש־Dixi ביצע בטקסט שלכם, כדי שתוכלו לבטל את האחרון.",
+      "list": {
+        "title": "שינויים מוקטפים",
+        "description": "החדשים ביותר תחילה.",
+        "empty": "אין עדיין שינויים מוקטפים.",
+        "application": "יישום",
+        "unknownApplication": "יישום לא ידוע",
+        "undone": "בוטל"
+      },
+      "kind": {
+        "transform": "טרנספורמציה",
+        "snippet": "קטע טקסט",
+        "cleanup": "ניקוי"
+      },
+      "revert": {
+        "button": "בטל",
+        "done": "הטקסט המקורי הוחזר למקומו.",
+        "markDone": "סמן כמבוטל",
+        "markedDone": "השינוי סומן כמבוטל.",
+        "selectionEmpty": "בחרו את הטקסט שהשתנה כדי לבטל את השינוי.",
+        "selectionMismatch": "הטקסט הנבחר אינו הטקסט שהשתנה, ולכן לא נכתב דבר.",
+        "selectionChanged": "הבחירה השתנה תוך כדי ביטול, ולכן לא נכתב דבר."
+      },
+      "retention": {
+        "title": "תקופת שמירה",
+        "description": "כמה זמן השינויים נשמרים לפני שמוחקים אותם.",
+        "days": "ימים",
+        "zero": "עם 0 ימים ההיסטוריה נשמרת עד שתמחק אותה.",
+        "save": "שמירה",
+        "saved": "תקופת השמירה נשמרה.",
+        "purge": "הסר כעת את הפגויים",
+        "purged": "{{count}} רשומות הוסרו.",
+        "invalid": "הזינו מספר ימים שאינו קטן מ־0."
+      },
+      "actions": {
+        "clear": "נקה את ההיסטוריה",
+        "clearTitle": "נקה את ההיסטוריה",
+        "clearDescription": "מוחק את כל השינויים המוקטפים. לא ניתן לבטל זאת.",
+        "clearConfirm": "האם לנקות את כל ההיסטוריה?",
+        "cleared": "ההיסטוריה נוקתה."
+      },
+      "errors": {
+        "load": "לא ניתן לטעון את היסטוריית הטקסט.",
+        "action": "לא ניתן לבטל את השינוי."
       }
     }
   },

@@ -17,7 +17,11 @@
     "dictionary": "詞典",
     "history": "歷史紀錄",
     "debug": "偵錯",
-    "about": "關於"
+    "about": "關於",
+    "profiles": "寫入設定檔",
+    "snippets": "文字片段",
+    "transforms": "轉換",
+    "textHistory": "文字歷程"
   },
   "onboarding": {
     "subtitle": "首先，請選擇一種模型",
@@ -733,6 +737,283 @@
       "whatsNewUpdates": {
         "label": "顯示新功能",
         "description": "Dixi 更新後顯示版本資訊"
+      }
+    },
+    "profiles": {
+      "title": "寫入設定檔",
+      "description": "選擇 Dixi 在每個應用程式中的寫入方式：樣式、清理層級與格式規則。",
+      "detected": {
+        "title": "偵測到的應用程式",
+        "description": "目前具有焦點的應用程式。",
+        "unknown": "未偵測到應用程式",
+        "window": "視窗標題",
+        "refresh": "重新整理偵測到的應用程式"
+      },
+      "effective": {
+        "title": "生效的設定",
+        "description": "Dixi 將用於偵測到之應用程式的設定。",
+        "origin": "來源"
+      },
+      "origin": {
+        "manualOverride": "本次工作階段的手動覆寫",
+        "appOverride": "綁定到該應用程式的規則",
+        "detectedProfile": "與該應用程式相符的設定檔",
+        "global": "全域設定"
+      },
+      "cleanup": {
+        "none": "不清潔",
+        "light": "輕度清理",
+        "medium": "中度清理"
+      },
+      "rule": {
+        "capitalizeSentences": "句首大寫",
+        "ensureFinalPeriod": "結尾加句點",
+        "collapseSpaces": "合併重複空格",
+        "spaceBeforePunctuation": "刪除標點前的空格"
+      },
+      "styles": {
+        "title": "寫入樣式",
+        "description": "樣式決定文字在寫入前如何清理。",
+        "empty": "尚無寫入樣式。",
+        "builtin": "內建",
+        "aiCleanupAllowed": "此樣式可使用 AI 清理。",
+        "noRules": "沒有格式規則"
+      },
+      "profiles": {
+        "title": "寫入設定檔",
+        "description": "設定檔將寫入方式相同的應用程式歸為一組。",
+        "empty": "尚無寫入設定檔。",
+        "everywhere": "所有應用程式"
+      },
+      "overrides": {
+        "title": "各應用程式的規則",
+        "description": "規則為單一應用程式強制指定樣式或清理層級。",
+        "empty": "尚無各應用程式的規則。",
+        "inherit": "使用設定檔的預設值"
+      },
+      "form": {
+        "name": "名稱",
+        "namePlaceholder": "例如：正式",
+        "applications": "應用程式",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "樣式",
+        "language": "語言",
+        "languagePlaceholder": "es",
+        "basePrompt": "基礎提示詞",
+        "basePromptPlaceholder": "使用 AI 清理時傳給模型的指令。",
+        "cleanupLevel": "清理層級",
+        "aiCleanup": "AI 清理",
+        "formatRules": "格式規則",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "設定檔",
+        "required": "此欄位為必填。",
+        "enabledDescription": "已停用的樣式或設定檔不會被使用。"
+      },
+      "manual": {
+        "title": "本次工作階段的手動覆寫",
+        "description": "在工作階段期間強制使用某個設定檔。",
+        "notPersisted": "此覆寫不會儲存：直到關閉 Dixi 前都有效。",
+        "none": "不覆寫"
+      },
+      "actions": {
+        "add": "新增",
+        "edit": "編輯",
+        "save": "儲存",
+        "cancel": "取消",
+        "delete": "刪除",
+        "builtinCannotDelete": "內建樣式無法刪除，只能停用。",
+        "enabled": "已啟用",
+        "disabled": "已停用"
+      },
+      "errors": {
+        "load": "無法載入寫入設定檔。",
+        "action": "無法儲存寫入設定檔。"
+      }
+    },
+    "snippets": {
+      "title": "文字片段",
+      "description": "只需寫一次片語，Dixi 就會展開它：帶變數的文字片段，到處都可貼上。",
+      "list": {
+        "title": "文字片段",
+        "description": "文字片段以其展開內容取代觸發片語。",
+        "empty": "尚無文字片段。",
+        "favorite": "我的最愛",
+        "enabled": "已啟用",
+        "everywhere": "所有應用程式",
+        "usageCount": "已使用 {{count}} 次",
+        "enabledDescription": "已停用的文字片段不會被展開。"
+      },
+      "form": {
+        "name": "名稱",
+        "namePlaceholder": "例如：簽名",
+        "trigger": "觸發片語",
+        "triggerPlaceholder": "簽名",
+        "expansion": "展開內容",
+        "expansionPlaceholder": "謹致問候，{姓名}",
+        "variables": "變數",
+        "variablesDescription": "宣告展開內容使用的變數：名稱、是否必填，以及要提出的問題。",
+        "variableName": "變數名稱",
+        "variableRequired": "必填",
+        "variablePrompt": "要提出的問題",
+        "addVariable": "新增變數",
+        "removeVariable": "刪除變數",
+        "noVariables": "此文字片段沒有變數。",
+        "builtinVariables": "{fecha} 與 {hora} 預留位置在本地解析：無須宣告。",
+        "category": "分類",
+        "categoryPlaceholder": "例如：郵件",
+        "applications": "應用程式",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "語言",
+        "languagePlaceholder": "es",
+        "required": "此欄位為必填。"
+      },
+      "preview": {
+        "title": "預覽",
+        "description": "輸入含有觸發片語的句子，看看 Dixi 會如何展開。",
+        "input": "要展開的文字",
+        "inputPlaceholder": "簽名，預先致謝",
+        "inputRequired": "寫點要展開的內容。",
+        "run": "展開",
+        "expanded": "文字片段已展開。",
+        "notExpanded": "沒有片段與該文字相符。",
+        "retry": "再次展開"
+      },
+      "transfer": {
+        "title": "匯入與匯出",
+        "description": "以 JSON 檔案在裝置之間轉移文字片段。",
+        "filesTitle": "文字片段檔案",
+        "export": "匯出",
+        "import": "匯入",
+        "exportEmpty": "沒有可匯出的文字片段。",
+        "exportSuccess": "已匯出 {{count}} 個文字片段。",
+        "exportError": "無法匯出文字片段。",
+        "importSuccess": "已匯入 {{count}} 個文字片段。",
+        "importError": "無法匯入文字片段。",
+        "overwriteTitle": "檔案已存在。要取代它嗎？"
+      },
+      "actions": {
+        "add": "新增",
+        "edit": "編輯",
+        "save": "儲存",
+        "cancel": "取消",
+        "delete": "刪除"
+      },
+      "errors": {
+        "load": "無法載入文字片段。",
+        "action": "無法儲存文字片段。"
+      }
+    },
+    "transforms": {
+      "title": "轉換",
+      "description": "將聽寫文字變成其他內容：模型依每個轉換的指示重寫文字。",
+      "list": {
+        "title": "轉換",
+        "description": "轉換依指示用模型重寫文字。",
+        "empty": "尚無轉換。",
+        "builtin": "內建",
+        "enabled": "已啟用",
+        "provider": "提供者",
+        "model": "模型",
+        "usageCount": "已使用 {{count}} 次",
+        "enabledDescription": "已停用的轉換不會執行。"
+      },
+      "form": {
+        "name": "名稱",
+        "namePlaceholder": "例如：縮短",
+        "prompt": "指令",
+        "promptPlaceholder": "將文字改寫得更簡潔，同時保留原意。",
+        "provider": "提供者",
+        "providerDefault": "後處理的提供者",
+        "model": "模型",
+        "modelPlaceholder": "預設模型",
+        "category": "分類",
+        "categoryPlaceholder": "例如：寫作",
+        "required": "此欄位為必填。"
+      },
+      "runner": {
+        "title": "試用一個轉換",
+        "description": "輸入文字，選擇要執行的轉換，套用前先檢視結果。",
+        "input": "要轉換的文字",
+        "inputPlaceholder": "輸入要轉換的文字",
+        "inputRequired": "寫點要轉換的文字。",
+        "selectTransform": "要執行的轉換",
+        "selectRequired": "請至少選擇一個轉換。",
+        "run": "執行",
+        "result": "結果",
+        "accept": "接受",
+        "accepted": "已套用結果。",
+        "copy": "複製",
+        "copied": "已複製結果。",
+        "captureSelection": "使用選取的文字",
+        "selectionEmpty": "具有焦點的應用程式中沒有選取的文字。",
+        "selectionChanged": "轉換執行時選取的文字發生變化，因此沒有寫入任何內容。請改為複製結果。"
+      },
+      "diff": {
+        "title": "變更",
+        "inserted": "新增了 {{count}} 個字",
+        "removed": "刪除了 {{count}} 個字",
+        "identical": "文字沒有變化。"
+      },
+      "actions": {
+        "add": "新增",
+        "edit": "編輯",
+        "save": "儲存",
+        "cancel": "取消",
+        "delete": "刪除",
+        "builtinCannotEdit": "內建轉換無法編輯，只能停用。",
+        "builtinCannotDelete": "內建轉換無法刪除，只能停用。"
+      },
+      "errors": {
+        "load": "無法載入轉換。",
+        "action": "無法儲存轉換。"
+      }
+    },
+    "textHistory": {
+      "title": "文字歷程",
+      "description": "Dixi 對你的文字所做變更的本機記錄，可復原最近一次變更。",
+      "list": {
+        "title": "已記錄的變更",
+        "description": "最新優先。",
+        "empty": "尚無已記錄的變更。",
+        "application": "應用程式",
+        "unknownApplication": "未知應用程式",
+        "undone": "已復原"
+      },
+      "kind": {
+        "transform": "轉換",
+        "snippet": "文字片段",
+        "cleanup": "清理"
+      },
+      "revert": {
+        "button": "復原",
+        "done": "原始文字已放回原處。",
+        "markDone": "標記為已復原",
+        "markedDone": "該變更已標記為已復原。",
+        "selectionEmpty": "選取被變更的文字以復原該變更。",
+        "selectionMismatch": "選取的文字不是被變更的文字，因此沒有寫入任何內容。",
+        "selectionChanged": "復原過程中選取範圍發生變化，因此沒有寫入任何內容。"
+      },
+      "retention": {
+        "title": "保留期限",
+        "description": "變更在刪除前保留多久。",
+        "days": "天",
+        "zero": "設為 0 天時，歷程會一直保留，直到你手動清除。",
+        "save": "儲存",
+        "saved": "已儲存保留期限。",
+        "purge": "立即刪除已過期的記錄",
+        "purged": "已刪除 {{count}} 筆記。",
+        "invalid": "請輸入大於或等於 0 的天數。"
+      },
+      "actions": {
+        "clear": "清除歷程",
+        "clearTitle": "清除歷程",
+        "clearDescription": "刪除所有已記錄的變更。此操作無法復原。",
+        "clearConfirm": "要清除全部歷程嗎？",
+        "cleared": "歷程已清除。"
+      },
+      "errors": {
+        "load": "無法載入文字歷程。",
+        "action": "無法復原該變更。"
       }
     }
   },

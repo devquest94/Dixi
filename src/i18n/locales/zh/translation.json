@@ -17,7 +17,11 @@
     "dictionary": "词典",
     "history": "历史记录",
     "debug": "调试",
-    "about": "关于"
+    "about": "关于",
+    "profiles": "写作配置",
+    "snippets": "文本片段",
+    "transforms": "转换",
+    "textHistory": "文本历史"
   },
   "onboarding": {
     "subtitle": "请选择一个转录模型以开始使用",
@@ -733,6 +737,283 @@
       "whatsNewUpdates": {
         "label": "显示新功能",
         "description": "Dixi 更新后显示发行说明"
+      }
+    },
+    "profiles": {
+      "title": "写作配置",
+      "description": "选择 Dixi 在每个应用中的写作方式：样式、清理级别和格式规则。",
+      "detected": {
+        "title": "检测到的应用",
+        "description": "当前获得焦点的应用。",
+        "unknown": "未检测到应用",
+        "window": "窗口标题",
+        "refresh": "刷新检测到的应用"
+      },
+      "effective": {
+        "title": "生效的配置",
+        "description": "Dixi 将为检测到的应用使用的设置。",
+        "origin": "来源"
+      },
+      "origin": {
+        "manualOverride": "本次会话的手动覆盖",
+        "appOverride": "绑定到该应用的规则",
+        "detectedProfile": "与该应用匹配的配置",
+        "global": "全局配置"
+      },
+      "cleanup": {
+        "none": "不清理",
+        "light": "轻度清理",
+        "medium": "中度清理"
+      },
+      "rule": {
+        "capitalizeSentences": "句首大写",
+        "ensureFinalPeriod": "结尾加句点",
+        "collapseSpaces": "合并重复空格",
+        "spaceBeforePunctuation": "删除标点前的空格"
+      },
+      "styles": {
+        "title": "写作样式",
+        "description": "样式决定文本在写入前如何清理。",
+        "empty": "还没有写作样式。",
+        "builtin": "内置",
+        "aiCleanupAllowed": "此样式可以使用 AI 清理。",
+        "noRules": "没有格式规则"
+      },
+      "profiles": {
+        "title": "写作配置",
+        "description": "配置将书写方式相同的应用归为一组。",
+        "empty": "还没有写作配置。",
+        "everywhere": "所有应用"
+      },
+      "overrides": {
+        "title": "按应用的规则",
+        "description": "规则为单个应用强制指定样式或清理级别。",
+        "empty": "还没有按应用的规则。",
+        "inherit": "使用配置的默认值"
+      },
+      "form": {
+        "name": "名称",
+        "namePlaceholder": "例如：正式",
+        "applications": "应用",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "样式",
+        "language": "语言",
+        "languagePlaceholder": "es",
+        "basePrompt": "基础提示词",
+        "basePromptPlaceholder": "使用 AI 清理时传给模型的指令。",
+        "cleanupLevel": "清理级别",
+        "aiCleanup": "AI 清理",
+        "formatRules": "格式规则",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "配置",
+        "required": "此字段为必填项。",
+        "enabledDescription": "已禁用的样式或配置不会被使用。"
+      },
+      "manual": {
+        "title": "本次会话的手动覆盖",
+        "description": "在本次会话期间强制使用某个配置。",
+        "notPersisted": "此覆盖不会保存：Dixi 关闭前一直有效。",
+        "none": "不覆盖"
+      },
+      "actions": {
+        "add": "添加",
+        "edit": "编辑",
+        "save": "保存",
+        "cancel": "取消",
+        "delete": "删除",
+        "builtinCannotDelete": "内置样式无法删除，只能禁用。",
+        "enabled": "已启用",
+        "disabled": "已禁用"
+      },
+      "errors": {
+        "load": "无法加载写作配置。",
+        "action": "无法保存写作配置。"
+      }
+    },
+    "snippets": {
+      "title": "文本片段",
+      "description": "只需写一次短语，Dixi 就会展开它：带变量的文本片段，随处可粘贴。",
+      "list": {
+        "title": "文本片段",
+        "description": "文本片段用其展开内容替换触发短语。",
+        "empty": "还没有文本片段。",
+        "favorite": "收藏",
+        "enabled": "已启用",
+        "everywhere": "所有应用",
+        "usageCount": "已使用 {{count}} 次",
+        "enabledDescription": "已禁用的文本片段不会被展开。"
+      },
+      "form": {
+        "name": "名称",
+        "namePlaceholder": "例如：签名",
+        "trigger": "触发短语",
+        "triggerPlaceholder": "签名",
+        "expansion": "展开内容",
+        "expansionPlaceholder": "此致敬礼，{姓名}",
+        "variables": "变量",
+        "variablesDescription": "声明展开内容使用的变量：名称、是否必填，以及要提出的问题。",
+        "variableName": "变量名称",
+        "variableRequired": "必填",
+        "variablePrompt": "要提出的问题",
+        "addVariable": "添加变量",
+        "removeVariable": "删除变量",
+        "noVariables": "此文本片段没有变量。",
+        "builtinVariables": "{fecha} 和 {hora} 占位符在本地解析：无需声明。",
+        "category": "分类",
+        "categoryPlaceholder": "例如：邮件",
+        "applications": "应用",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "语言",
+        "languagePlaceholder": "es",
+        "required": "此字段为必填项。"
+      },
+      "preview": {
+        "title": "预览",
+        "description": "输入含有触发短语的句子，看看 Dixi 会如何展开。",
+        "input": "要展开的文本",
+        "inputPlaceholder": "签名，提前致谢",
+        "inputRequired": "写点要展开的内容。",
+        "run": "展开",
+        "expanded": "文本片段已展开。",
+        "notExpanded": "没有片段与该文本匹配。",
+        "retry": "再次展开"
+      },
+      "transfer": {
+        "title": "导入与导出",
+        "description": "用 JSON 文件在设备之间转移文本片段。",
+        "filesTitle": "文本片段文件",
+        "export": "导出",
+        "import": "导入",
+        "exportEmpty": "没有可导出的文本片段。",
+        "exportSuccess": "已导出 {{count}} 个文本片段。",
+        "exportError": "无法导出文本片段。",
+        "importSuccess": "已导入 {{count}} 个文本片段。",
+        "importError": "无法导入文本片段。",
+        "overwriteTitle": "文件已存在。要替换它吗？"
+      },
+      "actions": {
+        "add": "添加",
+        "edit": "编辑",
+        "save": "保存",
+        "cancel": "取消",
+        "delete": "删除"
+      },
+      "errors": {
+        "load": "无法加载文本片段。",
+        "action": "无法保存文本片段。"
+      }
+    },
+    "transforms": {
+      "title": "转换",
+      "description": "将听写文本变成别的内容：模型按每个转换的指令重写文本。",
+      "list": {
+        "title": "转换",
+        "description": "转换按照指令用模型重写文本。",
+        "empty": "还没有转换。",
+        "builtin": "内置",
+        "enabled": "已启用",
+        "provider": "提供方",
+        "model": "模型",
+        "usageCount": "已使用 {{count}} 次",
+        "enabledDescription": "已禁用的转换不会运行。"
+      },
+      "form": {
+        "name": "名称",
+        "namePlaceholder": "例如：缩短",
+        "prompt": "指令",
+        "promptPlaceholder": "将文本改写得更简洁，同时保留原意。",
+        "provider": "提供方",
+        "providerDefault": "后处理的提供方",
+        "model": "模型",
+        "modelPlaceholder": "默认模型",
+        "category": "分类",
+        "categoryPlaceholder": "例如：写作",
+        "required": "此字段为必填项。"
+      },
+      "runner": {
+        "title": "试用一个转换",
+        "description": "输入文本，选择要运行的转换，在应用之前先查看结果。",
+        "input": "要转换的文本",
+        "inputPlaceholder": "输入要转换的文本",
+        "inputRequired": "写点要转换的文本。",
+        "selectTransform": "要运行的转换",
+        "selectRequired": "请至少选择一个转换。",
+        "run": "运行",
+        "result": "结果",
+        "accept": "接受",
+        "accepted": "已应用结果。",
+        "copy": "复制",
+        "copied": "已复制结果。",
+        "captureSelection": "使用选中的文本",
+        "selectionEmpty": "获得焦点的应用中没有选中的文本。",
+        "selectionChanged": "转换运行时选中的文本发生了变化，因此没有写入任何内容。请改为复制结果。"
+      },
+      "diff": {
+        "title": "更改",
+        "inserted": "添加了 {{count}} 个词",
+        "removed": "删除了 {{count}} 个词",
+        "identical": "文本没有变化。"
+      },
+      "actions": {
+        "add": "添加",
+        "edit": "编辑",
+        "save": "保存",
+        "cancel": "取消",
+        "delete": "删除",
+        "builtinCannotEdit": "内置转换无法编辑，只能禁用。",
+        "builtinCannotDelete": "内置转换无法删除，只能禁用。"
+      },
+      "errors": {
+        "load": "无法加载转换。",
+        "action": "无法保存转换。"
+      }
+    },
+    "textHistory": {
+      "title": "文本历史",
+      "description": "Dixi 对你的文本所做改动的本地记录，可撤销最近一次改动。",
+      "list": {
+        "title": "已记录的改动",
+        "description": "最新优先。",
+        "empty": "还没有已记录的改动。",
+        "application": "应用",
+        "unknownApplication": "未知应用",
+        "undone": "已回退"
+      },
+      "kind": {
+        "transform": "转换",
+        "snippet": "文本片段",
+        "cleanup": "清理"
+      },
+      "revert": {
+        "button": "回退",
+        "done": "原始文本已放回原处。",
+        "markDone": "标记为已回退",
+        "markedDone": "该改动已标记为已回退。",
+        "selectionEmpty": "选中被改动的文本以回退该改动。",
+        "selectionMismatch": "选中的文本不是被改动的文本，因此没有写入任何内容。",
+        "selectionChanged": "回退过程中选区发生了变化，因此没有写入任何内容。"
+      },
+      "retention": {
+        "title": "保留期限",
+        "description": "改动在删除前保留多久。",
+        "days": "天",
+        "zero": "设为 0 天时，历史会一直保留，直到你手动清除。",
+        "save": "保存",
+        "saved": "已保存保留期限。",
+        "purge": "立即删除已过期的记录",
+        "purged": "已删除 {{count}} 条记录。",
+        "invalid": "请输入大于或等于 0 的天数。"
+      },
+      "actions": {
+        "clear": "清除历史",
+        "clearTitle": "清除历史",
+        "clearDescription": "删除所有已记录的改动。此操作无法撤销。",
+        "clearConfirm": "要清除全部历史吗？",
+        "cleared": "历史已清除。"
+      },
+      "errors": {
+        "load": "无法加载文本历史。",
+        "action": "无法回退该改动。"
       }
     }
   },

@@ -17,7 +17,11 @@
     "dictionary": "Dictionary",
     "history": "History",
     "debug": "Debug",
-    "about": "About"
+    "about": "About",
+    "profiles": "Writing profiles",
+    "snippets": "Snippets",
+    "transforms": "Transforms",
+    "textHistory": "Text history"
   },
   "onboarding": {
     "subtitle": "To get started, choose a transcription model",
@@ -733,6 +737,283 @@
           "description": "High-performance tensor library for on-device machine learning inference",
           "details": "Dixi's local speech-to-text is built on transcribe.cpp and ggml. Thanks to the amazing work by Georgi Gerganov and contributors."
         }
+      }
+    },
+    "profiles": {
+      "title": "Writing profiles",
+      "description": "Choose how Dixi writes in each application: the style, the cleanup level and the format rules.",
+      "detected": {
+        "title": "Detected application",
+        "description": "The application that has the focus right now.",
+        "unknown": "No application detected",
+        "window": "Window title",
+        "refresh": "Refresh the detected application"
+      },
+      "effective": {
+        "title": "Effective configuration",
+        "description": "What Dixi will use for the detected application.",
+        "origin": "Origin"
+      },
+      "origin": {
+        "manualOverride": "Manual override for this session",
+        "appOverride": "Rule bound to the application",
+        "detectedProfile": "Profile matched by the application",
+        "global": "Global configuration"
+      },
+      "cleanup": {
+        "none": "No cleanup",
+        "light": "Light cleanup",
+        "medium": "Medium cleanup"
+      },
+      "rule": {
+        "capitalizeSentences": "Capitalize the sentences",
+        "ensureFinalPeriod": "Add the final period",
+        "collapseSpaces": "Collapse the repeated spaces",
+        "spaceBeforePunctuation": "Remove the space before the punctuation"
+      },
+      "styles": {
+        "title": "Writing styles",
+        "description": "A style says how the text is cleaned up before it is written.",
+        "empty": "There are no writing styles yet.",
+        "builtin": "Built-in",
+        "aiCleanupAllowed": "The AI cleanup may be used with this style.",
+        "noRules": "No format rules"
+      },
+      "profiles": {
+        "title": "Writing profiles",
+        "description": "A profile groups the applications that share the same way of writing.",
+        "empty": "There are no writing profiles yet.",
+        "everywhere": "Everywhere"
+      },
+      "overrides": {
+        "title": "Rules per application",
+        "description": "A rule forces a style or a cleanup level for one single application.",
+        "empty": "There are no application rules yet.",
+        "inherit": "Use the profile default"
+      },
+      "form": {
+        "name": "Name",
+        "namePlaceholder": "For example: Formal",
+        "applications": "Applications",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "Style",
+        "language": "Language",
+        "languagePlaceholder": "es",
+        "basePrompt": "Base prompt",
+        "basePromptPlaceholder": "The instruction given to the model when the AI cleanup is used.",
+        "cleanupLevel": "Cleanup level",
+        "aiCleanup": "AI cleanup",
+        "formatRules": "Format rules",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "Profile",
+        "required": "This field is required.",
+        "enabledDescription": "A disabled style or profile is not used."
+      },
+      "manual": {
+        "title": "Manual override for this session",
+        "description": "Force a profile while this session lasts.",
+        "notPersisted": "This override is not saved: it only lasts until Dixi is closed.",
+        "none": "No override"
+      },
+      "actions": {
+        "add": "Add",
+        "edit": "Edit",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "builtinCannotDelete": "A built-in style cannot be deleted, only disabled.",
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+      "errors": {
+        "load": "The writing profiles could not be loaded.",
+        "action": "The writing profile could not be saved."
+      }
+    },
+    "snippets": {
+      "title": "Snippets",
+      "description": "Write a phrase once and let Dixi expand it: fragments with variables, ready to paste anywhere.",
+      "list": {
+        "title": "Snippets",
+        "description": "A snippet replaces the trigger phrase with its expansion.",
+        "empty": "There are no snippets yet.",
+        "favorite": "Favourite",
+        "enabled": "Enabled",
+        "everywhere": "Everywhere",
+        "usageCount": "Used {{count}} times",
+        "enabledDescription": "A disabled snippet is not expanded."
+      },
+      "form": {
+        "name": "Name",
+        "namePlaceholder": "For example: Signature",
+        "trigger": "Trigger phrase",
+        "triggerPlaceholder": "sig",
+        "expansion": "Expansion",
+        "expansionPlaceholder": "Best regards, {name}",
+        "variables": "Variables",
+        "variablesDescription": "Declare the variables the expansion uses: the name, whether it is required and the question to ask.",
+        "variableName": "Variable name",
+        "variableRequired": "Required",
+        "variablePrompt": "Question to ask",
+        "addVariable": "Add a variable",
+        "removeVariable": "Remove the variable",
+        "noVariables": "This snippet has no variables.",
+        "builtinVariables": "The {fecha} and {hora} placeholders are resolved locally: you do not have to declare them.",
+        "category": "Category",
+        "categoryPlaceholder": "For example: Emails",
+        "applications": "Applications",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "Language",
+        "languagePlaceholder": "es",
+        "required": "This field is required."
+      },
+      "preview": {
+        "title": "Preview",
+        "description": "Type a sentence with the trigger phrase and see what Dixi expands it to.",
+        "input": "Text to expand",
+        "inputPlaceholder": "sig, thank you in advance",
+        "inputRequired": "Write something to expand.",
+        "run": "Expand",
+        "expanded": "The snippet was expanded.",
+        "notExpanded": "No snippet matched that text.",
+        "retry": "Expand again"
+      },
+      "transfer": {
+        "title": "Import and export",
+        "description": "Move your snippets between machines with a JSON file.",
+        "filesTitle": "Snippets file",
+        "export": "Export",
+        "import": "Import",
+        "exportEmpty": "There are no snippets to export.",
+        "exportSuccess": "{{count}} snippets exported.",
+        "exportError": "The snippets could not be exported.",
+        "importSuccess": "{{count}} snippets imported.",
+        "importError": "The snippets could not be imported.",
+        "overwriteTitle": "The file already exists. Do you want to replace it?"
+      },
+      "actions": {
+        "add": "Add",
+        "edit": "Edit",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete"
+      },
+      "errors": {
+        "load": "The snippets could not be loaded.",
+        "action": "The snippet could not be saved."
+      }
+    },
+    "transforms": {
+      "title": "Transforms",
+      "description": "Turn a dictated text into something else: the model rewrites it following the instruction of each transform.",
+      "list": {
+        "title": "Transforms",
+        "description": "A transform rewrites the text with a model, following an instruction.",
+        "empty": "There are no transforms yet.",
+        "builtin": "Built-in",
+        "enabled": "Enabled",
+        "provider": "Provider",
+        "model": "Model",
+        "usageCount": "Used {{count}} times",
+        "enabledDescription": "A disabled transform is not run."
+      },
+      "form": {
+        "name": "Name",
+        "namePlaceholder": "For example: Make it shorter",
+        "prompt": "Instruction",
+        "promptPlaceholder": "Rewrite the text so it is more concise, keeping the meaning.",
+        "provider": "Provider",
+        "providerDefault": "The provider of the post-processing",
+        "model": "Model",
+        "modelPlaceholder": "The default model",
+        "category": "Category",
+        "categoryPlaceholder": "For example: Writing",
+        "required": "This field is required."
+      },
+      "runner": {
+        "title": "Try a transform",
+        "description": "Write a text, choose the transforms to run and see the result before applying it.",
+        "input": "Text to transform",
+        "inputPlaceholder": "Type the text you want to transform",
+        "inputRequired": "Write a text to transform.",
+        "selectTransform": "Transforms to run",
+        "selectRequired": "Choose at least one transform.",
+        "run": "Run",
+        "result": "Result",
+        "accept": "Accept",
+        "accepted": "The result was applied.",
+        "copy": "Copy",
+        "copied": "The result was copied.",
+        "captureSelection": "Use the selected text",
+        "selectionEmpty": "There is no text selected in the focused application.",
+        "selectionChanged": "The selected text changed while the transform was running, so nothing was written. Copy the result instead."
+      },
+      "diff": {
+        "title": "Changes",
+        "inserted": "{{count}} words added",
+        "removed": "{{count}} words removed",
+        "identical": "The text did not change."
+      },
+      "actions": {
+        "add": "Add",
+        "edit": "Edit",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "builtinCannotEdit": "A built-in transform cannot be edited, only disabled.",
+        "builtinCannotDelete": "A built-in transform cannot be deleted, only disabled."
+      },
+      "errors": {
+        "load": "The transforms could not be loaded.",
+        "action": "The transform could not be saved."
+      }
+    },
+    "textHistory": {
+      "title": "Text history",
+      "description": "The local record of the changes Dixi made to your text, so you can undo the last one.",
+      "list": {
+        "title": "Recorded changes",
+        "description": "Newest first.",
+        "empty": "There are no recorded changes yet.",
+        "application": "Application",
+        "unknownApplication": "Unknown application",
+        "undone": "Reverted"
+      },
+      "kind": {
+        "transform": "Transform",
+        "snippet": "Snippet",
+        "cleanup": "Cleanup"
+      },
+      "revert": {
+        "button": "Revert",
+        "done": "The original text was put back.",
+        "markDone": "Mark as reverted",
+        "markedDone": "The change was marked as reverted.",
+        "selectionEmpty": "Select the text that was changed to revert it.",
+        "selectionMismatch": "The selected text is not the one that was changed, so nothing was written.",
+        "selectionChanged": "The selection changed while reverting, so nothing was written."
+      },
+      "retention": {
+        "title": "Retention",
+        "description": "How long the changes are kept before they are removed.",
+        "days": "Days",
+        "zero": "With 0 days the history is kept until you clear it.",
+        "save": "Save",
+        "saved": "The retention was saved.",
+        "purge": "Remove the expired ones now",
+        "purged": "{{count}} entries were removed.",
+        "invalid": "Enter a number of days greater than or equal to 0."
+      },
+      "actions": {
+        "clear": "Clear the history",
+        "clearTitle": "Clear the history",
+        "clearDescription": "Removes every recorded change. This cannot be undone.",
+        "clearConfirm": "Do you want to clear the whole history?",
+        "cleared": "The history was cleared."
+      },
+      "errors": {
+        "load": "The text history could not be loaded.",
+        "action": "The change could not be reverted."
       }
     }
   },

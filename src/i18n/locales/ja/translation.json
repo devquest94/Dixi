@@ -17,7 +17,11 @@
     "dictionary": "辞書",
     "history": "履歴",
     "debug": "デバッグ",
-    "about": "概要"
+    "about": "概要",
+    "profiles": "書き込みプロファイル",
+    "snippets": "スニペット",
+    "transforms": "変換",
+    "textHistory": "テキスト履歴"
   },
   "onboarding": {
     "subtitle": "開始するには、文字起こしのモデルを選択してください",
@@ -733,6 +737,283 @@
       "whatsNewUpdates": {
         "label": "新機能を表示",
         "description": "Dixi のアップデート後にリリースノートを表示"
+      }
+    },
+    "profiles": {
+      "title": "書き込みプロファイル",
+      "description": "アプリごとに Dixi の書き方（スタイル、整理レベル、書式ルール）を選べます。",
+      "detected": {
+        "title": "検出されたアプリ",
+        "description": "現在フォーカスが当たっているアプリ。",
+        "unknown": "アプリケーションが検出されませんでした",
+        "window": "ウィンドウタイトル",
+        "refresh": "検出されたアプリを再取得"
+      },
+      "effective": {
+        "title": "有効な設定",
+        "description": "検出されたアプリに Dixi が使う設定です。",
+        "origin": "取得元"
+      },
+      "origin": {
+        "manualOverride": "このセッションの手動上書き",
+        "appOverride": "アプリに紐づいたルール",
+        "detectedProfile": "アプリが該当したプロファイル",
+        "global": "グローバル設定"
+      },
+      "cleanup": {
+        "none": "整理なし",
+        "light": "軽い整理",
+        "medium": "中程度の整理"
+      },
+      "rule": {
+        "capitalizeSentences": "文の最初を大文字にする",
+        "ensureFinalPeriod": "末尾に句点を付ける",
+        "collapseSpaces": "連続する空白をまとめる",
+        "spaceBeforePunctuation": "句読点前の空白を削除"
+      },
+      "styles": {
+        "title": "書き込みスタイル",
+        "description": "スタイルは、書く前にテキストをどう整えるかを示します。",
+        "empty": "まだ書き込みスタイルがありません。",
+        "builtin": "標準搭載",
+        "aiCleanupAllowed": "このスタイルでは AI 整理を使用できます。",
+        "noRules": "書式ルールなし"
+      },
+      "profiles": {
+        "title": "書き込みプロファイル",
+        "description": "プロファイルは、同じ書き方をするアプリをまとめます。",
+        "empty": "まだ書き込みプロファイルがありません。",
+        "everywhere": "すべてのアプリ"
+      },
+      "overrides": {
+        "title": "アプリごとのルール",
+        "description": "ルールは 1 つのアプリにスタイルや整理レベルを強制します。",
+        "empty": "まだアプリごとのルールはありません。",
+        "inherit": "プロファイルの既定値を使う"
+      },
+      "form": {
+        "name": "名前",
+        "namePlaceholder": "例: フォーマル",
+        "applications": "アプリ",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "スタイル",
+        "language": "言語",
+        "languagePlaceholder": "es",
+        "basePrompt": "ベースプロンプト",
+        "basePromptPlaceholder": "AI 整理を使うときにモデルへ渡す指示。",
+        "cleanupLevel": "整理レベル",
+        "aiCleanup": "AI 整理",
+        "formatRules": "書式ルール",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "プロファイル",
+        "required": "この項目は必須です。",
+        "enabledDescription": "無効にしたスタイルやプロファイルは使われません。"
+      },
+      "manual": {
+        "title": "このセッションの手動上書き",
+        "description": "このセッションの間、プロフィールを強制します。",
+        "notPersisted": "この上書きは保存されません。Dixi を閉じるまでしか効きません。",
+        "none": "上書きなし"
+      },
+      "actions": {
+        "add": "追加",
+        "edit": "編集",
+        "save": "保存",
+        "cancel": "キャンセル",
+        "delete": "削除",
+        "builtinCannotDelete": "標準搭載のスタイルは削除できず、無効化のみ可能です。",
+        "enabled": "有効",
+        "disabled": "無効"
+      },
+      "errors": {
+        "load": "書き込みプロファイルを読み込めませんでした。",
+        "action": "書き込みプロファイルを保存できませんでした。"
+      }
+    },
+    "snippets": {
+      "title": "スニペット",
+      "description": "フレーズは一度書けば、Dixi が展開します。変数付きのスニペットをどこでも貼り付けられます。",
+      "list": {
+        "title": "スニペット",
+        "description": "スニペットはトリガー語句をその展開で置き換えます。",
+        "empty": "まだスニペットがありません。",
+        "favorite": "お気に入り",
+        "enabled": "有効",
+        "everywhere": "すべてのアプリ",
+        "usageCount": "{{count}} 回使用",
+        "enabledDescription": "無効にしたスニペットは展開されません。"
+      },
+      "form": {
+        "name": "名前",
+        "namePlaceholder": "例: 署名",
+        "trigger": "トリガー語句",
+        "triggerPlaceholder": "署名",
+        "expansion": "展開結果",
+        "expansionPlaceholder": "敬具、{名前}",
+        "variables": "変数",
+        "variablesDescription": "展開結果で使う変数を宣言します。名前、必須かどうか、質問の内容を指定します。",
+        "variableName": "変数名",
+        "variableRequired": "必須",
+        "variablePrompt": "質問する内容",
+        "addVariable": "変数を追加",
+        "removeVariable": "変数を削除",
+        "noVariables": "このスニペットに変数はありません。",
+        "builtinVariables": "{fecha} と {hora} のプレースホルダーはローカルで解決されるため、宣言は不要です。",
+        "category": "カテゴリ",
+        "categoryPlaceholder": "例: メール",
+        "applications": "アプリ",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "言語",
+        "languagePlaceholder": "es",
+        "required": "この項目は必須です。"
+      },
+      "preview": {
+        "title": "プレビュー",
+        "description": "トリガー語句を含む文を入力して、Dixi がどう展開するか確認できます。",
+        "input": "展開するテキスト",
+        "inputPlaceholder": "署名，提前にありがとう",
+        "inputRequired": "展開する内容を入力してください。",
+        "run": "展開",
+        "expanded": "スニペットが展開されました。",
+        "notExpanded": "そのテキストに一致するスニペットはありませんでした。",
+        "retry": "もう一度展開"
+      },
+      "transfer": {
+        "title": "インポートとエクスポート",
+        "description": "JSON ファイルでスニペットを別の端末へ移せます。",
+        "filesTitle": "スニペットファイル",
+        "export": "エクスポート",
+        "import": "インポート",
+        "exportEmpty": "エクスポートするスニペットがありません。",
+        "exportSuccess": "{{count}} 件のスニペットをエクスポートしました。",
+        "exportError": "スニペットをエクスポートできませんでした。",
+        "importSuccess": "{{count}} 件のスニペットをインポートしました。",
+        "importError": "スニペットをインポートできませんでした。",
+        "overwriteTitle": "ファイルはすでに存在します。置き換えますか？"
+      },
+      "actions": {
+        "add": "追加",
+        "edit": "編集",
+        "save": "保存",
+        "cancel": "キャンセル",
+        "delete": "削除"
+      },
+      "errors": {
+        "load": "スニペットを読み込めませんでした。",
+        "action": "スニペットを保存できませんでした。"
+      }
+    },
+    "transforms": {
+      "title": "変換",
+      "description": "書き起こした文章を別の形に変えます。モデルが各変換の指示に従って書き直します。",
+      "list": {
+        "title": "変換",
+        "description": "変換は指示に従ってモデルでテキストを書き直します。",
+        "empty": "まだ変換がありません。",
+        "builtin": "標準搭載",
+        "enabled": "有効",
+        "provider": "プロバイダー",
+        "model": "モデル",
+        "usageCount": "{{count}} 回使用",
+        "enabledDescription": "無効にした変換は実行されません。"
+      },
+      "form": {
+        "name": "名前",
+        "namePlaceholder": "例: 短くする",
+        "prompt": "指示",
+        "promptPlaceholder": "意味を保ったまま、より簡潔に書き直してください。",
+        "provider": "プロバイダー",
+        "providerDefault": "後処理のプロバイダー",
+        "model": "モデル",
+        "modelPlaceholder": "既定のモデル",
+        "category": "カテゴリ",
+        "categoryPlaceholder": "例: 執筆",
+        "required": "この項目は必須です。"
+      },
+      "runner": {
+        "title": "変換を試す",
+        "description": "テキストを入力し、実行する変換を選んで、適用する前に結果を確認できます。",
+        "input": "変換するテキスト",
+        "inputPlaceholder": "変換したいテキストを入力してください",
+        "inputRequired": "変換するテキストを入力してください。",
+        "selectTransform": "実行する変換",
+        "selectRequired": "変換を 1 つ以上選んでください。",
+        "run": "実行",
+        "result": "結果",
+        "accept": "採用",
+        "accepted": "結果を適用しました。",
+        "copy": "コピー",
+        "copied": "結果をコピーしました。",
+        "captureSelection": "選択中のテキストを使う",
+        "selectionEmpty": "フォーカスのあるアプリでテキストが選択されていません。",
+        "selectionChanged": "変換の実行中に選択中のテキストが変わったため、何も書き込まれませんでした。代わりに結果をコピーしてください。"
+      },
+      "diff": {
+        "title": "変更点",
+        "inserted": "{{count}} 語を追加",
+        "removed": "{{count}} 語を削除",
+        "identical": "テキストは変わりませんでした。"
+      },
+      "actions": {
+        "add": "追加",
+        "edit": "編集",
+        "save": "保存",
+        "cancel": "キャンセル",
+        "delete": "削除",
+        "builtinCannotEdit": "標準搭載の変換は編集できず、無効化のみ可能です。",
+        "builtinCannotDelete": "標準搭載の変換は削除できず、無効化のみ可能です。"
+      },
+      "errors": {
+        "load": "変換を読み込めませんでした。",
+        "action": "変換を保存できませんでした。"
+      }
+    },
+    "textHistory": {
+      "title": "テキスト履歴",
+      "description": "Dixi がテキストに施した変更のローカル記録です。直前の変更を取り消せます。",
+      "list": {
+        "title": "記録された変更",
+        "description": "新しい順に表示されます。",
+        "empty": "まだ記録された変更はありません。",
+        "application": "アプリ",
+        "unknownApplication": "不明なアプリ",
+        "undone": "元に戻済み"
+      },
+      "kind": {
+        "transform": "変換",
+        "snippet": "スニペット",
+        "cleanup": "整理"
+      },
+      "revert": {
+        "button": "元に戻す",
+        "done": "元のテキストが元に戻されました。",
+        "markDone": "元に戻したとして記録",
+        "markedDone": "変更を元に戻したとして記録しました。",
+        "selectionEmpty": "変更を元に戻すには、変更されたテキストを選択してください。",
+        "selectionMismatch": "選択中のテキストは変更されたテキストではないため、何も書き込まれませんでした。",
+        "selectionChanged": "元に戻す途中で選択が変わったため、何も書き込まれませんでした。"
+      },
+      "retention": {
+        "title": "保持期間",
+        "description": "変更が削除されるまで 얼마나保持されるか。",
+        "days": "日",
+        "zero": "0 日の場合、履歴は手動で消去するまで保持されます。",
+        "save": "保存",
+        "saved": "保持期間を保存しました。",
+        "purge": "期限切れを今すぐ削除",
+        "purged": "{{count}} 件を削除しました。",
+        "invalid": "0 以上の日数を入力してください。"
+      },
+      "actions": {
+        "clear": "履歴を消去",
+        "clearTitle": "履歴を消去",
+        "clearDescription": "記録された変更をすべて削除します。取り消せません。",
+        "clearConfirm": "履歴をすべて消去しますか？",
+        "cleared": "履歴を消去しました。"
+      },
+      "errors": {
+        "load": "テキスト履歴を読み込めませんでした。",
+        "action": "変更を取り消せませんでした。"
       }
     }
   },

@@ -17,7 +17,11 @@
     "dictionary": "Ordbog",
     "history": "Historik",
     "debug": "Fejlfinding",
-    "about": "Om"
+    "about": "Om",
+    "profiles": "Skriveprofiler",
+    "snippets": "Genbrugsstykker",
+    "transforms": "Transformationer",
+    "textHistory": "Teksthistorik"
   },
   "onboarding": {
     "subtitle": "For at komme i gang skal du vælge en transskriptionsmodel",
@@ -733,6 +737,283 @@
           "description": "Højtydende tensor-bibliotek til maskinlæringsinferens på enheden",
           "details": "Dixis lokale tale-til-tekst funktionalitet er bygget på transcribe.cpp og ggml. Tak for det fantastiske arbejde af Georgi Gerganov og bidragyderne."
         }
+      }
+    },
+    "profiles": {
+      "title": "Skriveprofiler",
+      "description": "Vælg, hvordan Dixi skriver i hver app: stilen, rensningsniveauet og formateringsreglerne.",
+      "detected": {
+        "title": "Registreret app",
+        "description": "Den app, der har fokus lige nu.",
+        "unknown": "Ingen app blev registreret",
+        "window": "Vinduestitel",
+        "refresh": "Opdater den registrerede app"
+      },
+      "effective": {
+        "title": "Effektiv konfiguration",
+        "description": "Hvad Dixi bruger til den registrerede app.",
+        "origin": "Oprindelse"
+      },
+      "origin": {
+        "manualOverride": "Manuel tilsidesættelse for denne session",
+        "appOverride": "Regel knyttet til appen",
+        "detectedProfile": "Den profil, appen matchede",
+        "global": "Global konfiguration"
+      },
+      "cleanup": {
+        "none": "Ingen rensning",
+        "light": "Let rensning",
+        "medium": "Mellem rensning"
+      },
+      "rule": {
+        "capitalizeSentences": "Sæt store bogstaver i sætninger",
+        "ensureFinalPeriod": "Sæt et punktum til sidst",
+        "collapseSpaces": "Samlæg gentagne mellemrum",
+        "spaceBeforePunctuation": "Fjern mellemrum før tegnsætning"
+      },
+      "styles": {
+        "title": "Skrivestile",
+        "description": "En stil siger, hvordan teksten renses, før den skrives.",
+        "empty": "Der er endnu ingen skrivestile.",
+        "builtin": "Indbygget",
+        "aiCleanupAllowed": "Med denne stil kan AI-rensning bruges.",
+        "noRules": "Ingen formateringsregler"
+      },
+      "profiles": {
+        "title": "Skriveprofiler",
+        "description": "En profil samler de apps, der deler den samme måde at skrive på.",
+        "empty": "Der er endnu ingen skriveprofiler.",
+        "everywhere": "Overalt"
+      },
+      "overrides": {
+        "title": "Regler pr. app",
+        "description": "En regel tvinger en stil eller et rensningsniveau for én enkelt app.",
+        "empty": "Der er endnu ingen regler pr. app.",
+        "inherit": "Brug profilens standardværdi"
+      },
+      "form": {
+        "name": "Navn",
+        "namePlaceholder": "For eksempel: Formel",
+        "applications": "Apps",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "Stil",
+        "language": "Sprog",
+        "languagePlaceholder": "es",
+        "basePrompt": "Basisprompt",
+        "basePromptPlaceholder": "Den instruktion, der gives til modellen, når AI-rensning bruges.",
+        "cleanupLevel": "Rensningsniveau",
+        "aiCleanup": "AI-rensning",
+        "formatRules": "Formateringsregler",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "Profilen",
+        "required": "Dette felt er påkrævet.",
+        "enabledDescription": "En deaktiveret stil eller profil bruges ikke."
+      },
+      "manual": {
+        "title": "Manuel tilsidesættelse for denne session",
+        "description": "Tving en profil, så længe sessionen varer.",
+        "notPersisted": "Denne tilsidesættelse gemmes ikke: den holder kun, indtil Dixi lukkes.",
+        "none": "Ingen tilsidesættelse"
+      },
+      "actions": {
+        "add": "Tilføj",
+        "edit": "Rediger",
+        "save": "Gem",
+        "cancel": "Annuller",
+        "delete": "Slet",
+        "builtinCannotDelete": "En indbygget stil kan ikke slettes, kun deaktiveres.",
+        "enabled": "Aktiveret",
+        "disabled": "Deaktiveret"
+      },
+      "errors": {
+        "load": "Skriveprofilerne kunne ikke indlæses.",
+        "action": "Profilen kunne ikke gemmes."
+      }
+    },
+    "snippets": {
+      "title": "Genbrugsstykker",
+      "description": "Skriv sætningen én gang, og lad Dixi udvide den: genbrugsstykker med variabler, klar til at sætte ind hvor som helst.",
+      "list": {
+        "title": "Genbrugsstykker",
+        "description": "Et genbrugsstykke erstatter triggerfrasen med sin udvidelse.",
+        "empty": "Der er endnu ingen genbrugsstykker.",
+        "favorite": "Favorit",
+        "enabled": "Aktiveret",
+        "everywhere": "Overalt",
+        "usageCount": "Brugt {{count}} gange",
+        "enabledDescription": "Et deaktiveret genbrugsstykke udvides ikke."
+      },
+      "form": {
+        "name": "Navn",
+        "namePlaceholder": "For eksempel: Signatur",
+        "trigger": "Triggerfrase",
+        "triggerPlaceholder": "sign",
+        "expansion": "Udvidelse",
+        "expansionPlaceholder": "Med venlig hilsen, {navn}",
+        "variables": "Variabler",
+        "variablesDescription": "Erklær de variabler, udvidelsen bruger: navnet, om den er påkrævet, og det spørgsmål, der stilles.",
+        "variableName": "Variabelnavn",
+        "variableRequired": "Påkrævet",
+        "variablePrompt": "Det spørgsmål, der stilles",
+        "addVariable": "Tilføj en variabel",
+        "removeVariable": "Fjern variablen",
+        "noVariables": "Dette genbrugsstykke bruger ikke variabler.",
+        "builtinVariables": "{fecha} og {hora} løses lokalt: du behøver ikke erklære dem.",
+        "category": "Kategori",
+        "categoryPlaceholder": "For eksempel: E-mails",
+        "applications": "Apps",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "Sprog",
+        "languagePlaceholder": "es",
+        "required": "Dette felt er påkrævet."
+      },
+      "preview": {
+        "title": "Forhåndsvisning",
+        "description": "Skriv en sætning med triggerfrasen og se, hvad Dixi udvider den til.",
+        "input": "Tekst, der skal udvides",
+        "inputPlaceholder": "sign, på forhånd tak",
+        "inputRequired": "Skriv noget, der skal udvides.",
+        "run": "Udvid",
+        "expanded": "Genbrugsstykket blev udvidet.",
+        "notExpanded": "Ingen genbrugsstykke passede til teksten.",
+        "retry": "Udvid igen"
+      },
+      "transfer": {
+        "title": "Import og eksport",
+        "description": "Flyt genbrugsstykker mellem computere med en JSON-fil.",
+        "filesTitle": "Fil med genbrugsstykker",
+        "export": "Eksportér",
+        "import": "Importér",
+        "exportEmpty": "Der er ingen genbrugsstykker at eksportere.",
+        "exportSuccess": "{{count}} genbrugsstykker blev eksporteret.",
+        "exportError": "Genbrugsstykkerne kunne ikke eksporteres.",
+        "importSuccess": "{{count}} genbrugsstykker blev importeret.",
+        "importError": "Genbrugsstykkerne kunne ikke importeres.",
+        "overwriteTitle": "Filen findes allerede. Vil du erstatte den?"
+      },
+      "actions": {
+        "add": "Tilføj",
+        "edit": "Rediger",
+        "save": "Gem",
+        "cancel": "Annuller",
+        "delete": "Slet"
+      },
+      "errors": {
+        "load": "Genbrugsstykkerne kunne ikke indlæses.",
+        "action": "Genbrugsstykket kunne ikke gemmes."
+      }
+    },
+    "transforms": {
+      "title": "Transformationer",
+      "description": "Gør den dikterede tekst om til noget andet: modellen skriver den om efter hver transformations instruktion.",
+      "list": {
+        "title": "Transformationer",
+        "description": "En transformation skriver teksten om efter sin egen instruktion.",
+        "empty": "Der er endnu ingen transformationer.",
+        "builtin": "Indbygget",
+        "enabled": "Aktiveret",
+        "provider": "Udbyder",
+        "model": "Model",
+        "usageCount": "Brugt {{count}} gange",
+        "enabledDescription": "En deaktiveret transformation køres ikke."
+      },
+      "form": {
+        "name": "Navn",
+        "namePlaceholder": "For eksempel: Gør kortere",
+        "prompt": "Instruktion",
+        "promptPlaceholder": "Skriv teksten om, så den bliver kortere, men bevar meningen.",
+        "provider": "Udbyder",
+        "providerDefault": "Udbyderen af efterbehandlingen",
+        "model": "Model",
+        "modelPlaceholder": "Standardmodellen",
+        "category": "Kategori",
+        "categoryPlaceholder": "For eksempel: Skrivning",
+        "required": "Dette felt er påkrævet."
+      },
+      "runner": {
+        "title": "Prøv en transformation",
+        "description": "Skriv en tekst, vælg de transformationer der skal køre, og se resultatet, før du anvender det.",
+        "input": "Tekst, der skal transformeres",
+        "inputPlaceholder": "Skriv den tekst, du vil transformere",
+        "inputRequired": "Skriv en tekst, der skal transformeres.",
+        "selectTransform": "Transformationer der skal køre",
+        "selectRequired": "Vælg mindst én transformation.",
+        "run": "Kør",
+        "result": "Resultat",
+        "accept": "Acceptér",
+        "accepted": "Resultatet blev anvendt.",
+        "copy": "Kopiér",
+        "copied": "Resultatet blev kopieret.",
+        "captureSelection": "Brug den valgte tekst",
+        "selectionEmpty": "Der er ikke valgt tekst i appen med fokus.",
+        "selectionChanged": "Den valgte tekst ændrede sig, mens transformationen kørte, så der blev ikke skrevet noget. Kopiér resultatet i stedet."
+      },
+      "diff": {
+        "title": "Ændringer",
+        "inserted": "{{count}} ord tilføjet",
+        "removed": "{{count}} ord fjernet",
+        "identical": "Teksten blev ikke ændret."
+      },
+      "actions": {
+        "add": "Tilføj",
+        "edit": "Rediger",
+        "save": "Gem",
+        "cancel": "Annuller",
+        "delete": "Slet",
+        "builtinCannotEdit": "En indbygget transformation kan ikke redigeres, kun deaktiveres.",
+        "builtinCannotDelete": "En indbygget transformation kan ikke slettes, kun deaktiveres."
+      },
+      "errors": {
+        "load": "Transformationerne kunne ikke indlæses.",
+        "action": "Transformationen kunne ikke gemmes."
+      }
+    },
+    "textHistory": {
+      "title": "Teksthistorik",
+      "description": "Den lokale registrering af de ændringer, Dixi har lavet i din tekst, så du kan fortryde den seneste.",
+      "list": {
+        "title": "Registrerede ændringer",
+        "description": "Nyeste først.",
+        "empty": "Der er endnu ingen registrerede ændringer.",
+        "application": "App",
+        "unknownApplication": "Ukendt app",
+        "undone": "Fortryd"
+      },
+      "kind": {
+        "transform": "Transformation",
+        "snippet": "Genbrugsstykke",
+        "cleanup": "Rensning"
+      },
+      "revert": {
+        "button": "Fortryd",
+        "done": "Den oprindelige tekst blev sat tilbage.",
+        "markDone": "Markér som fortryd",
+        "markedDone": "Ændringen blev markeret som fortryd.",
+        "selectionEmpty": "Vælg den tekst, der blev ændret, for at fortryde ændringen.",
+        "selectionMismatch": "Den valgte tekst er ikke den ændrede tekst, så der blev ikke skrevet noget.",
+        "selectionChanged": "Markeringen ændrede sig under tilbageføringen, så der blev ikke skrevet noget."
+      },
+      "retention": {
+        "title": "Opbevaring",
+        "description": "Hvor længe ændringerne opbevares, før de fjernes.",
+        "days": "Dage",
+        "zero": "Med 0 dage bevares historikken, indtil du rydder den.",
+        "save": "Gem",
+        "saved": "Opbevaringen blev gemt.",
+        "purge": "Fjern de udløbne nu",
+        "purged": "{{count}} poster blev fjernet.",
+        "invalid": "Indtast et antal dage på 0 eller mere."
+      },
+      "actions": {
+        "clear": "Ryd historikken",
+        "clearTitle": "Ryd historikken",
+        "clearDescription": "Fjerner alle registrerede ændringer. Det kan ikke fortrydes.",
+        "clearConfirm": "Vil du rydde hele historikken?",
+        "cleared": "Historikken blev ryddet."
+      },
+      "errors": {
+        "load": "Teksthistorikken kunne ikke indlæses.",
+        "action": "Ændringen kunne ikke fortrydes."
       }
     }
   },

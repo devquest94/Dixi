@@ -17,7 +17,11 @@
     "dictionary": "Wörterbuch",
     "history": "Verlauf",
     "debug": "Debug",
-    "about": "Info"
+    "about": "Info",
+    "profiles": "Schreibprofile",
+    "snippets": "Textbausteine",
+    "transforms": "Transformationen",
+    "textHistory": "Textverlauf"
   },
   "onboarding": {
     "subtitle": "Wähle ein Transkriptionsmodell, um loszulegen",
@@ -733,6 +737,283 @@
       "whatsNewUpdates": {
         "label": "Neuerungen anzeigen",
         "description": "Versionshinweise nach Dixi-Updates anzeigen"
+      }
+    },
+    "profiles": {
+      "title": "Schreibprofile",
+      "description": "Legen Sie fest, wie Dixi in jeder Anwendung schreibt: Stil, Bereinigungsstufe und Formatierungsregeln.",
+      "detected": {
+        "title": "Erkannte Anwendung",
+        "description": "Die Anwendung, die gerade den Fokus hat.",
+        "unknown": "Keine Anwendung erkannt",
+        "window": "Fenstertitel",
+        "refresh": "Erkannte Anwendung aktualisieren"
+      },
+      "effective": {
+        "title": "Wirksame Konfiguration",
+        "description": "Was Dixi für die erkannte Anwendung verwendet.",
+        "origin": "Herkunft"
+      },
+      "origin": {
+        "manualOverride": "Manuelle Überschreibung für diese Sitzung",
+        "appOverride": "An die Anwendung gebundene Regel",
+        "detectedProfile": "Das von der Anwendung getroffene Profil",
+        "global": "Globale Konfiguration"
+      },
+      "cleanup": {
+        "none": "Keine Bereinigung",
+        "light": "Leichte Bereinigung",
+        "medium": "Mittlere Bereinigung"
+      },
+      "rule": {
+        "capitalizeSentences": "Sätze großschreiben",
+        "ensureFinalPeriod": "Schlusspunkt ergänzen",
+        "collapseSpaces": "Wiederholte Leerzeichen zusammenfassen",
+        "spaceBeforePunctuation": "Leerzeichen vor Satzzeichen entfernen"
+      },
+      "styles": {
+        "title": "Schreibstile",
+        "description": "Ein Stil legt fest, wie der Text vor dem Schreiben bereinigt wird.",
+        "empty": "Es gibt noch keine Schreibstile.",
+        "builtin": "Integriert",
+        "aiCleanupAllowed": "Mit diesem Stil darf die KI-Bereinigung verwendet werden.",
+        "noRules": "Keine Formatierungsregeln"
+      },
+      "profiles": {
+        "title": "Schreibprofile",
+        "description": "Ein Profil gruppiert Anwendungen, die gleich schreiben.",
+        "empty": "Es gibt noch keine Schreibprofile.",
+        "everywhere": "Überall"
+      },
+      "overrides": {
+        "title": "Regeln pro Anwendung",
+        "description": "Eine Regel erzwingt einen Stil oder eine Bereinigungsstufe für eine einzelne Anwendung.",
+        "empty": "Es gibt noch keine Regeln pro Anwendung.",
+        "inherit": "Standardwert des Profils verwenden"
+      },
+      "form": {
+        "name": "Name",
+        "namePlaceholder": "Zum Beispiel: Formal",
+        "applications": "Anwendungen",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "Stil",
+        "language": "Sprache",
+        "languagePlaceholder": "es",
+        "basePrompt": "Basisanweisung",
+        "basePromptPlaceholder": "Die Anweisung, die dem Modell bei der KI-Bereinigung gegeben wird.",
+        "cleanupLevel": "Bereinigungsstufe",
+        "aiCleanup": "KI-Bereinigung",
+        "formatRules": "Formatierungsregeln",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "Profil",
+        "required": "Dieses Feld ist erforderlich.",
+        "enabledDescription": "Ein deaktivierter Stil oder ein deaktiviertes Profil wird nicht verwendet."
+      },
+      "manual": {
+        "title": "Manuelle Überschreibung für diese Sitzung",
+        "description": "Erzwingen Sie ein Profil für die Dauer dieser Sitzung.",
+        "notPersisted": "Diese Überschreibung wird nicht gespeichert: Sie gilt nur, bis Dixi geschlossen wird.",
+        "none": "Keine Überschreibung"
+      },
+      "actions": {
+        "add": "Hinzufügen",
+        "edit": "Bearbeiten",
+        "save": "Speichern",
+        "cancel": "Abbrechen",
+        "delete": "Löschen",
+        "builtinCannotDelete": "Ein integrierter Stil kann nicht gelöscht, nur deaktiviert werden.",
+        "enabled": "Aktiviert",
+        "disabled": "Deaktiviert"
+      },
+      "errors": {
+        "load": "Die Schreibprofile konnten nicht geladen werden.",
+        "action": "Das Schreibprofil konnte nicht gespeichert werden."
+      }
+    },
+    "snippets": {
+      "title": "Textbausteine",
+      "description": "Schreiben Sie die Formulierung einmal und lassen Sie Dixi sie ausbauen: Textbausteine mit Variablen, bereit zum Einfügen.",
+      "list": {
+        "title": "Textbausteine",
+        "description": "Ein Textbaustein ersetzt die Auslösephrase durch seine Erweiterung.",
+        "empty": "Es gibt noch keine Textbausteine.",
+        "favorite": "Favorit",
+        "enabled": "Aktiviert",
+        "everywhere": "Überall",
+        "usageCount": "{{count}}-mal verwendet",
+        "enabledDescription": "Ein deaktivierter Textbaustein wird nicht ausgebaut."
+      },
+      "form": {
+        "name": "Name",
+        "namePlaceholder": "Zum Beispiel: Signatur",
+        "trigger": "Auslösephrase",
+        "triggerPlaceholder": "unterschreiben",
+        "expansion": "Erweiterung",
+        "expansionPlaceholder": "Mit freundlichen Grüßen, {name}",
+        "variables": "Variablen",
+        "variablesDescription": "Deklarieren Sie die Variablen, die die Erweiterung verwendet: den Namen, ob sie erforderlich ist, und die gestellte Frage.",
+        "variableName": "Name der Variablen",
+        "variableRequired": "Erforderlich",
+        "variablePrompt": "Die gestellte Frage",
+        "addVariable": "Variable hinzufügen",
+        "removeVariable": "Variable entfernen",
+        "noVariables": "Dieser Textbaustein verwendet keine Variablen.",
+        "builtinVariables": "{fecha} und {hora} werden lokal aufgelöst: Sie müssen sie nicht deklarieren.",
+        "category": "Kategorie",
+        "categoryPlaceholder": "Zum Beispiel: E-Mails",
+        "applications": "Anwendungen",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "Sprache",
+        "languagePlaceholder": "es",
+        "required": "Dieses Feld ist erforderlich."
+      },
+      "preview": {
+        "title": "Vorschau",
+        "description": "Schreiben Sie einen Satz mit der Auslösephrase und sehen Sie, wozu Dixi ihn ausbaut.",
+        "input": "Auszubauender Text",
+        "inputPlaceholder": "unterschreiben, vielen Dank im Voraus",
+        "inputRequired": "Schreiben Sie etwas zum Ausbauen.",
+        "run": "Ausbauen",
+        "expanded": "Der Textbaustein wurde ausgebaut.",
+        "notExpanded": "Kein Textbaustein passte zu dem Text.",
+        "retry": "Erneut ausbauen"
+      },
+      "transfer": {
+        "title": "Import und Export",
+        "description": "Verschieben Sie Textbausteine mit einer JSON-Datei zwischen Rechnern.",
+        "filesTitle": "Datei mit Textbausteinen",
+        "export": "Exportieren",
+        "import": "Importieren",
+        "exportEmpty": "Es gibt keine Textbausteine zum Exportieren.",
+        "exportSuccess": "{{count}} Textbausteine wurden exportiert.",
+        "exportError": "Die Textbausteine konnten nicht exportiert werden.",
+        "importSuccess": "{{count}} Textbausteine wurden importiert.",
+        "importError": "Die Textbausteine konnten nicht importiert werden.",
+        "overwriteTitle": "Die Datei existiert bereits. Soll sie ersetzt werden?"
+      },
+      "actions": {
+        "add": "Hinzufügen",
+        "edit": "Bearbeiten",
+        "save": "Speichern",
+        "cancel": "Abbrechen",
+        "delete": "Löschen"
+      },
+      "errors": {
+        "load": "Die Textbausteine konnten nicht geladen werden.",
+        "action": "Der Textbaustein konnte nicht gespeichert werden."
+      }
+    },
+    "transforms": {
+      "title": "Transformationen",
+      "description": "Verwandeln Sie den diktierten Text in etwas anderes: das Modell schreibt ihn nach der Anweisung jeder Transformation neu.",
+      "list": {
+        "title": "Transformationen",
+        "description": "Eine Transformation schreibt den Text nach ihrer Anweisung neu.",
+        "empty": "Es gibt noch keine Transformationen.",
+        "builtin": "Integriert",
+        "enabled": "Aktiviert",
+        "provider": "Anbieter",
+        "model": "Modell",
+        "usageCount": "{{count}}-mal verwendet",
+        "enabledDescription": "Eine deaktivierte Transformation wird nicht ausgeführt."
+      },
+      "form": {
+        "name": "Name",
+        "namePlaceholder": "Zum Beispiel: Kürzer machen",
+        "prompt": "Anweisung",
+        "promptPlaceholder": "Schreiben Sie den Text knapper, ohne die Bedeutung zu verlieren.",
+        "provider": "Anbieter",
+        "providerDefault": "Anbieter der Nachbearbeitung",
+        "model": "Modell",
+        "modelPlaceholder": "Das Standardmodell",
+        "category": "Kategorie",
+        "categoryPlaceholder": "Zum Beispiel: Schreiben",
+        "required": "Dieses Feld ist erforderlich."
+      },
+      "runner": {
+        "title": "Eine Transformation ausprobieren",
+        "description": "Schreiben Sie einen Text, wählen Sie die auszuführenden Transformationen und sehen Sie das Ergebnis, bevor Sie es anwenden.",
+        "input": "Auszubauender Text",
+        "inputPlaceholder": "Schreiben Sie den Text, den Sie umwandeln möchten",
+        "inputRequired": "Schreiben Sie einen Text zum Umwandeln.",
+        "selectTransform": "Auszuführende Transformationen",
+        "selectRequired": "Wählen Sie mindestens eine Transformation.",
+        "run": "Ausführen",
+        "result": "Ergebnis",
+        "accept": "Übernehmen",
+        "accepted": "Das Ergebnis wurde übernommen.",
+        "copy": "Kopieren",
+        "copied": "Das Ergebnis wurde kopiert.",
+        "captureSelection": "Ausgewählten Text verwenden",
+        "selectionEmpty": "In der fokussierten Anwendung ist kein Text ausgewählt.",
+        "selectionChanged": "Der ausgewählte Text hat sich während der Transformation geändert, daher wurde nichts geschrieben. Kopieren Sie stattdessen das Ergebnis."
+      },
+      "diff": {
+        "title": "Änderungen",
+        "inserted": "{{count}} Wörter hinzugefügt",
+        "removed": "{{count}} Wörter entfernt",
+        "identical": "Der Text hat sich nicht geändert."
+      },
+      "actions": {
+        "add": "Hinzufügen",
+        "edit": "Bearbeiten",
+        "save": "Speichern",
+        "cancel": "Abbrechen",
+        "delete": "Löschen",
+        "builtinCannotEdit": "Eine integrierte Transformation kann nicht bearbeitet, nur deaktiviert werden.",
+        "builtinCannotDelete": "Eine integrierte Transformation kann nicht gelöscht, nur deaktiviert werden."
+      },
+      "errors": {
+        "load": "Die Transformationen konnten nicht geladen werden.",
+        "action": "Die Transformation konnte nicht gespeichert werden."
+      }
+    },
+    "textHistory": {
+      "title": "Textverlauf",
+      "description": "Das lokale Protokoll der Änderungen, die Dixi an Ihrem Text vorgenommen hat, damit Sie die letzte zurücknehmen können.",
+      "list": {
+        "title": "Aufgezeichnete Änderungen",
+        "description": "Neueste zuerst.",
+        "empty": "Es gibt noch keine aufgezeichneten Änderungen.",
+        "application": "Anwendung",
+        "unknownApplication": "Unbekannte Anwendung",
+        "undone": "Rückgängig gemacht"
+      },
+      "kind": {
+        "transform": "Transformation",
+        "snippet": "Textbaustein",
+        "cleanup": "Bereinigung"
+      },
+      "revert": {
+        "button": "Zurücknehmen",
+        "done": "Der ursprüngliche Text wurde wiederhergestellt.",
+        "markDone": "Als zurückgenommen markieren",
+        "markedDone": "Die Änderung wurde als zurückgenommen markiert.",
+        "selectionEmpty": "Wählen Sie den geänderten Text aus, um die Änderung zurückzunehmen.",
+        "selectionMismatch": "Der ausgewählte Text ist nicht der geänderte Text, daher wurde nichts geschrieben.",
+        "selectionChanged": "Die Auswahl hat sich während des Zurücknehmens geändert, daher wurde nichts geschrieben."
+      },
+      "retention": {
+        "title": "Aufbewahrungsdauer",
+        "description": "Wie lange die Änderungen aufbewahrt werden, bevor sie entfernt werden.",
+        "days": "Tage",
+        "zero": "Bei 0 Tagen bleibt der Verlauf erhalten, bis Sie ihn löschen.",
+        "save": "Speichern",
+        "saved": "Die Aufbewahrungsdauer wurde gespeichert.",
+        "purge": "Abgelaufene jetzt entfernen",
+        "purged": "{{count}} Einträge wurden entfernt.",
+        "invalid": "Geben Sie eine Anzahl von Tagen größer oder gleich 0 ein."
+      },
+      "actions": {
+        "clear": "Verlauf löschen",
+        "clearTitle": "Verlauf löschen",
+        "clearDescription": "Entfernt alle aufgezeichneten Änderungen. Das lässt sich nicht rückgängig machen.",
+        "clearConfirm": "Soll der gesamte Verlauf gelöscht werden?",
+        "cleared": "Der Verlauf wurde gelöscht."
+      },
+      "errors": {
+        "load": "Der Textverlauf konnte nicht geladen werden.",
+        "action": "Die Änderung konnte nicht zurückgenommen werden."
       }
     }
   },

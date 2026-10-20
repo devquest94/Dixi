@@ -17,7 +17,11 @@
     "dictionary": "Từ điển",
     "history": "Lịch sử",
     "debug": "Gỡ lỗi",
-    "about": "Giới thiệu"
+    "about": "Giới thiệu",
+    "profiles": "Hồ sơ viết",
+    "snippets": "Đoạn văn bản",
+    "transforms": "Chuyển đổi",
+    "textHistory": "Lịch sử văn bản"
   },
   "onboarding": {
     "subtitle": "Để bắt đầu, hãy chọn một mô hình chuyển đổi giọng nói",
@@ -733,6 +737,283 @@
       "whatsNewUpdates": {
         "label": "Hiển thị điểm mới",
         "description": "Hiển thị ghi chú phát hành sau khi Dixi cập nhật"
+      }
+    },
+    "profiles": {
+      "title": "Hồ sơ viết",
+      "description": "Chọn cách Dixi viết trong từng ứng dụng: kiểu, mức độ làm sạch và quy tắc định dạng.",
+      "detected": {
+        "title": "Ứng dụng được phát hiện",
+        "description": "Ứng dụng đang được đưa vào tiêu điểm lúc này.",
+        "unknown": "Không phát hiện ứng dụng nào",
+        "window": "Tiêu đề cửa sổ",
+        "refresh": "Làm mới ứng dụng được phát hiện"
+      },
+      "effective": {
+        "title": "Cấu hình có hiệu lực",
+        "description": "Điều Dixi sẽ dùng cho ứng dụng được phát hiện.",
+        "origin": "Nguồn"
+      },
+      "origin": {
+        "manualOverride": "Ghi đè thủ công cho phiên này",
+        "appOverride": "Quy tắc gắn với ứng dụng",
+        "detectedProfile": "Hồ sơ khớp với ứng dụng",
+        "global": "Cấu hình toàn cục"
+      },
+      "cleanup": {
+        "none": "Không làm sạch",
+        "light": "Làm sạch nhẹ",
+        "medium": "Làm sạch mức trung bình"
+      },
+      "rule": {
+        "capitalizeSentences": "Viết hoa đầu câu",
+        "ensureFinalPeriod": "Thêm dấu chấm cuối câu",
+        "collapseSpaces": "Gộp các khoảng trắng lặp lại",
+        "spaceBeforePunctuation": "Bỏ khoảng trắng trước dấu câu"
+      },
+      "styles": {
+        "title": "Kiểu viết",
+        "description": "Kiểu cho biết văn bản được làm sạch thế nào trước khi viết ra.",
+        "empty": "Chưa có kiểu viết nào.",
+        "builtin": "Tích hợp",
+        "aiCleanupAllowed": "Có thể dùng làm sạch bằng AI với kiểu này.",
+        "noRules": "Không có quy tắc định dạng"
+      },
+      "profiles": {
+        "title": "Hồ sơ viết",
+        "description": "Hồ sơ gom những ứng dụng cùng cách viết.",
+        "empty": "Chưa có hồ sơ viết nào.",
+        "everywhere": "Mọi nơi"
+      },
+      "overrides": {
+        "title": "Quy tắc theo ứng dụng",
+        "description": "Quy tắc áp đặt kiểu hoặc mức độ làm sạch cho một ứng dụng.",
+        "empty": "Chưa có quy tắc ứng dụng nào.",
+        "inherit": "Dùng giá trị mặc định của hồ sơ"
+      },
+      "form": {
+        "name": "Tên",
+        "namePlaceholder": "Ví dụ: Trang trọng",
+        "applications": "Ứng dụng",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "Kiểu",
+        "language": "Ngôn ngữ",
+        "languagePlaceholder": "es",
+        "basePrompt": "Lệnh nền",
+        "basePromptPlaceholder": "Chỉ dẫn được truyền cho mô hình khi dùng làm sạch bằng AI.",
+        "cleanupLevel": "Mức độ làm sạch",
+        "aiCleanup": "Làm sạch bằng AI",
+        "formatRules": "Quy tắc định dạng",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "Hồ sơ",
+        "required": "Trường này là bắt buộc.",
+        "enabledDescription": "Kiểu hoặc hồ sơ đã tắt sẽ không được dùng."
+      },
+      "manual": {
+        "title": "Ghi đè thủ công cho phiên này",
+        "description": "Cưỡng chế một hồ sơ trong suốt phiên này.",
+        "notPersisted": "Ghi đè này không được lưu: nó chỉ tồn tại cho đến khi đóng Dixi.",
+        "none": "Không ghi đè"
+      },
+      "actions": {
+        "add": "Thêm",
+        "edit": "Sửa",
+        "save": "Lưu",
+        "cancel": "Hủy",
+        "delete": "Xóa",
+        "builtinCannotDelete": "Không thể xóa kiểu tích hợp, chỉ có thể tắt.",
+        "enabled": "Đã bật",
+        "disabled": "Đã tắt"
+      },
+      "errors": {
+        "load": "Không thể tải các hồ sơ viết.",
+        "action": "Không thể lưu hồ sơ viết."
+      }
+    },
+    "snippets": {
+      "title": "Đoạn văn bản",
+      "description": "Viết câu một lần và để Dixi mở rộng nó: các đoạn văn bản có biến, sẵn sàng dán ở mọi nơi.",
+      "list": {
+        "title": "Đoạn văn bản",
+        "description": "Đoạn văn bản thay thế cụm từ kích hoạt bằng nội dung mở rộng của nó.",
+        "empty": "Chưa có đoạn văn bản nào.",
+        "favorite": "Yêu thích",
+        "enabled": "Đã bật",
+        "everywhere": "Mọi nơi",
+        "usageCount": "Đã dùng {{count}} lần",
+        "enabledDescription": "Đoạn văn bản đã tắt sẽ không được mở rộng."
+      },
+      "form": {
+        "name": "Tên",
+        "namePlaceholder": "Ví dụ: Chữ ký",
+        "trigger": "Cụm từ kích hoạt",
+        "triggerPlaceholder": "chữ ký",
+        "expansion": "Nội dung mở rộng",
+        "expansionPlaceholder": "Trân trọng, {tên}",
+        "variables": "Biến",
+        "variablesDescription": "Khai báo các biến mà nội dung mở rộng dùng: tên, có bắt buộc không và câu hỏi được hỏi.",
+        "variableName": "Tên biến",
+        "variableRequired": "Bắt buộc",
+        "variablePrompt": "Câu hỏi cần hỏi",
+        "addVariable": "Thêm một biến",
+        "removeVariable": "Xóa biến",
+        "noVariables": "Đoạn văn bản này không dùng biến.",
+        "builtinVariables": "Các trình giữ chỗ {fecha} và {hora} được giải quyết cục bộ: bạn không cần khai báo chúng.",
+        "category": "Danh mục",
+        "categoryPlaceholder": "Ví dụ: Email",
+        "applications": "Ứng dụng",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "Ngôn ngữ",
+        "languagePlaceholder": "es",
+        "required": "Trường này là bắt buộc."
+      },
+      "preview": {
+        "title": "Xem trước",
+        "description": "Nhập một câu có cụm từ kích hoạt và xem Dixi mở rộng nó thế nào.",
+        "input": "Văn bản cần mở rộng",
+        "inputPlaceholder": "chữ ký, xin trước cảm ơn",
+        "inputRequired": "Hãy viết nội dung cần mở rộng.",
+        "run": "Mở rộng",
+        "expanded": "Đoạn văn bản đã được mở rộng.",
+        "notExpanded": "Không có đoạn văn bản nào khớp với văn bản đó.",
+        "retry": "Mở rộng lại"
+      },
+      "transfer": {
+        "title": "Nhập và xuất",
+        "description": "Chuyển đoạn văn bản giữa các máy bằng tệp JSON.",
+        "filesTitle": "Tệp đoạn văn bản",
+        "export": "Xuất",
+        "import": "Nhập",
+        "exportEmpty": "Không có đoạn văn bản nào để xuất.",
+        "exportSuccess": "Đã xuất {{count}} đoạn văn bản.",
+        "exportError": "Không thể xuất các đoạn văn bản.",
+        "importSuccess": "Đã nhập {{count}} đoạn văn bản.",
+        "importError": "Không thể nhập các đoạn văn bản.",
+        "overwriteTitle": "Tệp đã tồn tại. Bạn có muốn thay thế không?"
+      },
+      "actions": {
+        "add": "Thêm",
+        "edit": "Sửa",
+        "save": "Lưu",
+        "cancel": "Hủy",
+        "delete": "Xóa"
+      },
+      "errors": {
+        "load": "Không thể tải các đoạn văn bản.",
+        "action": "Không thể lưu đoạn văn bản."
+      }
+    },
+    "transforms": {
+      "title": "Chuyển đổi",
+      "description": "Biến văn bản được đọc thành nội dung khác: mô hình viết lại theo chỉ dẫn của từng chuyển đổi.",
+      "list": {
+        "title": "Chuyển đổi",
+        "description": "Chuyển đổi viết lại văn bản bằng mô hình theo một chỉ dẫn.",
+        "empty": "Chưa có chuyển đổi nào.",
+        "builtin": "Tích hợp",
+        "enabled": "Đã bật",
+        "provider": "Nhà cung cấp",
+        "model": "Mô hình",
+        "usageCount": "Đã dùng {{count}} lần",
+        "enabledDescription": "Chuyển đổi đã tắt sẽ không chạy."
+      },
+      "form": {
+        "name": "Tên",
+        "namePlaceholder": "Ví dụ: Rút gọn lại",
+        "prompt": "Chỉ dẫn",
+        "promptPlaceholder": "Viết lại văn bản súc tích hơn, giữ nguyên ý nghĩa.",
+        "provider": "Nhà cung cấp",
+        "providerDefault": "Nhà cung cấp hậu xử lý",
+        "model": "Mô hình",
+        "modelPlaceholder": "Mô hình mặc định",
+        "category": "Danh mục",
+        "categoryPlaceholder": "Ví dụ: Viết",
+        "required": "Trường này là bắt buộc."
+      },
+      "runner": {
+        "title": "Thử một chuyển đổi",
+        "description": "Viết một văn bản, chọn các chuyển đổi cần chạy và xem kết quả trước khi áp dụng.",
+        "input": "Văn bản cần chuyển đổi",
+        "inputPlaceholder": "Nhập văn bản bạn muốn chuyển đổi",
+        "inputRequired": "Hãy viết văn bản cần chuyển đổi.",
+        "selectTransform": "Chuyển đổi sẽ chạy",
+        "selectRequired": "Chọn ít nhất một chuyển đổi.",
+        "run": "Chạy",
+        "result": "Kết quả",
+        "accept": "Chấp nhận",
+        "accepted": "Đã áp dụng kết quả.",
+        "copy": "Sao chép",
+        "copied": "Đã sao chép kết quả.",
+        "captureSelection": "Dùng văn bản đã chọn",
+        "selectionEmpty": "Không có văn bản nào được chọn trong ứng dụng đang được đưa vào tiêu điểm.",
+        "selectionChanged": "Văn bản đã chọn thay đổi trong khi chuyển đổi chạy, nên không có gì được ghi. Hãy sao chép kết quả thay thế."
+      },
+      "diff": {
+        "title": "Thay đổi",
+        "inserted": "Thêm {{count}} từ",
+        "removed": "Xóa {{count}} từ",
+        "identical": "Văn bản không thay đổi."
+      },
+      "actions": {
+        "add": "Thêm",
+        "edit": "Sửa",
+        "save": "Lưu",
+        "cancel": "Hủy",
+        "delete": "Xóa",
+        "builtinCannotEdit": "Không thể sửa chuyển đổi tích hợp, chỉ có thể tắt.",
+        "builtinCannotDelete": "Không thể xóa chuyển đổi tích hợp, chỉ có thể tắt."
+      },
+      "errors": {
+        "load": "Không thể tải các chuyển đổi.",
+        "action": "Không thể lưu chuyển đổi."
+      }
+    },
+    "textHistory": {
+      "title": "Lịch sử văn bản",
+      "description": "Bản ghi cục bộ các thay đổi Dixi đã thực hiện với văn bản của bạn, để bạn có thể hoàn tác thay đổi gần nhất.",
+      "list": {
+        "title": "Các thay đổi đã ghi",
+        "description": "Mới nhất trước.",
+        "empty": "Chưa có thay đổi nào được ghi.",
+        "application": "Ứng dụng",
+        "unknownApplication": "Ứng dụng không xác định",
+        "undone": "Đã hoàn tác"
+      },
+      "kind": {
+        "transform": "Chuyển đổi",
+        "snippet": "Đoạn văn bản",
+        "cleanup": "Làm sạch"
+      },
+      "revert": {
+        "button": "Hoàn tác",
+        "done": "Văn bản gốc đã được đặt lại.",
+        "markDone": "Đánh dấu là đã hoàn tác",
+        "markedDone": "Thay đổi đã được đánh dấu là đã hoàn tác.",
+        "selectionEmpty": "Chọn văn bản đã thay đổi để hoàn tác thay đổi đó.",
+        "selectionMismatch": "Văn bản đã chọn không phải văn bản đã thay đổi, nên không có gì được ghi.",
+        "selectionChanged": "Lựa chọn thay đổi khi hoàn tác, nên không có gì được ghi."
+      },
+      "retention": {
+        "title": "Thời gian lưu giữ",
+        "description": "Các thay đổi được giữ trong bao lâu trước khi bị xóa.",
+        "days": "Ngày",
+        "zero": "Với 0 ngày, lịch sử được giữ cho đến khi bạn xóa.",
+        "save": "Lưu",
+        "saved": "Đã lưu thời gian lưu giữ.",
+        "purge": "Xóa ngay các mục đã hết hạn",
+        "purged": "Đã xóa {{count}} mục.",
+        "invalid": "Nhập số ngày lớn hơn hoặc bằng 0."
+      },
+      "actions": {
+        "clear": "Xóa lịch sử",
+        "clearTitle": "Xóa lịch sử",
+        "clearDescription": "Xóa mọi thay đổi đã ghi. Không thể hoàn tác.",
+        "clearConfirm": "Bạn có muốn xóa toàn bộ lịch sử không?",
+        "cleared": "Đã xóa lịch sử."
+      },
+      "errors": {
+        "load": "Không thể tải lịch sử văn bản.",
+        "action": "Không thể hoàn tác thay đổi."
       }
     }
   },

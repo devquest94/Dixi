@@ -17,7 +17,11 @@
     "dictionary": "Dizionario",
     "history": "Cronologia",
     "debug": "Debug",
-    "about": "Informazioni"
+    "about": "Informazioni",
+    "profiles": "Profili di scrittura",
+    "snippets": "Frammenti",
+    "transforms": "Trasformazioni",
+    "textHistory": "Cronologia del testo"
   },
   "onboarding": {
     "subtitle": "Per cominciare, scegli un modello di riconoscimento vocale",
@@ -733,6 +737,283 @@
       "whatsNewUpdates": {
         "label": "Mostra novità",
         "description": "Mostra le note di rilascio dopo gli aggiornamenti di Dixi"
+      }
+    },
+    "profiles": {
+      "title": "Profili di scrittura",
+      "description": "Scegli come Dixi scrive in ogni applicazione: lo stile, il livello di pulizia e le regole di formattazione.",
+      "detected": {
+        "title": "Applicazione rilevata",
+        "description": "L'applicazione che ha il focus in questo momento.",
+        "unknown": "Nessuna applicazione rilevata",
+        "window": "Titolo della finestra",
+        "refresh": "Aggiorna l'applicazione rilevata"
+      },
+      "effective": {
+        "title": "Configurazione effettiva",
+        "description": "Ciò che Dixi userà per l'applicazione rilevata.",
+        "origin": "Origine"
+      },
+      "origin": {
+        "manualOverride": "Sovrascrittura manuale per questa sessione",
+        "appOverride": "Regola legata all'applicazione",
+        "detectedProfile": "Il profilo corrispondente all'applicazione",
+        "global": "Configurazione globale"
+      },
+      "cleanup": {
+        "none": "Nessuna pulizia",
+        "light": "Pulizia leggera",
+        "medium": "Pulizia media"
+      },
+      "rule": {
+        "capitalizeSentences": "Metti iniziali maiuscole alle frasi",
+        "ensureFinalPeriod": "Aggiungi il punto finale",
+        "collapseSpaces": "Unisci gli spazi ripetuti",
+        "spaceBeforePunctuation": "Rimuovi lo spazio prima della punteggiatura"
+      },
+      "styles": {
+        "title": "Stili di scrittura",
+        "description": "Uno stile indica come il testo viene ripulito prima di essere scritto.",
+        "empty": "Non ci sono ancora stili di scrittura.",
+        "builtin": "Integrato",
+        "aiCleanupAllowed": "Con questo stile si può usare la pulizia con l'IA.",
+        "noRules": "Nessuna regola di formattazione"
+      },
+      "profiles": {
+        "title": "Profili di scrittura",
+        "description": "Un profilo raggruppa le applicazioni che scrivono allo stesso modo.",
+        "empty": "Non ci sono ancora profili di scrittura.",
+        "everywhere": "Ovunque"
+      },
+      "overrides": {
+        "title": "Regole per applicazione",
+        "description": "Una regola impone uno stile o un livello di pulizia a una sola applicazione.",
+        "empty": "Non ci sono ancora regole per applicazione.",
+        "inherit": "Usa il valore predefinito del profilo"
+      },
+      "form": {
+        "name": "Nome",
+        "namePlaceholder": "Ad esempio: Formale",
+        "applications": "Applicazioni",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "Stile",
+        "language": "Lingua",
+        "languagePlaceholder": "es",
+        "basePrompt": "Istruzione di base",
+        "basePromptPlaceholder": "L'istruzione data al modello quando si usa la pulizia con l'IA.",
+        "cleanupLevel": "Livello di pulizia",
+        "aiCleanup": "Pulizia con IA",
+        "formatRules": "Regole di formattazione",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "Profilo",
+        "required": "Questo campo è obbligatorio.",
+        "enabledDescription": "Uno stile o un profilo disattivato non viene usato."
+      },
+      "manual": {
+        "title": "Sovrascrittura manuale per questa sessione",
+        "description": "Forza un profilo per la durata di questa sessione.",
+        "notPersisted": "Questa sovrascrittura non viene salvata: vale solo finché Dixi non viene chiuso.",
+        "none": "Nessuna sovrascrittura"
+      },
+      "actions": {
+        "add": "Aggiungi",
+        "edit": "Modifica",
+        "save": "Salva",
+        "cancel": "Annulla",
+        "delete": "Elimina",
+        "builtinCannotDelete": "Uno stile integrato non può essere eliminato, solo disattivato.",
+        "enabled": "Attivo",
+        "disabled": "Disattivato"
+      },
+      "errors": {
+        "load": "Impossibile caricare i profili di scrittura.",
+        "action": "Impossibile salvare il profilo di scrittura."
+      }
+    },
+    "snippets": {
+      "title": "Frammenti",
+      "description": "Scrivi una frase una volta sola e lascia che Dixi la sviluppi: frammenti con variabili, pronti da incollare ovunque.",
+      "list": {
+        "title": "Frammenti",
+        "description": "Un frammento sostituisce la frase attivante con il suo sviluppo.",
+        "empty": "Non ci sono ancora frammenti.",
+        "favorite": "Preferito",
+        "enabled": "Attivo",
+        "everywhere": "Ovunque",
+        "usageCount": "Usato {{count}} volte",
+        "enabledDescription": "Un frammento disattivato non viene sviluppato."
+      },
+      "form": {
+        "name": "Nome",
+        "namePlaceholder": "Ad esempio: Firma",
+        "trigger": "Frase attivante",
+        "triggerPlaceholder": " firma",
+        "expansion": "Sviluppo",
+        "expansionPlaceholder": "Cordiali saluti, {nome}",
+        "variables": "Variabili",
+        "variablesDescription": "Dichiara le variabili usate dallo sviluppo: il nome, se è obbligatoria e la domanda da fare.",
+        "variableName": "Nome della variabile",
+        "variableRequired": "Obbligatoria",
+        "variablePrompt": "Domanda da fare",
+        "addVariable": "Aggiungi una variabile",
+        "removeVariable": "Rimuovi la variabile",
+        "noVariables": "Questo frammento non usa variabili.",
+        "builtinVariables": "I segnaposto {fecha} e {hora} vengono risolti in locale: non devi dichiararli.",
+        "category": "Categoria",
+        "categoryPlaceholder": "Ad esempio: Email",
+        "applications": "Applicazioni",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "Lingua",
+        "languagePlaceholder": "es",
+        "required": "Questo campo è obbligatorio."
+      },
+      "preview": {
+        "title": "Anteprima",
+        "description": "Scrivi una frase con la frase attivante e vedi in che cosa Dixi la sviluppa.",
+        "input": "Testo da sviluppare",
+        "inputPlaceholder": "firma, grazie in anticipo",
+        "inputRequired": "Scrivi qualcosa da sviluppare.",
+        "run": "Sviluppa",
+        "expanded": "Il frammento è stato sviluppato.",
+        "notExpanded": "Nessun frammento corrisponde a quel testo.",
+        "retry": "Sviluppa di nuovo"
+      },
+      "transfer": {
+        "title": "Importa ed esporta",
+        "description": "Sposta i frammenti tra macchine con un file JSON.",
+        "filesTitle": "File dei frammenti",
+        "export": "Esporta",
+        "import": "Importa",
+        "exportEmpty": "Non ci sono frammenti da esportare.",
+        "exportSuccess": "Esportati {{count}} frammenti.",
+        "exportError": "Impossibile esportare i frammenti.",
+        "importSuccess": "Importati {{count}} frammenti.",
+        "importError": "Impossibile importare i frammenti.",
+        "overwriteTitle": "Il file esiste già. Vuoi sostituirlo?"
+      },
+      "actions": {
+        "add": "Aggiungi",
+        "edit": "Modifica",
+        "save": "Salva",
+        "cancel": "Annulla",
+        "delete": "Elimina"
+      },
+      "errors": {
+        "load": "Impossibile caricare i frammenti.",
+        "action": "Impossibile salvare il frammento."
+      }
+    },
+    "transforms": {
+      "title": "Trasformazioni",
+      "description": "Trasforma un testo dettato in qualcos'altro: il modello lo riscrive seguendo l'istruzione di ogni trasformazione.",
+      "list": {
+        "title": "Trasformazioni",
+        "description": "Una trasformazione riscrive il testo con un modello, seguendo un'istruzione.",
+        "empty": "Non ci sono ancora trasformazioni.",
+        "builtin": "Integrata",
+        "enabled": "Attiva",
+        "provider": "Provider",
+        "model": "Modello",
+        "usageCount": "Usata {{count}} volte",
+        "enabledDescription": "Una trasformazione disattivata non viene eseguita."
+      },
+      "form": {
+        "name": "Nome",
+        "namePlaceholder": "Ad esempio: Accorcia",
+        "prompt": "Istruzione",
+        "promptPlaceholder": "Riscrivi il testo in modo più conciso, mantenendo il significato.",
+        "provider": "Provider",
+        "providerDefault": "Il provider della post-elaborazione",
+        "model": "Modello",
+        "modelPlaceholder": "Il modello predefinito",
+        "category": "Categoria",
+        "categoryPlaceholder": "Ad esempio: Scrittura",
+        "required": "Questo campo è obbligatorio."
+      },
+      "runner": {
+        "title": "Prova una trasformazione",
+        "description": "Scrivi un testo, scegli le trasformazioni da eseguire e guarda il risultato prima di applicarlo.",
+        "input": "Testo da trasformare",
+        "inputPlaceholder": "Scrivi il testo che vuoi trasformare",
+        "inputRequired": "Scrivi un testo da trasformare.",
+        "selectTransform": "Trasformazioni da eseguire",
+        "selectRequired": "Scegli almeno una trasformazione.",
+        "run": "Esegui",
+        "result": "Risultato",
+        "accept": "Accetta",
+        "accepted": "Il risultato è stato applicato.",
+        "copy": "Copia",
+        "copied": "Il risultato è stato copiato.",
+        "captureSelection": "Usa il testo selezionato",
+        "selectionEmpty": "Nessun testo selezionato nell'applicazione che ha il focus.",
+        "selectionChanged": "Il testo selezionato è cambiato durante la trasformazione, quindi non è stato scritto nulla. Copia il risultato invece."
+      },
+      "diff": {
+        "title": "Modifiche",
+        "inserted": "{{count}} parole aggiunte",
+        "removed": "{{count}} parole rimosse",
+        "identical": "Il testo non è cambiato."
+      },
+      "actions": {
+        "add": "Aggiungi",
+        "edit": "Modifica",
+        "save": "Salva",
+        "cancel": "Annulla",
+        "delete": "Elimina",
+        "builtinCannotEdit": "Una trasformazione integrata non può essere modificata, solo disattivata.",
+        "builtinCannotDelete": "Una trasformazione integrata non può essere eliminata, solo disattivata."
+      },
+      "errors": {
+        "load": "Impossibile caricare le trasformazioni.",
+        "action": "Impossibile salvare la trasformazione."
+      }
+    },
+    "textHistory": {
+      "title": "Cronologia del testo",
+      "description": "Il registro locale delle modifiche che Dixi ha apportato al tuo testo, così puoi annullare l'ultima.",
+      "list": {
+        "title": "Modifiche registrate",
+        "description": "Prima le più recenti.",
+        "empty": "Non ci sono ancora modifiche registrate.",
+        "application": "Applicazione",
+        "unknownApplication": "Applicazione sconosciuta",
+        "undone": "Annullato"
+      },
+      "kind": {
+        "transform": "Trasformazione",
+        "snippet": "Frammento",
+        "cleanup": "Pulizia"
+      },
+      "revert": {
+        "button": "Annulla",
+        "done": "Il testo originale è stato rimesso.",
+        "markDone": "Segna come annullato",
+        "markedDone": "La modifica è stata segnata come annullata.",
+        "selectionEmpty": "Seleziona il testo che è cambiato per annullare la modifica.",
+        "selectionMismatch": "Il testo selezionato non è quello che è cambiato, quindi non è stato scritto nulla.",
+        "selectionChanged": "La selezione è cambiata durante l'annullamento, quindi non è stato scritto nulla."
+      },
+      "retention": {
+        "title": "Conservazione",
+        "description": "Per quanto tempo le modifiche vengono conservate prima di essere rimosse.",
+        "days": "Giorni",
+        "zero": "Con 0 giorni la cronologia resta finché non la cancelli.",
+        "save": "Salva",
+        "saved": "La conservazione è stata salvata.",
+        "purge": "Rimuovi ora quelli scaduti",
+        "purged": "Sono state rimosse {{count}} voci.",
+        "invalid": "Inserisci un numero di giorni maggiore o uguale a 0."
+      },
+      "actions": {
+        "clear": "Cancella la cronologia",
+        "clearTitle": "Cancella la cronologia",
+        "clearDescription": "Rimuove tutte le modifiche registrate. Non si può annullare.",
+        "clearConfirm": "Vuoi cancellare l'intera cronologia?",
+        "cleared": "La cronologia è stata cancellata."
+      },
+      "errors": {
+        "load": "Impossibile caricare la cronologia del testo.",
+        "action": "Impossibile annullare la modifica."
       }
     }
   },

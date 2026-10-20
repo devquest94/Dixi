@@ -17,7 +17,11 @@
     "dictionary": "Slovník",
     "history": "Historie",
     "debug": "Ladění",
-    "about": "O aplikaci"
+    "about": "O aplikaci",
+    "profiles": "Profily psaní",
+    "snippets": "Úryvky",
+    "transforms": "Transformace",
+    "textHistory": "Historie textu"
   },
   "onboarding": {
     "subtitle": "Pro začátek vyberte model pro přepis",
@@ -733,6 +737,283 @@
       "whatsNewUpdates": {
         "label": "Zobrazovat novinky",
         "description": "Zobrazovat poznámky k vydání po aktualizacích Dixi"
+      }
+    },
+    "profiles": {
+      "title": "Profily psaní",
+      "description": "Vyberte, jak Dixi píše v jednotlivých aplikacích: styl, úroveň čištění a pravidla formátování.",
+      "detected": {
+        "title": "Zjištěná aplikace",
+        "description": "Aplikace, která má právě fokus.",
+        "unknown": "Nebyla zjištěna žádná aplikace",
+        "window": "Název okna",
+        "refresh": "Obnovit zjištěnou aplikaci"
+      },
+      "effective": {
+        "title": "Platná konfigurace",
+        "description": "Co použije Dixi pro zjištěnou aplikaci.",
+        "origin": "Původ"
+      },
+      "origin": {
+        "manualOverride": "Ruční přepsání pro tuto relaci",
+        "appOverride": "Pravidlo vázané na aplikaci",
+        "detectedProfile": "Profil, který odpovídá aplikaci",
+        "global": "Globální konfigurace"
+      },
+      "cleanup": {
+        "none": "Bez čištění",
+        "light": "Lehké čištění",
+        "medium": "Střední čištění"
+      },
+      "rule": {
+        "capitalizeSentences": "Velká písmena na začátku vět",
+        "ensureFinalPeriod": "Doplnit koncovou tečku",
+        "collapseSpaces": "Sloučit opakované mezery",
+        "spaceBeforePunctuation": "Odstranit mezeru před interpunkcí"
+      },
+      "styles": {
+        "title": "Styly psaní",
+        "description": "Styl určuje, jak se text vyčistí, než se napíše.",
+        "empty": "Zatím tu nejsou žádné styly psaní.",
+        "builtin": "Vestavěný",
+        "aiCleanupAllowed": "S tímto stylem lze použít čištění pomocí AI.",
+        "noRules": "Bez pravidel formátování"
+      },
+      "profiles": {
+        "title": "Profily psaní",
+        "description": "Profil sdružuje aplikace, které sdílejí stejný způsob psaní.",
+        "empty": "Zatím tu nejsou žádné profily psaní.",
+        "everywhere": "Všude"
+      },
+      "overrides": {
+        "title": "Pravidla podle aplikace",
+        "description": "Pravidlo vynucuje styl nebo úroveň čištění pro jedinou aplikaci.",
+        "empty": "Zatím tu nejsou žádná pravidla pro aplikace.",
+        "inherit": "Použít výchozí hodnotu profilu"
+      },
+      "form": {
+        "name": "Název",
+        "namePlaceholder": "Například: Formální",
+        "applications": "Aplikace",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "Styl",
+        "language": "Jazyk",
+        "languagePlaceholder": "es",
+        "basePrompt": "Základní pokyn",
+        "basePromptPlaceholder": "Pokyn, který se předá modelu, když se používá čištění pomocí AI.",
+        "cleanupLevel": "Úroveň čištění",
+        "aiCleanup": "Čištění pomocí AI",
+        "formatRules": "Pravidla formátování",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "Profil",
+        "required": "Toto pole je povinné.",
+        "enabledDescription": "Zakázaný styl ani profil se nepoužívá."
+      },
+      "manual": {
+        "title": "Ruční přepsání pro tuto relaci",
+        "description": "Vynutit profil po dobu trvání této relace.",
+        "notPersisted": "Toto přepsání se neukládá: trvá jen do zavření aplikace Dixi.",
+        "none": "Bez přepsání"
+      },
+      "actions": {
+        "add": "Přidat",
+        "edit": "Upravit",
+        "save": "Uložit",
+        "cancel": "Zrušit",
+        "delete": "Smazat",
+        "builtinCannotDelete": "Vestavěný styl nelze smazat, lze jej jen zakázat.",
+        "enabled": "Povoleno",
+        "disabled": "Zakázáno"
+      },
+      "errors": {
+        "load": "Profily psaní se nepodařilo načíst.",
+        "action": "Profil psaní se nepodařilo uložit."
+      }
+    },
+    "snippets": {
+      "title": "Úryvky",
+      "description": "Napište frázi jednou a nechte Dixi ji rozvinout: úryvky s proměnnými, připravené ke vložení kamkoli.",
+      "list": {
+        "title": "Úryvky",
+        "description": "Úryvek nahradí spouštěcí frázi svým rozvojem.",
+        "empty": "Zatím tu nejsou žádné úryvky.",
+        "favorite": "Oblíbené",
+        "enabled": "Povoleno",
+        "everywhere": "Všude",
+        "usageCount": "Použito {{count}}×",
+        "enabledDescription": "Zakázaný úryvek se nerozvinne."
+      },
+      "form": {
+        "name": "Název",
+        "namePlaceholder": "Například: Podpis",
+        "trigger": "Spouštěcí fráze",
+        "triggerPlaceholder": "podpis",
+        "expansion": "Rozvoj",
+        "expansionPlaceholder": "S pozdravem, {jméno}",
+        "variables": "Proměnné",
+        "variablesDescription": "Deklarujte proměnné, které používá rozvoj: název, zda je povinná, a otázku, která se zeptá.",
+        "variableName": "Název proměnné",
+        "variableRequired": "Povinná",
+        "variablePrompt": "Otázka, která se zeptá",
+        "addVariable": "Přidat proměnnou",
+        "removeVariable": "Odebrat proměnnou",
+        "noVariables": "Tento úryvek nepoužívá proměnné.",
+        "builtinVariables": "Zástupné symboly {fecha} a {hora} se řeší místně: nemusíte je deklarovat.",
+        "category": "Kategorie",
+        "categoryPlaceholder": "Například: E-maily",
+        "applications": "Aplikace",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "Jazyk",
+        "languagePlaceholder": "es",
+        "required": "Toto pole je povinné."
+      },
+      "preview": {
+        "title": "Náhled",
+        "description": "Napište větu se spouštěcí frází a uvidíte, na co ji Dixi rozvine.",
+        "input": "Text k rozvinutí",
+        "inputPlaceholder": "podpis, mockrát děkuji",
+        "inputRequired": "Napište něco k rozvinutí.",
+        "run": "Rozvinout",
+        "expanded": "Úryvek byl rozvinut.",
+        "notExpanded": "Žádný úryvek neodpovídá tomuto textu.",
+        "retry": "Rozvinout znovu"
+      },
+      "transfer": {
+        "title": "Import a export",
+        "description": "Přeneste úryvky mezi počítači pomocí souboru JSON.",
+        "filesTitle": "Soubor s úryvky",
+        "export": "Exportovat",
+        "import": "Importovat",
+        "exportEmpty": "Nejsou žádné úryvky k exportu.",
+        "exportSuccess": "Bylo exportováno {{count}} úryvků.",
+        "exportError": "Úryvky se nepodařilo exportovat.",
+        "importSuccess": "Bylo importováno {{count}} úryvků.",
+        "importError": "Úryvky se nepodařilo importovat.",
+        "overwriteTitle": "Soubor už existuje. Chcete ho přepsat?"
+      },
+      "actions": {
+        "add": "Přidat",
+        "edit": "Upravit",
+        "save": "Uložit",
+        "cancel": "Zrušit",
+        "delete": "Smazat"
+      },
+      "errors": {
+        "load": "Úryvky se nepodařilo načíst.",
+        "action": "Úryvek se nepodařilo uložit."
+      }
+    },
+    "transforms": {
+      "title": "Transformace",
+      "description": "Přeměňte nadiktovaný text na něco jiného: model ho přepíše podle pokynu každé transformace.",
+      "list": {
+        "title": "Transformace",
+        "description": "Transformace přepíše text podle svého pokynu.",
+        "empty": "Zatím tu nejsou žádné transformace.",
+        "builtin": "Vestavěná",
+        "enabled": "Povolena",
+        "provider": "Poskytovatel",
+        "model": "Model",
+        "usageCount": "Použita {{count}}×",
+        "enabledDescription": "Zakázaná transformace se nespouští."
+      },
+      "form": {
+        "name": "Název",
+        "namePlaceholder": "Například: Zkrátit",
+        "prompt": "Pokyn",
+        "promptPlaceholder": "Přepište text stručněji, ale zachovejte jeho význam.",
+        "provider": "Poskytovatel",
+        "providerDefault": "Poskytovatel následného zpracování",
+        "model": "Model",
+        "modelPlaceholder": "Výchozí model",
+        "category": "Kategorie",
+        "categoryPlaceholder": "Například: Psaní",
+        "required": "Toto pole je povinné."
+      },
+      "runner": {
+        "title": "Vyzkoušejte transformaci",
+        "description": "Napište text, vyberte transformace, které chcete spustit, a před použitím se podívejte na výsledek.",
+        "input": "Text k transformaci",
+        "inputPlaceholder": "Napište text, který chcete transformovat",
+        "inputRequired": "Napište text k transformaci.",
+        "selectTransform": "Transformace ke spuštění",
+        "selectRequired": "Vyberte alespoň jednu transformaci.",
+        "run": "Spustit",
+        "result": "Výsledek",
+        "accept": "Přijmout",
+        "accepted": "Výsledek byl použit.",
+        "copy": "Kopírovat",
+        "copied": "Výsledek byl zkopírován.",
+        "captureSelection": "Použít vybraný text",
+        "selectionEmpty": "V aplikaci s fokusem není vybraný žádný text.",
+        "selectionChanged": "Vybraný text se mezitím během transformace změnil, takže se nic nezapsalo. Zkopírujte výsledek místo toho."
+      },
+      "diff": {
+        "title": "Změny",
+        "inserted": "Přidáno {{count}} slov",
+        "removed": "Odebráno {{count}} slov",
+        "identical": "Text se nezměnil."
+      },
+      "actions": {
+        "add": "Přidat",
+        "edit": "Upravit",
+        "save": "Uložit",
+        "cancel": "Zrušit",
+        "delete": "Smazat",
+        "builtinCannotEdit": "Vestavěnou transformaci nelze upravit, lze ji jen zakázat.",
+        "builtinCannotDelete": "Vestavěnou transformaci nelze smazat, lze ji jen zakázat."
+      },
+      "errors": {
+        "load": "Transformace se nepodařilo načíst.",
+        "action": "Transformaci se nepodařilo uložit."
+      }
+    },
+    "textHistory": {
+      "title": "Historie textu",
+      "description": "Místní záznam změn, které Dixi provedl v textu, abyste mohli vzít zpět poslední z nich.",
+      "list": {
+        "title": "Zaznamenané změny",
+        "description": "Nejnovější nahoře.",
+        "empty": "Zatím tu nejsou žádné zaznamenané změny.",
+        "application": "Aplikace",
+        "unknownApplication": "Neznámá aplikace",
+        "undone": "Vráceno zpět"
+      },
+      "kind": {
+        "transform": "Transformace",
+        "snippet": "Úryvek",
+        "cleanup": "Čištění"
+      },
+      "revert": {
+        "button": "Vrátit zpět",
+        "done": "Původní text byl vrácen.",
+        "markDone": "Označit jako vrácené zpět",
+        "markedDone": "Změna byla označena jako vrácená zpět.",
+        "selectionEmpty": "Vyberte text, který se změnil, abyste změnu vrátili zpět.",
+        "selectionMismatch": "Vybraný text není změněný text, takže se nic nezapsalo.",
+        "selectionChanged": "Výběr se změnil během vracení zpět, takže se nic nezapsalo."
+      },
+      "retention": {
+        "title": "Doba uchovávání",
+        "description": "Jak dlouho se změny uchovávají, než budou odstraněny.",
+        "days": "Dny",
+        "zero": "Při 0 dnech se historie uchovává, dokud ji nevymažete.",
+        "save": "Uložit",
+        "saved": "Doba uchovávání byla uložena.",
+        "purge": "Odstranit nyní ty, kterým vypršela platnost",
+        "purged": "Odebráno {{count}} záznamů.",
+        "invalid": "Zadejte počet dní větší nebo roven 0."
+      },
+      "actions": {
+        "clear": "Vymazat historii",
+        "clearTitle": "Vymazat historii",
+        "clearDescription": "Odebere všechny zaznamenané změny. Nelze vzít zpět.",
+        "clearConfirm": "Chcete vymazat celou historii?",
+        "cleared": "Historie byla vymazána."
+      },
+      "errors": {
+        "load": "Historii textu se nepodařilo načíst.",
+        "action": "Změnu se nepodařilo vrátit zpět."
       }
     }
   },

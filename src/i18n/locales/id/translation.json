@@ -17,7 +17,11 @@
     "dictionary": "Kamusus",
     "history": "Riwayat",
     "debug": "Debug",
-    "about": "Tentang"
+    "about": "Tentang",
+    "profiles": "Profil penulisan",
+    "snippets": "Cuplikan",
+    "transforms": "Transformasi",
+    "textHistory": "Riwayat teks"
   },
   "onboarding": {
     "subtitle": "Untuk memulai, pilih model transkripsi",
@@ -733,6 +737,283 @@
           "description": "Pustaka tensor berkinerja tinggi untuk inferensi pembelajaran mesin di perangkat",
           "details": "Fitur ucapan-ke-teks lokal Dixi dibangun menggunakan transcribe.cpp dan ggml. Terima kasih kepada Georgi Gerganov dan para kontributor atas karya luar biasa mereka."
         }
+      }
+    },
+    "profiles": {
+      "title": "Profil penulisan",
+      "description": "Pilih cara Dixi menulis di setiap aplikasi: gaya, tingkat pembersihan, dan aturan format.",
+      "detected": {
+        "title": "Aplikasi yang terdeteksi",
+        "description": "Aplikasi yang memiliki fokus saat ini.",
+        "unknown": "Tidak ada aplikasi yang terdeteksi",
+        "window": "Judul jendela",
+        "refresh": "Segarkan aplikasi yang terdeteksi"
+      },
+      "effective": {
+        "title": "Konfigurasi efektif",
+        "description": "Yang akan dipakai Dixi untuk aplikasi yang terdeteksi.",
+        "origin": "Asal"
+      },
+      "origin": {
+        "manualOverride": "Override manual untuk sesi ini",
+        "appOverride": "Aturan yang terikat pada aplikasi",
+        "detectedProfile": "Profil yang cocok dengan aplikasi",
+        "global": "Konfigurasi global"
+      },
+      "cleanup": {
+        "none": "Tanpa pembersihan",
+        "light": "Pembersihan ringan",
+        "medium": "Pembersihan menengah"
+      },
+      "rule": {
+        "capitalizeSentences": "Kapitalkan kalimat",
+        "ensureFinalPeriod": "Tambahkan titik di akhir",
+        "collapseSpaces": "Gabungkan spasi berulang",
+        "spaceBeforePunctuation": "Hapus spasi sebelum tanda baca"
+      },
+      "styles": {
+        "title": "Gaya penulisan",
+        "description": "Gaya menentukan bagaimana teks dibersihkan sebelum ditulis.",
+        "empty": "Belum ada gaya penulisan.",
+        "builtin": "Bawaan",
+        "aiCleanupAllowed": "Pembersihan AI dapat digunakan dengan gaya ini.",
+        "noRules": "Tanpa aturan format"
+      },
+      "profiles": {
+        "title": "Profil penulisan",
+        "description": "Profil mengelompokkan aplikasi yang menulis dengan cara yang sama.",
+        "empty": "Belum ada profil penulisan.",
+        "everywhere": "Di semua aplikasi"
+      },
+      "overrides": {
+        "title": "Aturan per aplikasi",
+        "description": "Aturan memaksa gaya atau tingkat pembersihan untuk satu aplikasi.",
+        "empty": "Belum ada aturan aplikasi.",
+        "inherit": "Gunakan bawaan profil"
+      },
+      "form": {
+        "name": "Nama",
+        "namePlaceholder": "Misalnya: Formal",
+        "applications": "Aplikasi",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "Gaya",
+        "language": "Bahasa",
+        "languagePlaceholder": "es",
+        "basePrompt": "Prompt dasar",
+        "basePromptPlaceholder": "Instruksi yang diberikan ke model saat pembersihan AI dipakai.",
+        "cleanupLevel": "Tingkat pembersihan",
+        "aiCleanup": "Pembersihan AI",
+        "formatRules": "Aturan format",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "Profil",
+        "required": "Kolom ini wajib diisi.",
+        "enabledDescription": "Gaya atau profil yang dinonaktifkan tidak dipakai."
+      },
+      "manual": {
+        "title": "Override manual untuk sesi ini",
+        "description": "Paksa profil selama sesi ini berlangsung.",
+        "notPersisted": "Override ini tidak disimpan: hanya berlaku sampai Dixi ditutup.",
+        "none": "Tanpa override"
+      },
+      "actions": {
+        "add": "Tambah",
+        "edit": "Edit",
+        "save": "Simpan",
+        "cancel": "Batal",
+        "delete": "Hapus",
+        "builtinCannotDelete": "Gaya bawaan tidak bisa dihapus, hanya dinonaktifkan.",
+        "enabled": "Aktif",
+        "disabled": "Nonaktif"
+      },
+      "errors": {
+        "load": "Profil penulisan tidak dapat dimuat.",
+        "action": "Profil penulisan tidak dapat disimpan."
+      }
+    },
+    "snippets": {
+      "title": "Cuplikan",
+      "description": "Tulis frasa sekali saja dan biarkan Dixi mengembangkannya: cuplikan dengan variabel, siap ditempel di mana saja.",
+      "list": {
+        "title": "Cuplikan",
+        "description": "Cuplikan mengganti frasa pemicu dengan kembangannya.",
+        "empty": "Belum ada cuplikan.",
+        "favorite": "Favorit",
+        "enabled": "Aktif",
+        "everywhere": "Di semua aplikasi",
+        "usageCount": "Dipakai {{count}} kali",
+        "enabledDescription": "Cuplikan yang dinonaktifkan tidak dikembangkan."
+      },
+      "form": {
+        "name": "Nama",
+        "namePlaceholder": "Misalnya: Tanda tangan",
+        "trigger": "Frasa pemicu",
+        "triggerPlaceholder": "ttd",
+        "expansion": "Pengembangan",
+        "expansionPlaceholder": "Salam, {nama}",
+        "variables": "Variabel",
+        "variablesDescription": "Deklarasikan variabel yang dipakai pengembangan: namanya, apakah wajib, dan pertanyaan yang diajukan.",
+        "variableName": "Nama variabel",
+        "variableRequired": "Wajib",
+        "variablePrompt": "Pertanyaan yang diajukan",
+        "addVariable": "Tambah variabel",
+        "removeVariable": "Hapus variabel",
+        "noVariables": "Cuplikan ini tidak memakai variabel.",
+        "builtinVariables": "Placeholder {fecha} dan {hora} diselesaikan secara lokal: tidak perlu dideklarasikan.",
+        "category": "Kategori",
+        "categoryPlaceholder": "Misalnya: Email",
+        "applications": "Aplikasi",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "Bahasa",
+        "languagePlaceholder": "es",
+        "required": "Kolom ini wajib diisi."
+      },
+      "preview": {
+        "title": "Pratinjau",
+        "description": "Ketik kalimat dengan frasa pemicu dan lihat apa yang jadi saat Dixi mengembangkannya.",
+        "input": "Teks yang dikembangkan",
+        "inputPlaceholder": "ttd, terima kasih sebelumnya",
+        "inputRequired": "Tulis sesuatu untuk dikembangkan.",
+        "run": "Kembangkan",
+        "expanded": "Cuplikan dikembangkan.",
+        "notExpanded": "Tidak ada cuplikan yang cocok dengan teks itu.",
+        "retry": "Kembangkan lagi"
+      },
+      "transfer": {
+        "title": "Impor dan ekspor",
+        "description": "Pindahkan cuplikan antar mesin dengan berkas JSON.",
+        "filesTitle": "Berkas cuplikan",
+        "export": "Ekspor",
+        "import": "Impor",
+        "exportEmpty": "Tidak ada cuplikan untuk diekspor.",
+        "exportSuccess": "{{count}} cuplikan diekspor.",
+        "exportError": "Cuplikan tidak dapat diekspor.",
+        "importSuccess": "{{count}} cuplikan diimpor.",
+        "importError": "Cuplikan tidak dapat diimpor.",
+        "overwriteTitle": "Berkas sudah ada. Ganti?"
+      },
+      "actions": {
+        "add": "Tambah",
+        "edit": "Edit",
+        "save": "Simpan",
+        "cancel": "Batal",
+        "delete": "Hapus"
+      },
+      "errors": {
+        "load": "Cuplikan tidak dapat dimuat.",
+        "action": "Cuplikan tidak dapat disimpan."
+      }
+    },
+    "transforms": {
+      "title": "Transformasi",
+      "description": "Ubah teks yang didiktekan menjadi sesuatu yang lain: model menulis ulang mengikuti instruksi tiap transformasi.",
+      "list": {
+        "title": "Transformasi",
+        "description": "Transformasi menulis ulang teks dengan model, mengikuti suatu instruksi.",
+        "empty": "Belum ada transformasi.",
+        "builtin": "Bawaan",
+        "enabled": "Aktif",
+        "provider": "Penyedia",
+        "model": "Model",
+        "usageCount": "Dipakai {{count}} kali",
+        "enabledDescription": "Transformasi yang dinonaktifkan tidak dijalankan."
+      },
+      "form": {
+        "name": "Nama",
+        "namePlaceholder": "Misalnya: Buat lebih singkat",
+        "prompt": "Instruksi",
+        "promptPlaceholder": "Tulis ulang teks agar lebih ringkas tanpa kehilangan maknanya.",
+        "provider": "Penyedia",
+        "providerDefault": "Penyedia pasca-pemrosesan",
+        "model": "Model",
+        "modelPlaceholder": "Model bawaan",
+        "category": "Kategori",
+        "categoryPlaceholder": "Misalnya: Penulisan",
+        "required": "Kolom ini wajib diisi."
+      },
+      "runner": {
+        "title": "Coba sebuah transformasi",
+        "description": "Tulis sebuah teks, pilih transformasi yang akan dijalankan dan lihat hasilnya sebelum menerapkannya.",
+        "input": "Teks yang akan ditransformasi",
+        "inputPlaceholder": "Ketik teks yang ingin Anda transformasi",
+        "inputRequired": "Tulis teks untuk ditransformasi.",
+        "selectTransform": "Transformasi yang akan dijalankan",
+        "selectRequired": "Pilih minimal satu transformasi.",
+        "run": "Jalankan",
+        "result": "Hasil",
+        "accept": "Terima",
+        "accepted": "Hasil diterapkan.",
+        "copy": "Salin",
+        "copied": "Hasil disalin.",
+        "captureSelection": "Gunakan teks yang dipilih",
+        "selectionEmpty": "Tidak ada teks yang dipilih di aplikasi yang memiliki fokus.",
+        "selectionChanged": "Teks yang dipilih berubah saat transformasi berjalan, jadi tidak ada yang ditulis. Salin hasilnya sebagai gantinya."
+      },
+      "diff": {
+        "title": "Perubahan",
+        "inserted": "{{count}} kata ditambahkan",
+        "removed": "{{count}} kata dihapus",
+        "identical": "Teks tidak berubah."
+      },
+      "actions": {
+        "add": "Tambah",
+        "edit": "Edit",
+        "save": "Simpan",
+        "cancel": "Batal",
+        "delete": "Hapus",
+        "builtinCannotEdit": "Transformasi bawaan tidak bisa diedit, hanya dinonaktifkan.",
+        "builtinCannotDelete": "Transformasi bawaan tidak bisa dihapus, hanya dinonaktifkan."
+      },
+      "errors": {
+        "load": "Transformasi tidak dapat dimuat.",
+        "action": "Transformasi tidak dapat disimpan."
+      }
+    },
+    "textHistory": {
+      "title": "Riwayat teks",
+      "description": "Catatan lokal tentang perubahan yang dilakukan Dixi pada teks Anda, agar Anda dapat membatalkan yang terakhir.",
+      "list": {
+        "title": "Perubahan yang tercatat",
+        "description": "Yang terbaru lebih dulu.",
+        "empty": "Belum ada perubahan yang tercatat.",
+        "application": "Aplikasi",
+        "unknownApplication": "Aplikasi tidak dikenal",
+        "undone": "Dibatalkan"
+      },
+      "kind": {
+        "transform": "Transformasi",
+        "snippet": "Cuplikan",
+        "cleanup": "Pembersihan"
+      },
+      "revert": {
+        "button": "Batalkan",
+        "done": "Teks asli dikembalikan.",
+        "markDone": "Tandai sebagai dibatalkan",
+        "markedDone": "Perubahan ditandai sebagai dibatalkan.",
+        "selectionEmpty": "Pilih teks yang berubah untuk membatalkan perubahannya.",
+        "selectionMismatch": "Teks yang dipilih bukan teks yang berubah, jadi tidak ada yang ditulis.",
+        "selectionChanged": "Pilihan berubah saat membatalkan, jadi tidak ada yang ditulis."
+      },
+      "retention": {
+        "title": "Retensi",
+        "description": "Berapa lama perubahan disimpan sebelum dihapus.",
+        "days": "Hari",
+        "zero": "Dengan 0 hari, riwayat disimpan sampai Anda membersihkannya.",
+        "save": "Simpan",
+        "saved": "Retensi disimpan.",
+        "purge": "Hapus yang sudah kedaluwarsa sekarang",
+        "purged": "{{count}} entri dihapus.",
+        "invalid": "Masukkan jumlah hari yang lebih besar atau sama dengan 0."
+      },
+      "actions": {
+        "clear": "Bersihkan riwayat",
+        "clearTitle": "Bersihkan riwayat",
+        "clearDescription": "Menghapus semua perubahan yang tercatat. Tindakan ini tidak bisa dibatalkan.",
+        "clearConfirm": "Apakah Anda ingin membersihkan seluruh riwayat?",
+        "cleared": "Riwayat dibersihkan."
+      },
+      "errors": {
+        "load": "Riwayat teks tidak dapat dimuat.",
+        "action": "Perubahan tidak dapat dibatalkan."
       }
     }
   },

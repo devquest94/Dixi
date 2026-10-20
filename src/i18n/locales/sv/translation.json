@@ -17,7 +17,11 @@
     "dictionary": "Ordbok",
     "history": "Historik",
     "debug": "Felsökning",
-    "about": "Om"
+    "about": "Om",
+    "profiles": "Skrivprofiler",
+    "snippets": "Textstycken",
+    "transforms": "Transformationer",
+    "textHistory": "Texthistorik"
   },
   "onboarding": {
     "subtitle": "För att komma igång, välj en transkriptionsmodell",
@@ -733,6 +737,283 @@
       "whatsNewUpdates": {
         "label": "Visa nyheter",
         "description": "Visa versionsinformation efter Dixi-uppdateringar"
+      }
+    },
+    "profiles": {
+      "title": "Skrivprofiler",
+      "description": "Välj hur Dixi skriver i varje app: stilen, rensningsnivån och formateringsreglerna.",
+      "detected": {
+        "title": "Identifierad app",
+        "description": "Appen som har fokus just nu.",
+        "unknown": "Ingen app upptäcktes",
+        "window": "Fönstertitel",
+        "refresh": "Uppdatera den identifierade appen"
+      },
+      "effective": {
+        "title": "Effektiv konfiguration",
+        "description": "Vad Dixi använder för den identifierade appen.",
+        "origin": "Ursprung"
+      },
+      "origin": {
+        "manualOverride": "Manuell åsidosättning för den här sessionen",
+        "appOverride": "Regel bunden till appen",
+        "detectedProfile": "Profilen som appen matchade",
+        "global": "Global konfiguration"
+      },
+      "cleanup": {
+        "none": "Ingen rensning",
+        "light": "Lätt rensning",
+        "medium": "Mellan rensning"
+      },
+      "rule": {
+        "capitalizeSentences": "Gör första bokstaven i varje mening stor",
+        "ensureFinalPeriod": "Lägg till ett punktum sist",
+        "collapseSpaces": "Sammanfoga upprepade blanksteg",
+        "spaceBeforePunctuation": "Ta bort mellanslag före skiljetecken"
+      },
+      "styles": {
+        "title": "Skrivstilar",
+        "description": "En stil anger hur texten rensas innan den skrivs.",
+        "empty": "Det finns inga skrivstilar ännu.",
+        "builtin": "Inbyggd",
+        "aiCleanupAllowed": "Med denna stil kan AI-rensning användas.",
+        "noRules": "Inga formateringsregler"
+      },
+      "profiles": {
+        "title": "Skrivprofiler",
+        "description": "En profil grupperar de appar som skriver på samma sätt.",
+        "empty": "Det finns inga skrivprofiler ännu.",
+        "everywhere": "Överallt"
+      },
+      "overrides": {
+        "title": "Regler per app",
+        "description": "En regel tvingar fram en stil eller rensningsnivå för en enda app.",
+        "empty": "Det finns inga regler per app ännu.",
+        "inherit": "Använd profilens standardvärde"
+      },
+      "form": {
+        "name": "Namn",
+        "namePlaceholder": "Till exempel: Formell",
+        "applications": "Appar",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "Stil",
+        "language": "Språk",
+        "languagePlaceholder": "es",
+        "basePrompt": "Basprompt",
+        "basePromptPlaceholder": "Den instruktion som ges till modellen när AI-rensning används.",
+        "cleanupLevel": "Rensningsnivå",
+        "aiCleanup": "AI-rensning",
+        "formatRules": "Formateringsregler",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "Profil",
+        "required": "Det här fältet är obligatoriskt.",
+        "enabledDescription": "En inaktiverad stil eller profil används inte."
+      },
+      "manual": {
+        "title": "Manuell åsidosättning för den här sessionen",
+        "description": "Tving fram en profil så länge sessionen varar.",
+        "notPersisted": "Den här åsidosättningen sparas inte: den gäller bara tills Dixi stängs.",
+        "none": "Ingen åsidosättning"
+      },
+      "actions": {
+        "add": "Lägg till",
+        "edit": "Redigera",
+        "save": "Spara",
+        "cancel": "Avbryt",
+        "delete": "Ta bort",
+        "builtinCannotDelete": "En inbyggd stil kan inte tas bort, bara inaktiveras.",
+        "enabled": "Aktiverad",
+        "disabled": "Inaktiverad"
+      },
+      "errors": {
+        "load": "Skrivprofilerna kunde inte läsas in.",
+        "action": "Skrivprofilen kunde inte sparas."
+      }
+    },
+    "snippets": {
+      "title": "Textstycken",
+      "description": "Skriv meningen en gång och låt Dixi expandera den: textstycken med variabler, redo att klistra in överallt.",
+      "list": {
+        "title": "Textstycken",
+        "description": "Ett textstycke ersätter triggerfrasen med sin expansion.",
+        "empty": "Det finns inga textstycken ännu.",
+        "favorite": "Favorit",
+        "enabled": "Aktiverad",
+        "everywhere": "Överallt",
+        "usageCount": "Använd {{count}} gånger",
+        "enabledDescription": "Ett inaktiverat textstycke expanderas inte."
+      },
+      "form": {
+        "name": "Namn",
+        "namePlaceholder": "Till exempel: Signatur",
+        "trigger": "Triggerfras",
+        "triggerPlaceholder": "sign",
+        "expansion": "Expansion",
+        "expansionPlaceholder": "Med vänliga hälsningar, {namn}",
+        "variables": "Variabler",
+        "variablesDescription": "Ange vilka variabler expansionen använder: namnet, om den är obligatorisk och vilken fråga som ställs.",
+        "variableName": "Variabelnamn",
+        "variableRequired": "Obligatorisk",
+        "variablePrompt": "Fråga som ställs",
+        "addVariable": "Lägg till en variabel",
+        "removeVariable": "Ta bort variabeln",
+        "noVariables": "Det här textstycket använder inga variabler.",
+        "builtinVariables": "Platshållarna {fecha} och {hora} löses lokalt: du behöver inte deklarera dem.",
+        "category": "Kategori",
+        "categoryPlaceholder": "Till exempel: E-post",
+        "applications": "Appar",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "Språk",
+        "languagePlaceholder": "es",
+        "required": "Det här fältet är obligatoriskt."
+      },
+      "preview": {
+        "title": "Förhandsvisning",
+        "description": "Skriv en mening med triggerfrasen och se vad Dixi gör av den.",
+        "input": "Text att expandera",
+        "inputPlaceholder": "sign, tack i förväg",
+        "inputRequired": "Skriv något att expandera.",
+        "run": "Expandera",
+        "expanded": "Textstycket expanderades.",
+        "notExpanded": "Inget textstycke matchade texten.",
+        "retry": "Expandera igen"
+      },
+      "transfer": {
+        "title": "Import och export",
+        "description": "Flytta dina textstycken mellan datorer med en JSON-fil.",
+        "filesTitle": "Fil med textstycken",
+        "export": "Exportera",
+        "import": "Importera",
+        "exportEmpty": "Det finns inga textstycken att exportera.",
+        "exportSuccess": "{{count}} textstycken exporterades.",
+        "exportError": "Textstyckena kunde inte exporteras.",
+        "importSuccess": "{{count}} textstycken importerades.",
+        "importError": "Textstyckena kunde inte importeras.",
+        "overwriteTitle": "Filen finns redan. Vill du ersätta den?"
+      },
+      "actions": {
+        "add": "Lägg till",
+        "edit": "Redigera",
+        "save": "Spara",
+        "cancel": "Avbryt",
+        "delete": "Ta bort"
+      },
+      "errors": {
+        "load": "Textstyckena kunde inte läsas in.",
+        "action": "Textstycket kunde inte sparas."
+      }
+    },
+    "transforms": {
+      "title": "Transformationer",
+      "description": "Förvandla en dikterad text till något annat: modellen skriver om den enligt varje transformations instruktion.",
+      "list": {
+        "title": "Transformationer",
+        "description": "En transformation skriver om texten med en modell, enligt en instruktion.",
+        "empty": "Det finns inga transformationer ännu.",
+        "builtin": "Inbyggd",
+        "enabled": "Aktiverad",
+        "provider": "Leverantör",
+        "model": "Modell",
+        "usageCount": "Använd {{count}} gånger",
+        "enabledDescription": "En inaktiverad transformation körs inte."
+      },
+      "form": {
+        "name": "Namn",
+        "namePlaceholder": "Till exempel: Gör kortare",
+        "prompt": "Instruktion",
+        "promptPlaceholder": "Skriv om texten kortare, men behåll innebörden.",
+        "provider": "Leverantör",
+        "providerDefault": "Leverantören av efterbehandlingen",
+        "model": "Modell",
+        "modelPlaceholder": "Standardmodellen",
+        "category": "Kategori",
+        "categoryPlaceholder": "Till exempel: Skrivande",
+        "required": "Det här fältet är obligatoriskt."
+      },
+      "runner": {
+        "title": "Prova en transformation",
+        "description": "Skriv en text, välj de transformationer som ska köras och se resultatet innan du tillämpar det.",
+        "input": "Text att transformera",
+        "inputPlaceholder": "Skriv den text du vill transformera",
+        "inputRequired": "Skriv en text att transformera.",
+        "selectTransform": "Transformationer att köra",
+        "selectRequired": "Välj minst en transformation.",
+        "run": "Kör",
+        "result": "Resultat",
+        "accept": "Acceptera",
+        "accepted": "Resultatet tillämpades.",
+        "copy": "Kopiera",
+        "copied": "Resultatet kopierades.",
+        "captureSelection": "Använd den markerade texten",
+        "selectionEmpty": "Ingen text är markerad i appen som har fokus.",
+        "selectionChanged": "Den markerade texten ändrades under transformeringen, så inget skrevs. Kopiera resultatet i stället."
+      },
+      "diff": {
+        "title": "Ändringar",
+        "inserted": "{{count}} ord lades till",
+        "removed": "{{count}} ord togs bort",
+        "identical": "Texten ändrades inte."
+      },
+      "actions": {
+        "add": "Lägg till",
+        "edit": "Redigera",
+        "save": "Spara",
+        "cancel": "Avbryt",
+        "delete": "Ta bort",
+        "builtinCannotEdit": "En inbyggd transformation kan inte redigeras, bara inaktiveras.",
+        "builtinCannotDelete": "En inbyggd transformation kan inte tas bort, bara inaktiveras."
+      },
+      "errors": {
+        "load": "Transformationerna kunde inte läsas in.",
+        "action": "Transformationen kunde inte sparas."
+      }
+    },
+    "textHistory": {
+      "title": "Texthistorik",
+      "description": "Den lokala registreringen av de ändringar Dixi gjorde i din text, så att du kan ångra den senaste.",
+      "list": {
+        "title": "Registrerade ändringar",
+        "description": "Senaste först.",
+        "empty": "Det finns inga registrerade ändringar ännu.",
+        "application": "App",
+        "unknownApplication": "Okänd app",
+        "undone": "Ångraad"
+      },
+      "kind": {
+        "transform": "Transformation",
+        "snippet": "Textstycke",
+        "cleanup": "Rensning"
+      },
+      "revert": {
+        "button": "Ångra",
+        "done": "Den ursprungliga texten lades tillbaka.",
+        "markDone": "Markera som ångraad",
+        "markedDone": "Ändringen markerades som ångraad.",
+        "selectionEmpty": "Markera den ändrade texten för att ångra ändringen.",
+        "selectionMismatch": "Den markerade texten är inte den ändrade texten, så inget skrevs.",
+        "selectionChanged": "Markeringen ändrades under återställningen, så inget skrevs."
+      },
+      "retention": {
+        "title": "Bevarande",
+        "description": "Hur länge ändringarna sparas innan de tas bort.",
+        "days": "Dagar",
+        "zero": "Med 0 dagar behålls historiken tills du rensar den.",
+        "save": "Spara",
+        "saved": "Bevarandet sparades.",
+        "purge": "Ta bort de utgångna nu",
+        "purged": "{{count}} poster togs bort.",
+        "invalid": "Ange ett antal dagar som är 0 eller mer."
+      },
+      "actions": {
+        "clear": "Rensa historiken",
+        "clearTitle": "Rensa historiken",
+        "clearDescription": "Tar bort alla registrerade ändringar. Det går inte att ångra.",
+        "clearConfirm": "Vill du rensa hela historiken?",
+        "cleared": "Historiken rensades."
+      },
+      "errors": {
+        "load": "Texthistoriken kunde inte läsas in.",
+        "action": "Ändringen kunde inte ångras."
       }
     }
   },

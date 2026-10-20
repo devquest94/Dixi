@@ -17,7 +17,11 @@
     "dictionary": "사전",
     "history": "히스토리",
     "debug": "디버그",
-    "about": "정보"
+    "about": "정보",
+    "profiles": "작성 프로필",
+    "snippets": "스니펫",
+    "transforms": "변환",
+    "textHistory": "텍스트 기록"
   },
   "onboarding": {
     "subtitle": "시작하려면 음성 인식 모델을 선택하세요",
@@ -733,6 +737,283 @@
       "whatsNewUpdates": {
         "label": "새 소식 표시",
         "description": "Dixi 업데이트 후 릴리스 노트를 표시합니다"
+      }
+    },
+    "profiles": {
+      "title": "작성 프로필",
+      "description": "앱마다 Dixi가 쓰는 방식(스타일, 정리 수준, 서식 규칙)을 선택하세요.",
+      "detected": {
+        "title": "감지된 앱",
+        "description": "현재 포커스가 있는 앱입니다.",
+        "unknown": "앱을 감지하지 못했습니다",
+        "window": "창 제목",
+        "refresh": "감지된 앱 새로 고침"
+      },
+      "effective": {
+        "title": "적용되는 설정",
+        "description": "감지된 앱에 Dixi가 적용할 설정입니다.",
+        "origin": "출처"
+      },
+      "origin": {
+        "manualOverride": "이 세션의 수동 재정의",
+        "appOverride": "앱에 연결된 규칙",
+        "detectedProfile": "앱이 일치시킨 프로필",
+        "global": "전역 설정"
+      },
+      "cleanup": {
+        "none": "정리 없음",
+        "light": "가벼운 정리",
+        "medium": "중간 정리"
+      },
+      "rule": {
+        "capitalizeSentences": "문장 첫 글자를 대문자로",
+        "ensureFinalPeriod": "마지막에 마침표 추가",
+        "collapseSpaces": "반복된 공백 합치기",
+        "spaceBeforePunctuation": "문장 부호 앞 공백 제거"
+      },
+      "styles": {
+        "title": "작성 스타일",
+        "description": "스타일은 텍스트를 쓰기 전에 어떻게 정리할지 정합니다.",
+        "empty": "아직 작성 스타일이 없습니다.",
+        "builtin": "기본 제공",
+        "aiCleanupAllowed": "이 스타일에서는 AI 정리를 사용할 수 있습니다.",
+        "noRules": "서식 규칙 없음"
+      },
+      "profiles": {
+        "title": "작성 프로필",
+        "description": "프로파일은 같은 방식으로 쓰는 앱들을 묶습니다.",
+        "empty": "아직 작성 프로필이 없습니다.",
+        "everywhere": "모든 앱"
+      },
+      "overrides": {
+        "title": "앱별 규칙",
+        "description": "규칙은 하나의 앱에 스타일이나 정리 수준을 강제합니다.",
+        "empty": "아직 앱별 규칙이 없습니다.",
+        "inherit": "프로필 기본값 사용"
+      },
+      "form": {
+        "name": "이름",
+        "namePlaceholder": "예: 격식체",
+        "applications": "앱",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "스타일",
+        "language": "언어",
+        "languagePlaceholder": "es",
+        "basePrompt": "기본 프롬프트",
+        "basePromptPlaceholder": "AI 정리를 사용할 때 모델에 전달되는 지시입니다.",
+        "cleanupLevel": "정리 수준",
+        "aiCleanup": "AI 정리",
+        "formatRules": "서식 규칙",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "프로필",
+        "required": "이 항목은 필수입니다.",
+        "enabledDescription": "비활성화한 스타일이나 프로필은 사용되지 않습니다."
+      },
+      "manual": {
+        "title": "이 세션의 수동 재정의",
+        "description": "이 세션 동안 프로필을 강제합니다.",
+        "notPersisted": "이 재정의는 저장되지 않으며 Dixi를 닫을 때까지만 유지됩니다.",
+        "none": "재정의 없음"
+      },
+      "actions": {
+        "add": "추가",
+        "edit": "편집",
+        "save": "저장",
+        "cancel": "취소",
+        "delete": "삭제",
+        "builtinCannotDelete": "기본 제공 스타일은 삭제할 수 없으며 비활성화만 할 수 있습니다.",
+        "enabled": "사용",
+        "disabled": "사용 안 함"
+      },
+      "errors": {
+        "load": "작성 프로필을 불러올 수 없습니다.",
+        "action": "작성 프로필을 저장할 수 없습니다."
+      }
+    },
+    "snippets": {
+      "title": "스니펫",
+      "description": "구절은 한 번만 작성하면 됩니다. Dixi가 펼쳐 주며, 변수가 있는 스니펫을 어디서든 붙여 넣을 수 있습니다.",
+      "list": {
+        "title": "스니펫",
+        "description": "스니펫은 트리거 구절을 펼쳐진 내용으로 바꿉니다.",
+        "empty": "아직 스니펫이 없습니다.",
+        "favorite": "즐겨찾기",
+        "enabled": "사용",
+        "everywhere": "모든 앱",
+        "usageCount": "{{count}}회 사용",
+        "enabledDescription": "비활성화한 스니펫은 펼쳐지지 않습니다."
+      },
+      "form": {
+        "name": "이름",
+        "namePlaceholder": "예: 서명",
+        "trigger": "트리거 구절",
+        "triggerPlaceholder": "서명",
+        "expansion": "펼침",
+        "expansionPlaceholder": "감사합니다, {이름}",
+        "variables": "변수",
+        "variablesDescription": "펼침에 쓰이는 변수를 선언하세요. 이름, 필수 여부, 질문 내용을 정합니다.",
+        "variableName": "변수 이름",
+        "variableRequired": "필수",
+        "variablePrompt": "묻는 질문",
+        "addVariable": "변수 추가",
+        "removeVariable": "변수 삭제",
+        "noVariables": "이 스니펫에는 변수가 없습니다.",
+        "builtinVariables": "{fecha}와 {hora} 자리표시자는 로컬에서 해결되므로 선언할 필요가 없습니다.",
+        "category": "범주",
+        "categoryPlaceholder": "예: 이메일",
+        "applications": "앱",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "언어",
+        "languagePlaceholder": "es",
+        "required": "이 항목은 필수입니다."
+      },
+      "preview": {
+        "title": "미리 보기",
+        "description": "트리거 구절을 포함한 문장을 입력해 Dixi가 어떻게 펼치는지 확인하세요.",
+        "input": "펼칠 텍스트",
+        "inputPlaceholder": "서명, 미리 감사드립니다",
+        "inputRequired": "펼칠 내용을 입력하세요.",
+        "run": "펼치기",
+        "expanded": "스니펫이 펼쳐졌습니다.",
+        "notExpanded": "그 텍스트와 일치하는 스니펫이 없습니다.",
+        "retry": "다시 펼치기"
+      },
+      "transfer": {
+        "title": "가져오기 및 내보내기",
+        "description": "JSON 파일로 스니펫을 다른 컴퓨터로 옮기세요.",
+        "filesTitle": "스니펫 파일",
+        "export": "내보내기",
+        "import": "가져오기",
+        "exportEmpty": "내보낼 스니펫이 없습니다.",
+        "exportSuccess": "스니펫 {{count}}개를 내보냈습니다.",
+        "exportError": "스니펫을 내보내지 못했습니다.",
+        "importSuccess": "스니펫 {{count}}개를 가져왔습니다.",
+        "importError": "스니펫을 가져오지 못했습니다.",
+        "overwriteTitle": "파일이 이미 있습니다. 덮어쓸까요?"
+      },
+      "actions": {
+        "add": "추가",
+        "edit": "편집",
+        "save": "저장",
+        "cancel": "취소",
+        "delete": "삭제"
+      },
+      "errors": {
+        "load": "스니펫을 불러올 수 없습니다.",
+        "action": "스니펫을 저장할 수 없습니다."
+      }
+    },
+    "transforms": {
+      "title": "변환",
+      "description": "받아쓴 텍스트를 다른 것으로 바꿉니다. 모델이 각 변환의 지시에 따라 다시 씁니다.",
+      "list": {
+        "title": "변환",
+        "description": "변환은 지시에 따라 모델로 텍스트를 다시 씁니다.",
+        "empty": "아직 변환이 없습니다.",
+        "builtin": "기본 제공",
+        "enabled": "사용",
+        "provider": "제공자",
+        "model": "모델",
+        "usageCount": "{{count}}회 사용",
+        "enabledDescription": "비활성화한 변환은 실행되지 않습니다."
+      },
+      "form": {
+        "name": "이름",
+        "namePlaceholder": "예: 더 짧게",
+        "prompt": "지시",
+        "promptPlaceholder": "뜻을 유지하면서 더 간결하게 다시 작성하세요.",
+        "provider": "제공자",
+        "providerDefault": "후처리 제공자",
+        "model": "모델",
+        "modelPlaceholder": "기본 모델",
+        "category": "범주",
+        "categoryPlaceholder": "예: 집필",
+        "required": "이 항목은 필수입니다."
+      },
+      "runner": {
+        "title": "변환 사용해 보기",
+        "description": "텍스트를 작성하고 실행할 변환을 고른 뒤 결과를 확인한 뒤 적용하세요.",
+        "input": "변환할 텍스트",
+        "inputPlaceholder": "변환하려는 텍스트를 입력하세요",
+        "inputRequired": "변환할 텍스트를 입력하세요.",
+        "selectTransform": "실행할 변환",
+        "selectRequired": "변환을 하나 이상 선택하세요.",
+        "run": "실행",
+        "result": "결과",
+        "accept": "적용",
+        "accepted": "결과를 적용했습니다.",
+        "copy": "복사",
+        "copied": "결과를 복사했습니다.",
+        "captureSelection": "선택한 텍스트 사용",
+        "selectionEmpty": "포커스가 있는 앱에서 선택된 텍스트가 없습니다.",
+        "selectionChanged": "변환을 실행하는 동안 선택한 텍스트가 바뀌어 아무것도 기록되지 않았습니다. 대신 결과를 복사하세요."
+      },
+      "diff": {
+        "title": "변경 사항",
+        "inserted": "{{count}}개 단어 추가됨",
+        "removed": "{{count}}개 단어 삭제됨",
+        "identical": "텍스트가 바뀌지 않았습니다."
+      },
+      "actions": {
+        "add": "추가",
+        "edit": "편집",
+        "save": "저장",
+        "cancel": "취소",
+        "delete": "삭제",
+        "builtinCannotEdit": "기본 제공 변환은 편집할 수 없으며 비활성화만 할 수 있습니다.",
+        "builtinCannotDelete": "기본 제공 변환은 삭제할 수 없으며 비활성화만 할 수 있습니다."
+      },
+      "errors": {
+        "load": "변환을 불러올 수 없습니다.",
+        "action": "변환을 저장할 수 없습니다."
+      }
+    },
+    "textHistory": {
+      "title": "텍스트 기록",
+      "description": "Dixi가 텍스트에 가한 변경을 로컬에 기록해, 마지막 변경을 되돌릴 수 있습니다.",
+      "list": {
+        "title": "기록된 변경 사항",
+        "description": "최신순입니다.",
+        "empty": "아직 기록된 변경 사항이 없습니다.",
+        "application": "앱",
+        "unknownApplication": "알 수 없는 앱",
+        "undone": "되돌림됨"
+      },
+      "kind": {
+        "transform": "변환",
+        "snippet": "스니펫",
+        "cleanup": "정리"
+      },
+      "revert": {
+        "button": "되돌리기",
+        "done": "원래 텍스트가 되돌려졌습니다.",
+        "markDone": "되돌림으로 표시",
+        "markedDone": "변경 사항을 되돌림으로 표시했습니다.",
+        "selectionEmpty": "변경을 되돌리려면 변경된 텍스트를 선택하세요.",
+        "selectionMismatch": "선택한 텍스트가 변경된 텍스트가 아니므로 아무것도 기록되지 않았습니다.",
+        "selectionChanged": "되돌리는 동안 선택이 바뀌어 아무것도 기록되지 않았습니다."
+      },
+      "retention": {
+        "title": "보관 기간",
+        "description": "변경 사항이 삭제되기 전까지 유지되는 기간입니다.",
+        "days": "일",
+        "zero": "0일이면 직접 지울 때까지 기록이 유지됩니다.",
+        "save": "저장",
+        "saved": "보관 기간을 저장했습니다.",
+        "purge": "만료된 항목 지금 삭제",
+        "purged": "항목 {{count}}개를 삭제했습니다.",
+        "invalid": "0일 이상의 날짜 수를 입력하세요."
+      },
+      "actions": {
+        "clear": "기록 지우기",
+        "clearTitle": "기록 지우기",
+        "clearDescription": "기록된 모든 변경 사항을 삭제합니다. 되돌릴 수 없습니다.",
+        "clearConfirm": "기록을 모두 지울까요?",
+        "cleared": "기록을 지웠습니다."
+      },
+      "errors": {
+        "load": "텍스트 기록을 불러올 수 없습니다.",
+        "action": "변경을 되돌리지 못했습니다."
       }
     }
   },

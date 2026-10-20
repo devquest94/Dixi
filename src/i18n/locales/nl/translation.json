@@ -17,7 +17,11 @@
     "dictionary": "Woordenboek",
     "history": "Geschiedenis",
     "debug": "Probleemoplossing",
-    "about": "Over Dixi"
+    "about": "Over Dixi",
+    "profiles": "Schrijfprofielen",
+    "snippets": "Fragmenten",
+    "transforms": "Transformaties",
+    "textHistory": "Tekstgeschiedenis"
   },
   "onboarding": {
     "subtitle": "Kies een transcriptiemodel om aan de slag te gaan",
@@ -733,6 +737,283 @@
           "description": "Krachtige tensorbibliotheek voor lokale AI-verwerking",
           "details": "Dixi's lokale spraak-naar-tekst is gebouwd op transcribe.cpp en ggml. Met dank aan het geweldige werk van Georgi Gerganov en alle bijdragers."
         }
+      }
+    },
+    "profiles": {
+      "title": "Schrijfprofielen",
+      "description": "Bepaal hoe Dixi in elke app schrijft: de stijl, het opschonniveau en de opmaakregels.",
+      "detected": {
+        "title": "Herkende app",
+        "description": "De app waarop nu de focus ligt.",
+        "unknown": "Geen app herkend",
+        "window": "Venstertitel",
+        "refresh": "Herkende app vernieuwen"
+      },
+      "effective": {
+        "title": "Effectieve configuratie",
+        "description": "Wat Dixi gebruikt voor de herkende app.",
+        "origin": "Herkomst"
+      },
+      "origin": {
+        "manualOverride": "Handmatige overschrijving voor deze sessie",
+        "appOverride": "Regel die aan de app is gebonden",
+        "detectedProfile": "Het profiel dat bij de app hoort",
+        "global": "Globale configuratie"
+      },
+      "cleanup": {
+        "none": "Geen opschoning",
+        "light": "Lichte opschoning",
+        "medium": "Gemiddelde opschoning"
+      },
+      "rule": {
+        "capitalizeSentences": "Zinnen met hoofdletter beginnen",
+        "ensureFinalPeriod": "Eindpunt toevoegen",
+        "collapseSpaces": "Herhaalde spaties samenvoegen",
+        "spaceBeforePunctuation": "Spatie vóór de leestekens verwijderen"
+      },
+      "styles": {
+        "title": "Schrijfstijlen",
+        "description": "Een stijl bepaalt hoe de tekst wordt opgeschoond voordat hij wordt geschreven.",
+        "empty": "Er zijn nog geen schrijfstijlen.",
+        "builtin": "Ingebouwd",
+        "aiCleanupAllowed": "Met deze stijl mag de AI-opschoning worden gebruikt.",
+        "noRules": "Geen opmaakregels"
+      },
+      "profiles": {
+        "title": "Schrijfprofielen",
+        "description": "Een profiel groepeert de apps die op dezelfde manier schrijven.",
+        "empty": "Er zijn nog geen schrijfprofielen.",
+        "everywhere": "Overal"
+      },
+      "overrides": {
+        "title": "Regels per app",
+        "description": "Een regel legt een stijl of opschonniveau op aan één app.",
+        "empty": "Er zijn nog geen regels per app.",
+        "inherit": "De standaard van het profiel gebruiken"
+      },
+      "form": {
+        "name": "Naam",
+        "namePlaceholder": "Bijvoorbeeld: Formeel",
+        "applications": "Apps",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "style": "Stijl",
+        "language": "Taal",
+        "languagePlaceholder": "es",
+        "basePrompt": "Basisprompt",
+        "basePromptPlaceholder": "De instructie die aan het model wordt gegeven wanneer de AI-opschoning wordt gebruikt.",
+        "cleanupLevel": "Opschonniveau",
+        "aiCleanup": "AI-opschoning",
+        "formatRules": "Opmaakregels",
+        "overrideApplicationPlaceholder": "chrome.exe",
+        "profile": "Profiel",
+        "required": "Dit veld is verplicht.",
+        "enabledDescription": "Een uitgeschakelde stijl of profiel wordt niet gebruikt."
+      },
+      "manual": {
+        "title": "Handmatige overschrijving voor deze sessie",
+        "description": "Forceer een profiel zolang deze sessie duurt.",
+        "notPersisted": "Deze overschrijving wordt niet opgeslagen: hij geldt alleen totdat Dixi sluit.",
+        "none": "Geen overschrijving"
+      },
+      "actions": {
+        "add": "Toevoegen",
+        "edit": "Bewerken",
+        "save": "Opslaan",
+        "cancel": "Annuleren",
+        "delete": "Verwijderen",
+        "builtinCannotDelete": "Een ingebouwde stijl kan niet worden verwijderd, alleen uitgeschakeld.",
+        "enabled": "Ingeschakeld",
+        "disabled": "Uitgeschakeld"
+      },
+      "errors": {
+        "load": "De schrijfprofielen konden niet worden geladen.",
+        "action": "Het schrijfprofiel kon niet worden opgeslagen."
+      }
+    },
+    "snippets": {
+      "title": "Fragmenten",
+      "description": "Schrijf de zin één keer en laat Dixi hem uitwerken: fragmenten met variabelen, klaar om overal te plakken.",
+      "list": {
+        "title": "Fragmenten",
+        "description": "Een fragment vervangt de triggerzin door zijn uitwerking.",
+        "empty": "Er zijn nog geen fragmenten.",
+        "favorite": "Favoriet",
+        "enabled": "Ingeschakeld",
+        "everywhere": "Overal",
+        "usageCount": "{{count}} keer gebruikt",
+        "enabledDescription": "Een uitgeschakeld fragment wordt niet uitgewerkt."
+      },
+      "form": {
+        "name": "Naam",
+        "namePlaceholder": "Bijvoorbeeld: Handtekening",
+        "trigger": "Triggerzin",
+        "triggerPlaceholder": "ond",
+        "expansion": "Uitwerking",
+        "expansionPlaceholder": "Met vriendelijke groet, {naam}",
+        "variables": "Variabelen",
+        "variablesDescription": "Declareer de variabelen die de uitwerking gebruikt: de naam, of die verplicht is en de vraag die gesteld wordt.",
+        "variableName": "Variabelenaam",
+        "variableRequired": "Verplicht",
+        "variablePrompt": "Te stellen vraag",
+        "addVariable": "Variabele toevoegen",
+        "removeVariable": "Variabele verwijderen",
+        "noVariables": "Dit fragment gebruikt geen variabelen.",
+        "builtinVariables": "De plaatshouders {fecha} en {hora} worden lokaal opgelost: u hoeft ze niet te declareren.",
+        "category": "Categorie",
+        "categoryPlaceholder": "Bijvoorbeeld: E-mails",
+        "applications": "Apps",
+        "applicationsPlaceholder": "chrome.exe, notepad.exe",
+        "language": "Taal",
+        "languagePlaceholder": "es",
+        "required": "Dit veld is verplicht."
+      },
+      "preview": {
+        "title": "Voorbeeld",
+        "description": "Typ een zin met de triggerzin en zie waartoe Dixi hem uitwerkt.",
+        "input": "Tekst om uit te werken",
+        "inputPlaceholder": "ond, bij voorbaat dank",
+        "inputRequired": "Schrijf iets om uit te werken.",
+        "run": "Uitwerken",
+        "expanded": "Het fragment is uitgewerkt.",
+        "notExpanded": "Geen fragment komt overeen met die tekst.",
+        "retry": "Opnieuw uitwerken"
+      },
+      "transfer": {
+        "title": "Importeren en exporteren",
+        "description": "Verplaats je fragmenten tussen machines met een JSON-bestand.",
+        "filesTitle": "Fragmentenbestand",
+        "export": "Exporteren",
+        "import": "Importeren",
+        "exportEmpty": "Er zijn geen fragmenten om te exporteren.",
+        "exportSuccess": "{{count}} fragmenten geëxporteerd.",
+        "exportError": "De fragmenten konden niet worden geëxporteerd.",
+        "importSuccess": "{{count}} fragmenten geïmporteerd.",
+        "importError": "De fragmenten konden niet worden geïmporteerd.",
+        "overwriteTitle": "Het bestand bestaat al. Wilt u het vervangen?"
+      },
+      "actions": {
+        "add": "Toevoegen",
+        "edit": "Bewerken",
+        "save": "Opslaan",
+        "cancel": "Annuleren",
+        "delete": "Verwijderen"
+      },
+      "errors": {
+        "load": "De fragmenten konden niet worden geladen.",
+        "action": "Het fragment kon niet worden opgeslagen."
+      }
+    },
+    "transforms": {
+      "title": "Transformaties",
+      "description": "Maak van een gedicteerd tekststuk iets anders: het model schrijft het opnieuw volgens de instructie van elke transformatie.",
+      "list": {
+        "title": "Transformaties",
+        "description": "Een transformatie herschrijft de tekst met een model, volgens een instructie.",
+        "empty": "Er zijn nog geen transformaties.",
+        "builtin": "Ingebouwd",
+        "enabled": "Ingeschakeld",
+        "provider": "Provider",
+        "model": "Model",
+        "usageCount": "{{count}} keer gebruikt",
+        "enabledDescription": "Een uitgeschakelde transformatie wordt niet uitgevoerd."
+      },
+      "form": {
+        "name": "Naam",
+        "namePlaceholder": "Bijvoorbeeld: Korter maken",
+        "prompt": "Instructie",
+        "promptPlaceholder": "Herschrijf de tekst beknopter, zonder de betekenis te verliezen.",
+        "provider": "Provider",
+        "providerDefault": "De provider van de nabewerking",
+        "model": "Model",
+        "modelPlaceholder": "Het standaardmodel",
+        "category": "Categorie",
+        "categoryPlaceholder": "Bijvoorbeeld: Schrijven",
+        "required": "Dit veld is verplicht."
+      },
+      "runner": {
+        "title": "Probeer een transformatie",
+        "description": "Schrijf een tekst, kies de transformaties die moeten draaien en bekijk het resultaat voordat u het toepast.",
+        "input": "Te transformeren tekst",
+        "inputPlaceholder": "Typ de tekst die u wilt transformeren",
+        "inputRequired": "Schrijf een tekst om te transformeren.",
+        "selectTransform": "Transformaties die moeten draaien",
+        "selectRequired": "Kies minstens één transformatie.",
+        "run": "Uitvoeren",
+        "result": "Resultaat",
+        "accept": "Accepteren",
+        "accepted": "Het resultaat is toegepast.",
+        "copy": "Kopiëren",
+        "copied": "Het resultaat is gekopieerd.",
+        "captureSelection": "Geselecteerde tekst gebruiken",
+        "selectionEmpty": "Er is geen tekst geselecteerd in de app met focus.",
+        "selectionChanged": "De geselecteerde tekst is gewijzigd tijdens de transformatie, dus er is niets geschreven. Kopieer in plaats daarvan het resultaat."
+      },
+      "diff": {
+        "title": "Wijzigingen",
+        "inserted": "{{count}} woorden toegevoegd",
+        "removed": "{{count}} woorden verwijderd",
+        "identical": "De tekst is niet gewijzigd."
+      },
+      "actions": {
+        "add": "Toevoegen",
+        "edit": "Bewerken",
+        "save": "Opslaan",
+        "cancel": "Annuleren",
+        "delete": "Verwijderen",
+        "builtinCannotEdit": "Een ingebouwde transformatie kan niet worden bewerkt, alleen uitgeschakeld.",
+        "builtinCannotDelete": "Een ingebouwde transformatie kan niet worden verwijderd, alleen uitgeschakeld."
+      },
+      "errors": {
+        "load": "De transformaties konden niet worden geladen.",
+        "action": "De transformatie kon niet worden opgeslagen."
+      }
+    },
+    "textHistory": {
+      "title": "Tekstgeschiedenis",
+      "description": "De lokale registratie van de wijzigingen die Dixi in uw tekst maakte, zodat u de laatste kunt terugdraaien.",
+      "list": {
+        "title": "Vastgelegde wijzigingen",
+        "description": "Nieuwste eerst.",
+        "empty": "Er zijn nog geen vastgelegde wijzigingen.",
+        "application": "App",
+        "unknownApplication": "Onbekende app",
+        "undone": "Teruggedraaid"
+      },
+      "kind": {
+        "transform": "Transformatie",
+        "snippet": "Fragment",
+        "cleanup": "Opschoning"
+      },
+      "revert": {
+        "button": "Terugdraaien",
+        "done": "De oorspronkelijke tekst is teruggezet.",
+        "markDone": "Markeren als teruggedraaid",
+        "markedDone": "De wijziging is gemarkeerd als teruggedraaid.",
+        "selectionEmpty": "Selecteer de gewijzigde tekst om de wijziging terug te draaien.",
+        "selectionMismatch": "De geselecteerde tekst is niet de gewijzigde tekst, dus er is niets geschreven.",
+        "selectionChanged": "De selectie veranderde tijdens het terugdraaien, dus er is niets geschreven."
+      },
+      "retention": {
+        "title": "Bewaartermijn",
+        "description": "Hoe lang de wijzigingen worden bewaard voordat ze worden verwijderd.",
+        "days": "Dagen",
+        "zero": "Met 0 dagen blijft de geschiedenis bewaard tot u die wist.",
+        "save": "Opslaan",
+        "saved": "De bewaartermijn is opgeslagen.",
+        "purge": "Verlopen nu verwijderen",
+        "purged": "{{count}} items verwijderd.",
+        "invalid": "Voer een aantal dagen van 0 of meer in."
+      },
+      "actions": {
+        "clear": "Geschiedenis wissen",
+        "clearTitle": "Geschiedenis wissen",
+        "clearDescription": "Verwijdert alle vastgelegde wijzigingen. Dit kan niet ongedaan worden gemaakt.",
+        "clearConfirm": "Wilt u de hele geschiedenis wissen?",
+        "cleared": "De geschiedenis is gewist."
+      },
+      "errors": {
+        "load": "De tekstgeschiedenis kon niet worden geladen.",
+        "action": "De wijziging kon niet worden teruggedraaid."
       }
     }
   },
