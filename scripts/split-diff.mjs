@@ -72,7 +72,8 @@ if (kept.length === 0) {
 
 const out = [...header];
 for (const hunk of kept) out.push(...hunk);
-writeFileSync(patchOut, out.join("\n"), "utf8");
+// A patch must end with a newline or `git apply` rejects it as corrupt.
+writeFileSync(patchOut, out.join("\n").replace(/\n*$/, "\n"), "utf8");
 
 console.log(
   `${file}: ${hunks.length} hunk(s) total, ${kept.length} kept -> ${patchOut}`,
