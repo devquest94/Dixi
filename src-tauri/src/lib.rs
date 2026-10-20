@@ -880,6 +880,8 @@ pub fn run(cli_args: CliArgs) {
             commands::text_history::set_text_history_retention,
             commands::text_history::purge_text_history,
             commands::text_history::diff_text,
+            commands::selection::capture_selection,
+            commands::selection::replace_text_selection,
             helpers::clamshell::is_laptop,
         ])
         .events(collect_events![

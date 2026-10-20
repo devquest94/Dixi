@@ -33,7 +33,6 @@ use tauri::AppHandle;
 
 use super::personal_store::PersonalStore;
 use super::text_engine::{apply_rules, TextRule};
-use crate::portable::app_data_dir;
 
 /// Scope that applies to every transcription.
 pub const GLOBAL_SCOPE: &str = "global";

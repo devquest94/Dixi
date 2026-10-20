@@ -8,6 +8,7 @@ pub mod model;
 pub mod model_capabilities;
 pub mod personal_store;
 pub mod profiles;
+pub mod selection;
 pub mod snippets;
 pub mod text_engine;
 pub mod text_history;

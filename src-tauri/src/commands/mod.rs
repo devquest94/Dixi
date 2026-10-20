@@ -3,6 +3,7 @@ pub mod dictionary;
 pub mod history;
 pub mod models;
 pub mod profiles;
+pub mod selection;
 pub mod snippets;
 pub mod text_history;
 pub mod transforms;
