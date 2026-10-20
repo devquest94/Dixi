@@ -9,6 +9,7 @@ use crate::engine_supervisor::{
     Unloading,
 };
 use crate::managers::audio::AudioRecordingManager;
+use crate::managers::dictionary::{DictionaryEntry, DictionaryManager, GLOBAL_SCOPE};
 use crate::managers::model::ModelManager;
 use crate::settings::{
     get_settings, AppSettings, ChineseScript, ModelUnloadTimeout, TranscribeAcceleratorSetting,
@@ -897,6 +898,51 @@ impl TranscriptionManager {
         self.complete(started, samples, live)
     }
 
+    /// The dictionary vocabulary that applies right now.
+    ///
+    /// The dictionary lives in its own database (see [`DictionaryManager`]);
+    /// when it could not be opened there is simply no vocabulary, and the
+    /// transcription runs exactly as before.
+    fn dictionary_vocabulary(&self) -> Vec<String> {
+        let Some(manager) = self
+            .app_handle
+            .try_state::<Arc<DictionaryManager>>()
+        else {
+            return Vec::new();
+        };
+        manager.vocabulary(GLOBAL_SCOPE)
+    }
+
+    /// The dictionary substitution rules that apply right now.
+    fn dictionary_rules(&self) -> Vec<DictionaryEntry> {
+        let Some(manager) = self
+            .app_handle
+            .try_state::<Arc<DictionaryManager>>()
+        else {
+            return Vec::new();
+        };
+        manager.substitution_rules(GLOBAL_SCOPE)
+    }
+
+    /// Applies the dictionary substitution rules to a transcript.
+    ///
+    /// The rules run after every other local transform, so a rule always
+    /// sees the final text. A rule that fired increments its counter, which
+    /// is what the "most used terms" view is built on.
+    fn apply_dictionary_rules(&self, text: &str, language: Option<&str>) -> String {
+        let rules = self.dictionary_rules();
+        if rules.is_empty() {
+            return text.to_string();
+        }
+        let outcome = crate::managers::dictionary::apply_substitutions(text, &rules, language);
+        if !outcome.applied.is_empty() {
+            if let Some(manager) = self.app_handle.try_state::<Arc<DictionaryManager>>() {
+                manager.record_hits(&outcome.applied);
+            }
+        }
+        outcome.text
+    }
+
     /// The final text of one transcription, from its live result or else a
     /// batch run of `audio`. Every transcription finishes here.
     fn complete(
@@ -925,7 +971,8 @@ impl TranscriptionManager {
             None => self.decode_batch(audio)?,
         };
         let settings = get_settings(&self.app_handle);
-        let final_result = finish_text(outcome, &settings);
+        let (text, language) = finish_text(outcome, &settings);
+        let final_result = self.apply_dictionary_rules(&text, language.as_deref());
 
         let translation_note = if settings.translate_to_english {
             " (translated)"
@@ -981,7 +1028,18 @@ impl TranscriptionManager {
         }
 
         // Get current settings for configuration
-        let settings = get_settings(&self.app_handle);
+        let mut settings = get_settings(&self.app_handle);
+        // The personal dictionary terms join the custom words, so they reach
+        // the engine as vocabulary and take part in the same correction pass.
+        for term in self.dictionary_vocabulary() {
+            if !settings
+                .custom_words
+                .iter()
+                .any(|existing| existing.eq_ignore_ascii_case(&term))
+            {
+                settings.custom_words.push(term);
+            }
+        }
 
         // Validate selected language against the model's supported languages.
         // If the language isn't supported, fall back to "auto" to prevent errors.
@@ -1091,7 +1149,10 @@ struct RunOutcome {
 
 /// One transcription's final text: its output language resolved, then
 /// post-processed.
-fn finish_text(outcome: RunOutcome, settings: &AppSettings) -> String {
+///
+/// The language is returned alongside the text because the dictionary needs
+/// it to pick the rules that apply to this transcript.
+fn finish_text(outcome: RunOutcome, settings: &AppSettings) -> (String, Option<String>) {
     let RunOutcome {
         setup,
         text,
@@ -1099,14 +1160,16 @@ fn finish_text(outcome: RunOutcome, settings: &AppSettings) -> String {
     } = outcome;
     let output_language = setup.output_language(settings, model_detected_language);
     debug!("Output language evidence: {:?}", output_language);
+    let language = output_language.language().map(|language| language.to_string());
     // Skip fuzzy correction if the model already got the custom words.
-    post_process_transcription_text(
+    let text = post_process_transcription_text(
         text,
         settings,
         setup.custom_words_prompted(),
         &output_language,
         &setup.languages,
-    )
+    );
+    (text, language)
 }
 
 /// How every run of one transcription (each chunk, or a whole clip) is
