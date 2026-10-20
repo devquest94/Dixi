@@ -12,10 +12,11 @@ endurecimiento de la entrega.
 | Objetivo | Estado | Qué se entregó |
 |---|---|---|
 | A — Reconocimiento multilingüe | **DESARROLLADO (parcial)** | Contexto de transcripción cableado al `initial_prompt` del motor; harness de medición WER/CER + dataset de 24 casos. El modo auto/forzado por idioma ya existía. |
-| B — Diccionario personal | **DESARROLLADO** | Motor de sustitución en Rust con almacenamiento SQLite, CRUD, prioridades, reglas por idioma, contadores de uso e integración en el pipeline. |
-| C — Provider MiniMax abstracto | **DESARROLLADO (parcial)** | Módulo con parsing de `base_resp`, separación `thinking_delta`/`text_delta` y control de `effort`. **No está cableado al pipeline de post-procesado**: ver §5.3. |
-| D — Rendimiento y endurecimiento | **DESARROLLADO (parcial)** | Script de medición de memoria en bandeja reutilizado; la medición concreta está en §7. |
+| B — Diccionario personal | **DESARROLLADO** | Motor de sustitución en Rust con almacenamiento SQLite, CRUD, prioridades, reglas por idioma, contadores de uso, import/export protegido e integración en el pipeline. |
+| C — Provider MiniMax | **DESARROLLADO** | Módulo **conectado** al pipeline: se usa el mismo cliente HTTP y el mismo tratamiento de errores, con el parser de `base_resp` y sin razonamiento en la salida. Modelo y profundidad configurables. Sin llamadas reales. |
+| D — Rendimiento y endurecimiento | **DESARROLLADO (parcial)** | Medición en cinco condiciones sobre una instancia aislada (§7.5). La medición concreta está en §7.5. |
 | Defectos de Fase 2A | **CORREGIDOS (3/3)** | Aviso espurio de autostart, colisión de IDs de prompt, errores de comando tragados en el store. |
+| Secretos en disco | **CORREGIDO** | Las claves de API estaban en claro; ahora se protegen con DPAPI. |
 | Regresión `tauri/custom-protocol` | **CORREGIDO** | Prueba de regresión en dos niveles (Rust y PowerShell). |
 
 ### Lo que NO se hizo, y por qué
@@ -23,17 +24,12 @@ endurecimiento de la entrega.
 Estas decisiones son deliberadas y quedan documentadas para que la Fase 2C las
 retome sin contexto:
 
-1. **El pipeline de post-procesado LLM no usa todavía el módulo MiniMax.**
-   El módulo existe, está probado y sabe hablar el idioma de MiniMax, pero
-   conectarlo exige tocar `llm_client.rs`, que hoy tiene su propio
-   descubrimiento de formato y su propio cliente HTTP. Se optó por no
-   duplicar ese cliente a ciegas. El camino de integración esta delimitado en §5.3.
-2. **No hay "<scop> de perfil</scop>" en el diccionario.** El modelo de datos
+1. **No hay un subsistema de perfiles en el diccionario.** El modelo de datos
    ya tiene `scope` (una cadena, con `"global"` reservado) y el filtrado por
-   ámbito funciona, pero Dixi no tiene subsistema de perfiles: no hay
-   selector de perfil en la UI ni identificador de perfil en el motor. Crear
-   un subsistema de perfiles entero excedía el alcance de esta fase; se dejó
-   la columna y el filtrado listos para cuando exista.
+   ámbito funciona, pero Dixi no tiene perfiles: no hay selector de perfil en
+   la UI ni identificador de perfil en el motor. Crear un subsistema de
+   perfiles entero excedía el alcance de esta fase; se dejó la columna y el
+   filtrado listos para cuando exista.
 3. **No se implementó el aprendizaje automático del diccionario.** La
    investigación de referencia (doc 04) dice que el 81 % de las entradas de
    Wispr se aprenden de las ediciones posteriores del usuario en la app
@@ -417,18 +413,34 @@ El provider se registró en `default_post_process_providers()` con
 `api_format: OpenAi` y modelo por defecto `MiniMax-M3` (el de razonamiento
 apagado).
 
-### 5.3 Lo que falta: el cableado al pipeline
+### 5.3 El cableado al pipeline (cierre de Fase 2B)
 
-El módulo **no está conectado** al post-procesado. Motivo honesto: `llm_client.rs`
-ya tiene su propio cliente HTTP, su propio descubrimiento de formato y su
-propia lectura de la respuesta; enchufar el parser de MiniMax ahí exige
-decidir si MiniMax es *un formato más* del cliente genérico o *un cliente
-propio*. La primera opción es una línea; la segunda, un refactor del cliente.
+El módulo quedó **conectado** al pipeline. Se usa el mismo cliente HTTP, la
+misma URL y el mismo tratamiento de errores que el camino genérico de OpenAI:
+**no hay un segundo pipeline de posprocesamiento**, solo un cuerpo de petición
+y una lectura de respuesta distintos.
 
-Lo que sí quedó hecho: la configuración del provider (clave, base URL,
-modelo, `effort`), el registro en la lista de providers, el parser probado y
-el mapeo de errores. El resto es un trabajo de integración focalizado sobre
-`llm_client.rs`, no de diseño.
+- La respuesta se lee con el parser de MiniMax, que comprueba el sobre
+  `base_resp` **aunque el HTTP devuelva 200**. Un error de MiniMax con
+  status 200 se reporta como error, y no como un texto que se pegaría en el
+  campo del usuario.
+- El razonamiento se descarta: nunca llega al texto final.
+- El **modelo** y la **profundidad del razonamiento** son configurables. La
+  profundidad nunca es `"none"`: `MiniMax-M3.1-Flash` responde HTTP 400 si se
+  desactiva el razonamiento, y el valor por defecto de la API (`max`) es lento
+  y caro para limpiar una transcripción. El valor por defecto de Dixi es
+  `low`.
+- Un error de posprocesado **deja el texto original intacto**: el pipeline ya
+  devolvía `None` en ese caso, y se queda con la transcripción.
+- El cuerpo **nunca lleva la clave**: viaja en la cabecera de autorización.
+- El resto de los providers no cambian de comportamiento: la rama de MiniMax
+  solo se activa para el provider con ese id.
+
+Siete pruebas con un servidor HTTP local simulado cubren el camino: error
+`base_resp` con HTTP 200, cuota agotada, descarte del razonamiento, envío del
+esfuerzo configurado, valor por defecto, fallo HTTP y la clave en la cabecera
+y no en el cuerpo. **Ninguna prueba sale a la red**, y no se consumió cuota
+real de MiniMax.
 
 ### 5.4 Credenciales
 
@@ -463,19 +475,80 @@ de Fase 2A sin competir por RAM con la compilación.
 
 | Comprobación | Comando | Resultado |
 |---|---|---|
-| Pruebas unitarias Rust | `cargo test --features custom-protocol --lib` | **365 PASS**, 0 FAIL, 18 ignoradas |
+| Pruebas unitarias Rust | `cargo test --features custom-protocol --lib` | **404 PASS**, 0 FAIL, 18 ignoradas |
 | Doctests Rust | `cargo test --features custom-protocol --doc` | **1 PASS**, 0 FAIL |
 | Pruebas de frontend | `npm run test:unit` | **3 guiones, todas las aserciones pasan** |
 | Tipos del frontend | `npx tsc --noEmit` | **0 errores** |
-| Lint del frontend | `npx eslint src/components/settings/dictionary src/components/Sidebar.tsx` | **exit 0**, sin avisos |
-| Build del frontend | `npm run build` | **exit 0**, 2118 módulos, 18,04 s |
-| Paridad de traducciones | `node scripts/check-translations.ts` | **✓ 25 idiomas completos** |
+| Lint del frontend | `npx eslint` sobre los ficheros tocados | **exit 0** |
+| Build del frontend | `npm run build` | **exit 0**, 2118 módulos |
+| Paridad de traducciones | `node scripts/check-translations.ts` | **✓ 25 idiomas completos** (26 ficheros) |
 | Dataset de evaluación | validación JSON línea a línea | **24/24 líneas JSON válidas** (es 16, en 4, es-en 4) |
-| Regresión `custom-protocol` | `npm run check:release-protocol` | **OK** (ver §7.2) |
+| Regresión `custom-protocol` | `npm run check:release-protocol` | **OK** (§7.2) |
+| Arranque de la GUI | instancia aislada en modo portable | **OK**: ventana principal creada, worker de ASR separado |
+| ASR local real | `dixi.exe -f F1-16k.wav` | **OK**: 4,08 s de audio transcritos en 1,39 s (2,93× tiempo real) |
+| Consumo en 5 condiciones | `scripts/measure-phase2b.ps1` | **OK** (§7.5) |
 
-El recuento de pruebas **sube de 304 (Fase 2A) a 366**: 61 pruebas nuevas
-por el diccionario, el módulo MiniMax y el harness de evaluación, más el
-doctest del harness.
+El recuento de pruebas **sube de 304 (Fase 2A) a 405** (404 unitarias más
+un doctest): 100 pruebas nuevas por el diccionario, el módulo MiniMax, el
+harness de evaluación, la protección de secretos y la migración de la
+profundidad del razonamiento.
+
+**Lint del proyecto completo.** `npx eslint .` sobre todo el repositorio
+falla con 23 errores, **ninguno en un fichero tocado en esta fase**: 18
+están en `src-tauri/target/**` (código generado por Tauri que ESLint no
+debería escanear), 1 en `scripts/check-translations.ts`, 1 en
+`scripts/check-model-language-coverage.ts`, 1 en `TextLogo.tsx` y 2 en
+`src/components/shared/ProgressBar.tsx`. Son preexistentes: `git status`
+confirma que ninguno de esos ficheros se modificó.
+
+### 7.5 Consumo de memoria y CPU
+
+Medido sobre una **instancia aislada** (carpeta portable propia, con los
+modelos compartidos por junction): la instalación real del usuario no se
+tocó. El informe completo, con el desglose por proceso, está en
+[`docs/validation-phase2b/performance/informe.md`](validation-phase2b/performance/informe.md).
+
+| Condición | RAM privada (MB) | Working set (MB) | CPU (%) | Procesos |
+|---|---|---|---|---|
+| Ventana abierta | 256,0 | 428,6 | 0,25 | 8 |
+| Aplicación únicamente en bandeja | 293,6 | 463,7 | 0,26 | 9 |
+| Modelo ASR descargado de memoria | 286,6 | 469,1 | 1,15 | 9 |
+| Modelo cargado | 281,5 | 465,6 | 0,12 | 9 |
+| Transcripción activa (GUI) | 310,6 | 549,7 | 71,72 | 17 |
+| Transcripción por fichero (sin interfaz) | 100,1 | 38,0 | 129,03 | 3 |
+
+La lectura que importa: **el runtime de WebView2 cuesta más que el motor
+de ASR**. La interfaz con la ventana abierta reserva 256 MB en 8 procesos
+(la app y siete del runtime); la misma transcripción por la ruta headless
+reserva 100,1 MB en 3 procesos. Ocultar la ventana para dejar solo la
+bandeja **no** libera memoria apreciable.
+
+**Lo que no se pudo aislar:** el peso del modelo en reposo. El micrófono de
+esta máquina no capta señal utilizable, así que el dictado no llega a
+transcribir y el modelo no llega a residir en memoria; las condiciones
+"modelo cargado" y "modelo descargado" se solapan y la cifra real del
+modelo en reposo queda sin medir. La única condición en la que el motor
+carga de verdad es la transcripción por fichero.
+
+### 7.6 ASR local real
+
+La transcripción real del audio de referencia de la Fase 2A, con el modelo
+`whisper-base-Q8_0` en CPU:
+
+```
+model=handy-computer/whisper-base-gguf/whisper-base-Q8_0.gguf device=settings
+backend=CPU audio=4.08s load=933ms best=1392ms rtf=2.93x
+text: esta es una prueba de ÐICT soundtrack
+```
+
+Carga del modelo: 933 ms. Factor de tiempo real: 2,93×. El texto
+transcrito contiene un **error real de reconocimiento** ("dictado" →
+"ÐICT soundtrack"), que es exactamente el caso que el diccionario y las
+pistas de vocabulario atacan. No se declara ninguna mejora de WER/CER: no
+hay métricas comparativas entre modelos, y el runner end-to-end no existe
+(§1).
+
+
 
 ### 7.2 La regresión de `tauri/custom-protocol`, en detalle
 
@@ -567,15 +640,21 @@ Lo que **no** se renombró, a propósito:
 ### Rust (nuevos)
 - `src-tauri/src/managers/dictionary.rs` — diccionario: modelo, SQLite, migraciones, motor de sustitución.
 - `src-tauri/src/commands/dictionary.rs` — comandos IPC del diccionario.
+- `src-tauri/src/managers/dictionary/e2e_tests.rs` — pruebas de extremo a extremo sobre una base aislada.
+- `src-tauri/src/secrets.rs` — protección DPAPI de las claves de API en disco.
 - `src-tauri/src/minimax.rs` — parser y cliente MiniMax abstracto (sin red).
 - `src-tauri/src/dixi/evaluation.rs` + `evaluation/tests.rs` — harness WER/CER.
 - `src-tauri/src/release_contract.rs` — invariantes de la compilación de producción.
 
 ### Rust (modificados)
 - `src-tauri/src/autostart.rs` — guardia de estado.
-- `src-tauri/src/shortcut/mod.rs` — ids de prompt sin colisión; comando de contexto.
+- `src-tauri/src/shortcut/mod.rs` — ids de prompt sin colisión; comando de contexto; comando de profundidad.
+- `src-tauri/src/settings.rs` — contexto, provider MiniMax, profundidad, cifrado en el store, migración.
+- `src-tauri/src/managers/transcription.rs` — prompt inicial, vocabulario del diccionario, reglas.
 - `src-tauri/src/settings.rs` — `transcription_context`, provider MiniMax, modelo por defecto.
-- `src-tauri/src/managers/transcription.rs` — prompt inicial, vocabulario del diccionario, reglas de sustitución.
+- `src-tauri/src/managers/transcription.rs` — prompt inicial, vocabulario y reglas.
+- `src-tauri/src/actions.rs` — la profundidad del razonamiento llega al pipeline.
+- `src-tauri/src/llm_client.rs` — rama de MiniMax y sus pruebas con servidor simulado.
 - `src-tauri/src/lib.rs` — registro de módulos, comandos y estado; export de bindings.
 - `src-tauri/src/cli.rs` — `--export-bindings`.
 - `src-tauri/src/commands/mod.rs`, `src-tauri/src/managers/mod.rs`, `src-tauri/src/dixi/mod.rs` — módulos.
@@ -583,6 +662,7 @@ Lo que **no** se renombró, a propósito:
 ### Frontend
 - `src/components/settings/dictionary/**` — sección del diccionario.
 - `src/components/Sidebar.tsx`, `src/components/settings/index.ts` — registro de la sección.
+- `src/components/settings/PostProcessingSettingsApi/usePostProcessProviderState.ts`, `src/components/settings/post-processing/PostProcessingSettings.tsx` — control de la profundidad del razonamiento.
 - `src/i18n/locales/*/translation.json` — 26 locales.
 - `src/stores/settingsStore.ts` — desenmascarado de errores de comando; contexto de transcripción.
 - `src/bindings.ts` — regenerado.
@@ -592,6 +672,10 @@ Lo que **no** se renombró, a propósito:
 - `scripts/split-diff.mjs` — divide el diff de un fichero en hunks y aplica
   un subconjunto; sustituye al `git add -p` interactivo.
 - `docs/validation-phase2b/dataset/dataset.jsonl` — dataset de evaluación.
+- `scripts/measure-phase2b.ps1` — medición en cinco condiciones sobre una instancia aislada.
+- `scripts/add-i18n-key.mjs` + `scripts/translations/*.json` — alta de claves de traducción con su fuente.
+- `docs/validation-phase2b/ACCEPTACION_MANUAL.md` — aceptación manual con voz.
+- `docs/validation-phase2b/performance/informe.md` + muestras `.txt` — consumo de memoria y CPU.
 
 ### Generado
 - `src/bindings.ts` — **regenerado** desde el registro de comandos de Rust

@@ -1,0 +1,158 @@
+﻿{
+    "label":  "1-ventana-abierta",
+    "samples":  [
+                    {
+                        "t":  0.38,
+                        "privateMB":  251.5,
+                        "workingMB":  426.1,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  0.78,
+                        "privateMB":  251.5,
+                        "workingMB":  426.1,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  1.16,
+                        "privateMB":  251.5,
+                        "workingMB":  426.1,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  1.53,
+                        "privateMB":  251.5,
+                        "workingMB":  426.1,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  1.89,
+                        "privateMB":  251.5,
+                        "workingMB":  426.1,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  2.28,
+                        "privateMB":  251.5,
+                        "workingMB":  426.1,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  2.65,
+                        "privateMB":  251.5,
+                        "workingMB":  426.1,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  3.02,
+                        "privateMB":  251.5,
+                        "workingMB":  426.1,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  3.38,
+                        "privateMB":  251.5,
+                        "workingMB":  426.2,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  3.76,
+                        "privateMB":  251.5,
+                        "workingMB":  426.2,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  4.13,
+                        "privateMB":  251.5,
+                        "workingMB":  426.2,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  4.49,
+                        "privateMB":  251.5,
+                        "workingMB":  426.2,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  4.87,
+                        "privateMB":  251.5,
+                        "workingMB":  426.2,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  5.24,
+                        "privateMB":  251.5,
+                        "workingMB":  426.3,
+                        "cpuPct":  8.3,
+                        "processes":  8
+                    },
+                    {
+                        "t":  5.61,
+                        "privateMB":  245.9,
+                        "workingMB":  421.3,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  5.99,
+                        "privateMB":  245.9,
+                        "workingMB":  421.3,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  6.36,
+                        "privateMB":  245.6,
+                        "workingMB":  421.2,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  6.72,
+                        "privateMB":  245.6,
+                        "workingMB":  421.2,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  7.1,
+                        "privateMB":  245.6,
+                        "workingMB":  421.2,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  7.47,
+                        "privateMB":  245.6,
+                        "workingMB":  421.2,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  7.86,
+                        "privateMB":  245.6,
+                        "workingMB":  421.2,
+                        "cpuPct":  0,
+                        "processes":  8
+                    }
+                ],
+    "private_max_mb":  251.5,
+    "private_avg_mb":  249.6,
+    "working_max_mb":  426.3,
+    "cpu_max_pct":  8.3,
+    "cpu_avg_pct":  0.4,
+    "processes_max":  8
+}
