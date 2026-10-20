@@ -1930,6 +1930,36 @@ mod tests {
     use super::*;
 
     #[test]
+    fn the_initial_prompt_is_omitted_when_the_model_cannot_take_one() {
+        assert!(initial_prompt_for_model(false, "contexto", &["Dixi".to_string()]).is_none());
+    }
+
+    #[test]
+    fn the_initial_prompt_carries_the_context_and_the_terms() {
+        let prompt = initial_prompt_for_model(
+            true,
+            "El usuario habla español rioplatense.",
+            &["Dixi".to_string(), "PostgreSQL".to_string()],
+        )
+        .expect("the model accepts a prompt");
+        assert_eq!(
+            prompt,
+            "El usuario habla español rioplatense.\nDixi, PostgreSQL"
+        );
+    }
+
+    #[test]
+    fn the_initial_prompt_is_empty_without_context_and_without_terms() {
+        assert!(initial_prompt_for_model(true, "   ", &[]).is_none());
+    }
+
+    #[test]
+    fn the_initial_prompt_carries_only_the_context_when_there_are_no_terms() {
+        let prompt = initial_prompt_for_model(true, "contexto", &[]).expect("a prompt");
+        assert_eq!(prompt, "contexto");
+    }
+
+    #[test]
     fn the_dictionary_vocabulary_joins_the_custom_words() {
         let merged = merge_vocabulary(
             vec!["Dixi".to_string()],
