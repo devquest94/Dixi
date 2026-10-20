@@ -1609,10 +1609,13 @@ async captureSelection() : Promise<Result<SelectionInfo, string>> {
  * 
  * When the selection changed while the transformation was running, nothing
  * is written: the caller offers to copy the result instead.
+ * 
+ * The control that holds the selection is part of the identity of the
+ * selection: the same text in another control is not the same selection.
  */
-async replaceTextSelection(expectedText: string, expectedWindow: number, newText: string) : Promise<Result<boolean, string>> {
+async replaceTextSelection(expectedText: string, expectedWindow: number, expectedControl: number, newText: string) : Promise<Result<boolean, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("replace_text_selection", { expectedText, expectedWindow, newText }) };
+    return { status: "ok", data: await TAURI_INVOKE("replace_text_selection", { expectedText, expectedWindow, expectedControl, newText }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

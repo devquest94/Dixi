@@ -26,25 +26,42 @@ pub async fn capture_selection() -> Result<SelectionInfo, String> {
 ///
 /// When the selection changed while the transformation was running, nothing
 /// is written: the caller offers to copy the result instead.
+///
+/// The control that holds the selection is part of the identity of the
+/// selection: the same text in another control is not the same selection.
 #[tauri::command]
 #[specta::specta]
 pub async fn replace_text_selection(
     _app: AppHandle,
     expected_text: String,
     expected_window: isize,
+    expected_control: isize,
     new_text: String,
 ) -> Result<bool, String> {
-    let expected = crate::managers::selection::Selection {
-        text: expected_text,
-        window: expected_window,
-        control: 0,
-        app_name: None,
-    };
+    let expected = expected_selection(expected_text, expected_window, expected_control);
 
     match replace_selection(&expected, &new_text) {
         Ok(()) => Ok(true),
         Err(SelectionError::SelectionChanged) => Ok(false),
         Err(error) => Err(describe(error)),
+    }
+}
+
+/// Builds the selection that the caller expects to still be in place.
+///
+/// The control is kept: the same text inside another control is a different
+/// selection, and the check that refuses to write over a selection that
+/// moved compares the control as well.
+fn expected_selection(
+    expected_text: String,
+    expected_window: isize,
+    expected_control: isize,
+) -> crate::managers::selection::Selection {
+    crate::managers::selection::Selection {
+        text: expected_text,
+        window: expected_window,
+        control: expected_control,
+        app_name: None,
     }
 }
 
@@ -75,5 +92,21 @@ fn describe(error: SelectionError) -> String {
             "The selection changed while the transformation was running".to_string()
         }
         SelectionError::Write(detail) => format!("The text could not be written: {detail}"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_expected_selection_keeps_the_control_that_holds_it() {
+        // El control forma parte de la identidad de la seleccion: si se
+        // pierde, la comprobacion que se niega a escribir sobre una
+        // seleccion que ha cambiado nunca puede coincidir.
+        let expected = expected_selection("hola".to_string(), 1234, 5678);
+        assert_eq!(expected.text, "hola");
+        assert_eq!(expected.window, 1234);
+        assert_eq!(expected.control, 5678);
     }
 }
