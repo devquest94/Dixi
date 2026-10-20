@@ -14,6 +14,7 @@
     "models": "Modele",
     "advanced": "Zaawansowane",
     "postProcessing": "Postproces",
+    "dictionary": "Słownik",
     "history": "Historia",
     "debug": "Debugowanie",
     "about": "O programie"
@@ -442,6 +443,103 @@
         "cancel": "Anuluj",
         "selectToEdit": "Wybierz prompt powyżej, aby zobaczyć i edytować jego szczegóły.",
         "createFirst": "Kliknij 'Utwórz nowy prompt' powyżej, aby utworzyć pierwszy prompt postprocessingu."
+      }
+    },
+    "dictionary": {
+      "title": "Osobisty słownik",
+      "description": "Naucz Dixi używane przez Ciebie słowa i to, jak powinny być zapisywane w transkrypcji.",
+      "loadError": "Nie udało się wczytać słownika.",
+      "saveError": "Nie udało się zapisać wpisu słownika.",
+      "deleteError": "Nie udało się usunąć wpisu słownika.",
+      "toggleError": "Nie udało się zaktualizować wpisu słownika.",
+      "added": "Wpis dodany.",
+      "updated": "Wpis zaktualizowany.",
+      "deleted": "Wpis usunięty.",
+      "entries": {
+        "title": "Wpisy",
+        "description": "Terminy poprawiają rozpoznawanie transkrypcji, a podmiany przepisują ją później."
+      },
+      "search": {
+        "label": "Szukaj",
+        "description": "Filtruj wpisy według terminu lub podmiany.",
+        "placeholder": "Szukaj wpisów"
+      },
+      "filter": {
+        "all": "Wszystkie",
+        "terms": "Terminy",
+        "substitutions": "Podmiany"
+      },
+      "empty": "Nie ma jeszcze wpisów. Dodaj poniżej pierwszy termin.",
+      "noMatches": "Żaden wpis nie pasuje do bieżących filtrów.",
+      "entry": {
+        "kind": {
+          "term": "Termin"
+        },
+        "hits": "Użycia: {{count}}",
+        "wholeWord": "Całe słowo",
+        "caseSensitive": "Uwzględnij wielkość liter",
+        "enabled": "Włączone",
+        "enabledDescription": "Włącz lub wyłącz regułę bez jej usuwania.",
+        "edit": "Edytuj wpis",
+        "delete": "Usuń wpis",
+        "deleteTitle": "Usuń wpis słownika",
+        "deleteConfirm": "„{{term}}” zostanie usunięty ze słownika. Chcesz kontynuować?"
+      },
+      "form": {
+        "addTitle": "Dodaj wpis",
+        "description": "Utwórz podpowiedź słownika lub regułę przepisującą transkrypcję.",
+        "editTitle": "Edytuj wpis",
+        "editDescription": "Zmień termin, podmianę lub opcje dopasowania.",
+        "kindLabel": "Typ",
+        "kind": {
+          "term": "Termin (podpowiedź słownika)",
+          "substitution": "Podmiana (znajdź i zamień)"
+        },
+        "kindHint": {
+          "term": "Terminy są przekazywane silnikowi rozpoznawania mowy jako podpowiedź słownika. Transkrypcja nie jest przepisywana.",
+          "substitution": "Podmiany zastępują każde wystąpienie terminu w transkrypcji."
+        },
+        "termLabel": "Termin",
+        "termPlaceholder": "Słowo lub fraza do wykrycia",
+        "termRequired": "Wpisz termin.",
+        "replacementLabel": "Podmiana",
+        "replacementPlaceholder": "Tekst używany w transkrypcji",
+        "replacementRequired": "Podmiany wymagają tekstu zastępczego.",
+        "languageLabel": "Język",
+        "languagePlaceholder": "np. pl",
+        "priorityLabel": "Priorytet",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "Tylko całe słowa",
+        "wholeWordDescription": "Dopasowuje tylko wtedy, gdy termin jest całym słowem.",
+        "caseSensitiveLabel": "Uwzględnij wielkość liter",
+        "caseSensitiveDescription": "Dopasowuje tylko przy identycznej wielkości liter.",
+        "submitAdd": "Dodaj wpis",
+        "submitSave": "Zapisz zmiany",
+        "cancel": "Anuluj"
+      },
+      "preview": {
+        "title": "Podgląd",
+        "description": "Sprawdź, jak włączone reguły zmieniają zdanie.",
+        "inputLabel": "Przykładowy tekst",
+        "inputPlaceholder": "Napisz zdanie, aby przetestować podmiany.",
+        "apply": "Zastosuj reguły",
+        "resultLabel": "Wynik",
+        "hint": "Stosowane są tylko włączone podmiany. Podpowiedzi słownika nie zmieniają tekstu.",
+        "error": "Nie udało się utworzyć podglądu."
+      },
+      "transfer": {
+        "title": "Import i eksport",
+        "description": "Przenieś wpisy słownika na inne urządzenie.",
+        "filesTitle": "Plik słownika",
+        "filesDescription": "Eksport zapisuje plik JSON ze wszystkimi wpisami, a import dodaje wpisy zawarte w pliku.",
+        "export": "Eksportuj",
+        "import": "Importuj",
+        "exportSuccess": "Wyeksportowane wpisy: {{count}}",
+        "importSuccess": "Zaimportowane wpisy: {{count}}",
+        "exportEmpty": "Brak wpisów do wyeksportowania.",
+        "importInvalid": "Plik nie jest prawidłowym eksportem słownika.",
+        "exportError": "Nie udało się wyeksportować słownika.",
+        "importError": "Nie udało się zaimportować słownika."
       }
     },
     "history": {

@@ -14,6 +14,7 @@
     "models": "Models",
     "advanced": "Avançat",
     "postProcessing": "Postprocessament",
+    "dictionary": "Diccionari",
     "history": "Historial",
     "debug": "Depuració",
     "about": "Quant a"
@@ -442,6 +443,103 @@
         "cancel": "Cancel·leu",
         "selectToEdit": "Seleccioneu una indicació more amunt per veure'n i editar-ne els detalls.",
         "createFirst": "Feu clic a «Creeu una indicació nova» més amunt per crear la primera indicació de postprocessament."
+      }
+    },
+    "dictionary": {
+      "title": "Diccionari personal",
+      "description": "Enseña a Dixi les paraules que fas servir i com s'han d'escriure a la transcripció.",
+      "loadError": "No s'ha pogut carregar el diccionari.",
+      "saveError": "No s'ha pogut desar l'entrada del diccionari.",
+      "deleteError": "No s'ha pogut suprimir l'entrada del diccionari.",
+      "toggleError": "No s'ha pogut actualitzar l'entrada del diccionari.",
+      "added": "Entrada afegida.",
+      "updated": "Entrada actualitzada.",
+      "deleted": "Entrada suprimida.",
+      "entries": {
+        "title": "Entrades",
+        "description": "Els termes milloren el reconeixement de la transcripció; les substitucions la reescriuen després."
+      },
+      "search": {
+        "label": "Cerca",
+        "description": "Filtra les entrades per terme o substitució.",
+        "placeholder": "Cerca entrades"
+      },
+      "filter": {
+        "all": "Totes",
+        "terms": "Termes",
+        "substitutions": "Substitucions"
+      },
+      "empty": "Encara no hi ha entrades. Afegeix el teu primer terme a sota.",
+      "noMatches": "Cap entrada coincideix amb els filtres actuals.",
+      "entry": {
+        "kind": {
+          "term": "Terme"
+        },
+        "hits": "Usos: {{count}}",
+        "wholeWord": "Paraula sencera",
+        "caseSensitive": "Distingeix majúscules",
+        "enabled": "Activa",
+        "enabledDescription": "Activa o desactiva la regla sense suprimir-la.",
+        "edit": "Edita l'entrada",
+        "delete": "Suprimeix l'entrada",
+        "deleteTitle": "Suprimeix l'entrada del diccionari",
+        "deleteConfirm": "«{{term}}» se suprimirà del diccionari. Vols continuar?"
+      },
+      "form": {
+        "addTitle": "Afegeix una entrada",
+        "description": "Crea un indici de vocabulari o una regla que reescriu la transcripció.",
+        "editTitle": "Edita l'entrada",
+        "editDescription": "Canvia el terme, la substitució o les opcions de coincidència.",
+        "kindLabel": "Tipus",
+        "kind": {
+          "term": "Terme (indici de vocabulari)",
+          "substitution": "Substitució (cerca i substitueix)"
+        },
+        "kindHint": {
+          "term": "Els termes s'envien al motor de veu com a indici de vocabulari. La transcripció no es reescriu.",
+          "substitution": "Les substitucions substitueixen cada coincidència del terme a la transcripció."
+        },
+        "termLabel": "Terme",
+        "termPlaceholder": "Paraula o frase per detectar",
+        "termRequired": "Introdueix un terme.",
+        "replacementLabel": "Substitució",
+        "replacementPlaceholder": "Text utilitzat a la transcripció",
+        "replacementRequired": "Les substitucions necessiten un text de substitució.",
+        "languageLabel": "Idioma",
+        "languagePlaceholder": "p. ex. ca",
+        "priorityLabel": "Prioritat",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "Només paraules senceres",
+        "wholeWordDescription": "Coincideix només quan el terme és una paraula sencera.",
+        "caseSensitiveLabel": "Distingeix majúscules",
+        "caseSensitiveDescription": "Coincideix només amb el mateix ús de majúscules.",
+        "submitAdd": "Afegeix l'entrada",
+        "submitSave": "Desa els canvis",
+        "cancel": "Cancel·la"
+      },
+      "preview": {
+        "title": "Previsualització",
+        "description": "Comprova com les regles actives canvien una frase.",
+        "inputLabel": "Text d'exemple",
+        "inputPlaceholder": "Escriu una frase per provar les substitucions.",
+        "apply": "Aplica les regles",
+        "resultLabel": "Resultat",
+        "hint": "Només s'apliquen les substitucions actives. Els indicis de vocabulari no canvien el text.",
+        "error": "No s'ha pogut generar la previsualització."
+      },
+      "transfer": {
+        "title": "Importa i exporta",
+        "description": "Porta les entrades del diccionari a un altre dispositiu.",
+        "filesTitle": "Fitxer del diccionari",
+        "filesDescription": "Exporta escriu un fitxer JSON amb totes les entrades; importa afegeix les entrades que conté un fitxer.",
+        "export": "Exporta",
+        "import": "Importa",
+        "exportSuccess": "Entrades exportades: {{count}}",
+        "importSuccess": "Entrades importades: {{count}}",
+        "exportEmpty": "No hi ha entrades per exportar.",
+        "importInvalid": "El fitxer no és una exportació vàlida del diccionari.",
+        "exportError": "No s'ha pogut exportar el diccionari.",
+        "importError": "No s'ha pogut importar el diccionari."
       }
     },
     "history": {

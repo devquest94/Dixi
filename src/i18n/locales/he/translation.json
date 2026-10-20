@@ -14,6 +14,7 @@
     "models": "מודלים",
     "advanced": "מתקדם",
     "postProcessing": "עיבוד משלים",
+    "dictionary": "מילון",
     "history": "היסטוריה",
     "debug": "ניפוי שגיאות",
     "about": "אודות"
@@ -442,6 +443,103 @@
         "cancel": "ביטול",
         "selectToEdit": "בחר פרומפט למעלה כדי לצפות בפרטים שלו ולערוך אותם.",
         "createFirst": "לחץ על 'צור פרומפט חדש' למעלה כדי ליצור את פרומפט העיבוד הראשון שלך."
+      }
+    },
+    "dictionary": {
+      "title": "מילון אישי",
+      "description": "למד את Dixi את המילים שאתה משתמש בהן וכיצד הן אמורות להירשם בתמלול.",
+      "loadError": "לא ניתן היה לטעון את המילון.",
+      "saveError": "לא ניתן היה לשמור את רשומת המילון.",
+      "deleteError": "לא ניתן היה למחוק את רשומת המילון.",
+      "toggleError": "לא ניתן היה לעדכן את רשומת המילון.",
+      "added": "הרשומה נוספה.",
+      "updated": "הרשומה עודכנה.",
+      "deleted": "הרשומה נמחקה.",
+      "entries": {
+        "title": "רשומות",
+        "description": "מונחים משפרים את זיהוי התמלול; החלפות משכתבות אותו לאחר מכן."
+      },
+      "search": {
+        "label": "חיפוש",
+        "description": "סנן את הרשומות לפי מונח או החלפה.",
+        "placeholder": "חיפוש רשומות"
+      },
+      "filter": {
+        "all": "הכול",
+        "terms": "מונחים",
+        "substitutions": "החלפות"
+      },
+      "empty": "אין עדיין רשומות. הוסיפו את המונח הראשון למטה.",
+      "noMatches": "אין רשומות שתואמות את המסננים הנוכחיים.",
+      "entry": {
+        "kind": {
+          "term": "מונח"
+        },
+        "hits": "שימושים: {{count}}",
+        "wholeWord": "מילה שלמה",
+        "caseSensitive": "רגיש לאותיות גדולות",
+        "enabled": "פעיל",
+        "enabledDescription": "הפעילו או השביתו את הכלל בלי למחוק אותו.",
+        "edit": "עריכת רשומה",
+        "delete": "מחיקת רשומה",
+        "deleteTitle": "מחיקת רשומת מילון",
+        "deleteConfirm": "‏\"{{term}}\" יוסר מהמילון. להמשיך?"
+      },
+      "form": {
+        "addTitle": "הוספת רשומה",
+        "description": "צרו רמז מילון או כלל שמשכתב את התמלול.",
+        "editTitle": "עריכת רשומה",
+        "editDescription": "שנו את המונח, את ההחלפה או את אפשרויות ההתאמה.",
+        "kindLabel": "סוג",
+        "kind": {
+          "term": "מונח (רמז מילון)",
+          "substitution": "החלפה (איתור והחלפה)"
+        },
+        "kindHint": {
+          "term": "מונחים נשלחים למנוע הדיבור כרמז מילון. התמלול אינו משכתב.",
+          "substitution": "החלפות מחליפות כל מופע של המונח בתמלול."
+        },
+        "termLabel": "מונח",
+        "termPlaceholder": "מילה או ביטוי לזיהוי",
+        "termRequired": "הזינו מונח.",
+        "replacementLabel": "החלפה",
+        "replacementPlaceholder": "טקסט שיופיע בתמלול",
+        "replacementRequired": "החלפות דורשות טקסט חלופי.",
+        "languageLabel": "שפה",
+        "languagePlaceholder": "לדוגמה he",
+        "priorityLabel": "עדיפות",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "מילים שלמות בלבד",
+        "wholeWordDescription": "מתאים רק כאשר המונח הוא מילה שלמה.",
+        "caseSensitiveLabel": "רגיש לאותיות גדולות",
+        "caseSensitiveDescription": "מתאים רק באותיות גדולות זהות.",
+        "submitAdd": "הוספת רשומה",
+        "submitSave": "שמירת השינויים",
+        "cancel": "ביטול"
+      },
+      "preview": {
+        "title": "תצוגה מקדימה",
+        "description": "בדקו כיצד הכללים הפעילים משנים משפט.",
+        "inputLabel": "טקסט לדוגמה",
+        "inputPlaceholder": "כתבו משפט כדי לבדוק את ההחלפות.",
+        "apply": "החלת הכללים",
+        "resultLabel": "תוצאה",
+        "hint": "רק ההחלפות הפעילות מוחלות. רמזי מילון אינם משנים את הטקסט.",
+        "error": "לא ניתן היה ליצור את התצוגה המקדימה."
+      },
+      "transfer": {
+        "title": "ייבוא וייצוא",
+        "description": "העבירו את רשומות המילון למכשיר אחר.",
+        "filesTitle": "קובץ המילון",
+        "filesDescription": "הייצוא כותב קובץ JSON עם כל הרשומות; הייבוא מוסיף את הרשומות שבקובץ.",
+        "export": "ייצוא",
+        "import": "ייבוא",
+        "exportSuccess": "רשומות שיוצאו: {{count}}",
+        "importSuccess": "רשומות שיובאו: {{count}}",
+        "exportEmpty": "אין רשומות לייצוא.",
+        "importInvalid": "הקובץ אינו ייצוא תקין של המילון.",
+        "exportError": "לא ניתן היה לייצא את המילון.",
+        "importError": "לא ניתן היה לייבא את המילון."
       }
     },
     "history": {

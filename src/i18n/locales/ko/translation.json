@@ -14,6 +14,7 @@
     "models": "모델",
     "advanced": "고급",
     "postProcessing": "후처리",
+    "dictionary": "사전",
     "history": "히스토리",
     "debug": "디버그",
     "about": "정보"
@@ -442,6 +443,103 @@
         "cancel": "취소",
         "selectToEdit": "세부 정보를 보고 편집하려면 위에서 프롬프트를 선택하세요.",
         "createFirst": "첫 번째 후처리 프롬프트를 만들려면 위의 '새 프롬프트 만들기'를 클릭하세요."
+      }
+    },
+    "dictionary": {
+      "title": "개인 사전",
+      "description": "자주 쓰는 단어와 옮겨 적을 때의 표기법을 Dixi에게 알려주세요.",
+      "loadError": "사전을 불러오지 못했습니다.",
+      "saveError": "사전 항목을 저장하지 못했습니다.",
+      "deleteError": "사전 항목을 삭제하지 못했습니다.",
+      "toggleError": "사전 항목을 업데이트하지 못했습니다.",
+      "added": "항목을 추가했습니다.",
+      "updated": "항목을 업데이트했습니다.",
+      "deleted": "항목을 삭제했습니다.",
+      "entries": {
+        "title": "항목",
+        "description": "용어는 음성 인식 정확도를 높이고, 치환 규칙은 옮겨 적을 내용을 다시 씁니다."
+      },
+      "search": {
+        "label": "검색",
+        "description": "용어 또는 치환 문자열로 항목을 거릅니다.",
+        "placeholder": "항목 검색"
+      },
+      "filter": {
+        "all": "전체",
+        "terms": "용어",
+        "substitutions": "치환"
+      },
+      "empty": "아직 항목이 없습니다. 아래에서 첫 용어를 추가하세요.",
+      "noMatches": "현재 필터와 일치하는 항목이 없습니다.",
+      "entry": {
+        "kind": {
+          "term": "용어"
+        },
+        "hits": "사용 횟수: {{count}}",
+        "wholeWord": "단어 단위",
+        "caseSensitive": "대소문자 구분",
+        "enabled": "사용 중",
+        "enabledDescription": "삭제하지 않고 규칙을 켜고 끕니다.",
+        "edit": "항목 편집",
+        "delete": "항목 삭제",
+        "deleteTitle": "사전 항목 삭제",
+        "deleteConfirm": "\"{{term}}\"을(를) 사전에서 삭제합니다. 계속하시겠습니까?"
+      },
+      "form": {
+        "addTitle": "항목 추가",
+        "description": "어휘 힌트나 옮겨 적을 내용을 다시 쓰는 규칙을 만드세요.",
+        "editTitle": "항목 편집",
+        "editDescription": "용어, 치환 문자열, 일치 조건을 바꾸세요.",
+        "kindLabel": "유형",
+        "kind": {
+          "term": "용어(어휘 힌트)",
+          "substitution": "치환(찾아서 바꾸기)"
+        },
+        "kindHint": {
+          "term": "용어는 어휘 힌트로 음성 인식 엔진에 전달되며, 옮겨 적을 내용은 다시 쓰이지 않습니다.",
+          "substitution": "치환은 옮겨 적을 내용에 나타나는 용어를 모두 바꿉니다."
+        },
+        "termLabel": "용어",
+        "termPlaceholder": "인식할 단어나 구",
+        "termRequired": "용어를 입력하세요.",
+        "replacementLabel": "치환 문자열",
+        "replacementPlaceholder": "옮겨 적을 때 사용할 문자열",
+        "replacementRequired": "치환에는 치환 문자열이 필요합니다.",
+        "languageLabel": "언어",
+        "languagePlaceholder": "예: ko",
+        "priorityLabel": "우선순위",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "완전한 단어만",
+        "wholeWordDescription": "용어가 완전한 단어일 때만 일치합니다.",
+        "caseSensitiveLabel": "대소문자 구분",
+        "caseSensitiveDescription": "표기가 완전히 같을 때만 일치합니다.",
+        "submitAdd": "항목 추가",
+        "submitSave": "변경 사항 저장",
+        "cancel": "취소"
+      },
+      "preview": {
+        "title": "미리보기",
+        "description": "사용 중인 규칙이 문장을 어떻게 바꾸는지 확인하세요.",
+        "inputLabel": "예시 문장",
+        "inputPlaceholder": "치환을 테스트할 문장을 입력하세요.",
+        "apply": "규칙 적용",
+        "resultLabel": "결과",
+        "hint": "사용 중인 치환만 적용됩니다. 어휘 힌트는 텍스트를 바꾸지 않습니다.",
+        "error": "미리보기를 만들지 못했습니다."
+      },
+      "transfer": {
+        "title": "가져오기 및 내보내기",
+        "description": "사전 항목을 다른 기기로 옮기세요.",
+        "filesTitle": "사전 파일",
+        "filesDescription": "내보내기는 모든 항목이 담긴 JSON 파일을 만들고, 가져오기는 파일에 있는 항목을 추가합니다.",
+        "export": "내보내기",
+        "import": "가져오기",
+        "exportSuccess": "내보낸 항목: {{count}}",
+        "importSuccess": "가져온 항목: {{count}}",
+        "exportEmpty": "내보낼 항목이 없습니다.",
+        "importInvalid": "유효한 사전 내보내기 파일이 아닙니다.",
+        "exportError": "사전을 내보내지 못했습니다.",
+        "importError": "사전을 가져오지 못했습니다."
       }
     },
     "history": {

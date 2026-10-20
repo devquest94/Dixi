@@ -14,6 +14,7 @@
     "models": "Model",
     "advanced": "Lanjutan",
     "postProcessing": "Pascaproses",
+    "dictionary": "Kamusus",
     "history": "Riwayat",
     "debug": "Debug",
     "about": "Tentang"
@@ -442,6 +443,103 @@
         "cancel": "Batal",
         "selectToEdit": "Pilih prompt di atas untuk melihat dan mengedit detailnya.",
         "createFirst": "Klik 'Buat Prompt Baru' di atas untuk membuat prompt pascaproses pertama Anda."
+      }
+    },
+    "dictionary": {
+      "title": "Kamusus pribadi",
+      "description": "Ajarkan Dixi kata-kata yang Anda gunakan dan cara seharusnya ditulis dalam transkrip.",
+      "loadError": "Kamusus tidak dapat dimuat.",
+      "saveError": "Entri kamus tidak dapat disimpan.",
+      "deleteError": "Entri kamus tidak dapat dihapus.",
+      "toggleError": "Entri kamus tidak dapat diperbarui.",
+      "added": "Entri ditambahkan.",
+      "updated": "Entri diperbarui.",
+      "deleted": "Entri dihapus.",
+      "entries": {
+        "title": "Entri",
+        "description": "Istilah membantu pengenalan transkrip; penggantian menulis ulang transkrip setelahnya."
+      },
+      "search": {
+        "label": "Cari",
+        "description": "Saring entri berdasarkan istilah atau penggantian.",
+        "placeholder": "Cari entri"
+      },
+      "filter": {
+        "all": "Semua",
+        "terms": "Istilah",
+        "substitutions": "Penggantian"
+      },
+      "empty": "Belum ada entri. Tambahkan istilah pertama Anda di bawah.",
+      "noMatches": "Tidak ada entri yang cocok dengan filter saat ini.",
+      "entry": {
+        "kind": {
+          "term": "Istilah"
+        },
+        "hits": "Penggunaan: {{count}}",
+        "wholeWord": "Kata utuh",
+        "caseSensitive": "Peka huruf besar-kecil",
+        "enabled": "Aktif",
+        "enabledDescription": "Aktifkan atau nonaktifkan aturan tanpa menghapusnya.",
+        "edit": "Ubah entri",
+        "delete": "Hapus entri",
+        "deleteTitle": "Hapus entri kamusus",
+        "deleteConfirm": "\"{{term}}\" akan dihapus dari kamusus. Lanjutkan?"
+      },
+      "form": {
+        "addTitle": "Tambah entri",
+        "description": "Buat petunjuk kosakata atau aturan yang menulis ulang transkrip.",
+        "editTitle": "Ubah entri",
+        "editDescription": "Ubah istilah, penggantian, atau opsi pencocokan.",
+        "kindLabel": "Jenis",
+        "kind": {
+          "term": "Istilah (petunjuk kosakata)",
+          "substitution": "Penggantian (cari dan ganti)"
+        },
+        "kindHint": {
+          "term": "Istilah dikirim ke mesin suara sebagai petunjuk kosakata. Transkrip tidak ditulis ulang.",
+          "substitution": "Penggantian mengganti setiap kemunculan istilah dalam transkrip."
+        },
+        "termLabel": "Istilah",
+        "termPlaceholder": "Kata atau frasa yang dideteksi",
+        "termRequired": "Masukkan istilah.",
+        "replacementLabel": "Penggantian",
+        "replacementPlaceholder": "Teks yang dipakai pada transkrip",
+        "replacementRequired": "Penggantian memerlukan teks pengganti.",
+        "languageLabel": "Bahasa",
+        "languagePlaceholder": "mis. id",
+        "priorityLabel": "Prioritas",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "Hanya kata utuh",
+        "wholeWordDescription": "Hanya cocok jika istilah merupakan kata utuh.",
+        "caseSensitiveLabel": "Peka huruf besar-kecil",
+        "caseSensitiveDescription": "Hanya cocok dengan huruf besar-kecil yang sama persis.",
+        "submitAdd": "Tambah entri",
+        "submitSave": "Simpan perubahan",
+        "cancel": "Batal"
+      },
+      "preview": {
+        "title": "Pratinjau",
+        "description": "Periksa bagaimana aturan aktif mengubah sebuah kalimat.",
+        "inputLabel": "Teks contoh",
+        "inputPlaceholder": "Tulis kalimat untuk menguji penggantian.",
+        "apply": "Terapkan aturan",
+        "resultLabel": "Hasil",
+        "hint": "Hanya penggantian aktif yang diterapkan. Petunjuk kosakata tidak mengubah teks.",
+        "error": "Pratinjau tidak dapat dibuat."
+      },
+      "transfer": {
+        "title": "Impor dan ekspor",
+        "description": "Pindahkan entri kamusus ke perangkat lain.",
+        "filesTitle": "Berkas kamusus",
+        "filesDescription": "Ekspor menulis berkas JSON berisi seluruh entri; impor menambahkan entri yang ada dalam berkas.",
+        "export": "Ekspor",
+        "import": "Impor",
+        "exportSuccess": "Entri diekspor: {{count}}",
+        "importSuccess": "Entri diimpor: {{count}}",
+        "exportEmpty": "Tidak ada entri untuk diekspor.",
+        "importInvalid": "Berkas bukan ekspor kamusus yang valid.",
+        "exportError": "Kamusus tidak dapat diekspor.",
+        "importError": "Kamusus tidak dapat diimpor."
       }
     },
     "history": {

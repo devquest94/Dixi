@@ -14,6 +14,7 @@
     "models": "Modelli",
     "advanced": "Avanzate",
     "postProcessing": "Post-Elaborazione",
+    "dictionary": "Dizionario",
     "history": "Cronologia",
     "debug": "Debug",
     "about": "Informazioni"
@@ -442,6 +443,103 @@
         "cancel": "Annulla",
         "selectToEdit": "Scegli un prompt qui sopra per visualizzare o modificare i dettagli.",
         "createFirst": "Clicca 'Crea un nuovo prompt' qui sopra per creare il tuo primo prompt di post-elaborazione."
+      }
+    },
+    "dictionary": {
+      "title": "Dizionario personale",
+      "description": "Insegna a Dixi le parole che usi e come devono essere scritte nella trascrizione.",
+      "loadError": "Impossibile caricare il dizionario.",
+      "saveError": "Impossibile salvare la voce del dizionario.",
+      "deleteError": "Impossibile eliminare la voce del dizionario.",
+      "toggleError": "Impossibile aggiornare la voce del dizionario.",
+      "added": "Voce aggiunta.",
+      "updated": "Voce aggiornata.",
+      "deleted": "Voce eliminata.",
+      "entries": {
+        "title": "Voci",
+        "description": "I termini migliorano il riconoscimento della trascrizione; le sostituzioni la riscrivono in seguito."
+      },
+      "search": {
+        "label": "Cerca",
+        "description": "Filtra le voci per termine o sostituzione.",
+        "placeholder": "Cerca voci"
+      },
+      "filter": {
+        "all": "Tutte",
+        "terms": "Termini",
+        "substitutions": "Sostituzioni"
+      },
+      "empty": "Ancora nessuna voce. Aggiungi il primo termine qui sotto.",
+      "noMatches": "Nessuna voce corrisponde ai filtri attuali.",
+      "entry": {
+        "kind": {
+          "term": "Termine"
+        },
+        "hits": "Utilizzi: {{count}}",
+        "wholeWord": "Parola intera",
+        "caseSensitive": "Maiuscole/minuscole",
+        "enabled": "Attiva",
+        "enabledDescription": "Attiva o disattiva la regola senza eliminarla.",
+        "edit": "Modifica voce",
+        "delete": "Elimina voce",
+        "deleteTitle": "Elimina voce del dizionario",
+        "deleteConfirm": "«{{term}}» verrà rimossa dal dizionario. Vuoi continuare?"
+      },
+      "form": {
+        "addTitle": "Aggiungi voce",
+        "description": "Crea un suggerimento di vocabolario o una regola che riscrive la trascrizione.",
+        "editTitle": "Modifica voce",
+        "editDescription": "Cambia il termine, la sostituzione o le opzioni di corrispondenza.",
+        "kindLabel": "Tipo",
+        "kind": {
+          "term": "Termine (suggerimento di vocabolario)",
+          "substitution": "Sostituzione (trova e sostituisci)"
+        },
+        "kindHint": {
+          "term": "I termini vengono inviati al motore vocale come suggerimento di vocabolario. La trascrizione non viene riscritta.",
+          "substitution": "Le sostituzioni sostituiscono ogni occorrenza del termine nella trascrizione."
+        },
+        "termLabel": "Termine",
+        "termPlaceholder": "Parola o frase da rilevare",
+        "termRequired": "Inserisci un termine.",
+        "replacementLabel": "Sostituzione",
+        "replacementPlaceholder": "Testo usato nella trascrizione",
+        "replacementRequired": "Le sostituzioni richiedono un testo sostitutivo.",
+        "languageLabel": "Lingua",
+        "languagePlaceholder": "es. it",
+        "priorityLabel": "Priorità",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "Solo parole intere",
+        "wholeWordDescription": "Corrisponde solo quando il termine è una parola intera.",
+        "caseSensitiveLabel": "Maiuscole/minuscole",
+        "caseSensitiveDescription": "Corrisponde solo con lo stesso uso di maiuscole e minuscole.",
+        "submitAdd": "Aggiungi voce",
+        "submitSave": "Salva le modifiche",
+        "cancel": "Annulla"
+      },
+      "preview": {
+        "title": "Anteprima",
+        "description": "Verifica come le regole attive modificano una frase.",
+        "inputLabel": "Testo di esempio",
+        "inputPlaceholder": "Scrivi una frase per testare le sostituzioni.",
+        "apply": "Applica le regole",
+        "resultLabel": "Risultato",
+        "hint": "Vengono applicate solo le sostituzioni attive. I suggerimenti di vocabolario non modificano il testo.",
+        "error": "Impossibile generare l'anteprima."
+      },
+      "transfer": {
+        "title": "Importa ed esporta",
+        "description": "Sposta le voci del dizionario su un altro dispositivo.",
+        "filesTitle": "File del dizionario",
+        "filesDescription": "L'esportazione scrive un file JSON con tutte le voci; l'importazione aggiunge le voci contenute in un file.",
+        "export": "Esporta",
+        "import": "Importa",
+        "exportSuccess": "Voci esportate: {{count}}",
+        "importSuccess": "Voci importate: {{count}}",
+        "exportEmpty": "Non ci sono voci da esportare.",
+        "importInvalid": "Il file non è un'esportazione valida del dizionario.",
+        "exportError": "Impossibile esportare il dizionario.",
+        "importError": "Impossibile importare il dizionario."
       }
     },
     "history": {

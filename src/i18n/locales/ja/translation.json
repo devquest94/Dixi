@@ -14,6 +14,7 @@
     "models": "モデル",
     "advanced": "詳細設定",
     "postProcessing": "後処理",
+    "dictionary": "辞書",
     "history": "履歴",
     "debug": "デバッグ",
     "about": "概要"
@@ -442,6 +443,103 @@
         "cancel": "キャンセル",
         "selectToEdit": "上からプロンプトを選択して、詳細を表示・編集します。",
         "createFirst": "上の「新しいプロンプトを作成」をクリックして、最初の後処理プロンプトを作成してください。"
+      }
+    },
+    "dictionary": {
+      "title": "個人辞書",
+      "description": "よく使う語句と、書き起こしでどう表記するかを Dixi に教えます。",
+      "loadError": "辞書を読み込めませんでした。",
+      "saveError": "辞書の項目を保存できませんでした。",
+      "deleteError": "辞書の項目を削除できませんでした。",
+      "toggleError": "辞書の項目を更新できませんでした。",
+      "added": "項目を追加しました。",
+      "updated": "項目を更新しました。",
+      "deleted": "項目を削除しました。",
+      "entries": {
+        "title": "項目",
+        "description": "用語は書き起こしの認識精度を高め、置換ルールは後から書き起こしを書き換えます。"
+      },
+      "search": {
+        "label": "検索",
+        "description": "用語または置換文字列で項目を絞り込みます。",
+        "placeholder": "項目を検索"
+      },
+      "filter": {
+        "all": "すべて",
+        "terms": "用語",
+        "substitutions": "置換"
+      },
+      "empty": "まだ項目がありません。下から最初の用語を追加してください。",
+      "noMatches": "現在のフィルターに一致する項目はありません。",
+      "entry": {
+        "kind": {
+          "term": "用語"
+        },
+        "hits": "使用回数: {{count}}",
+        "wholeWord": "単語単位",
+        "caseSensitive": "大文字と小文字を区別",
+        "enabled": "有効",
+        "enabledDescription": "削除せずにルールの有効・無効を切り替えます。",
+        "edit": "項目を編集",
+        "delete": "項目を削除",
+        "deleteTitle": "辞書の項目を削除",
+        "deleteConfirm": "「{{term}}」を辞書から削除します。続行しますか？"
+      },
+      "form": {
+        "addTitle": "項目を追加",
+        "description": "語彙のヒント、または書き起こしを書き換えるルールを作成します。",
+        "editTitle": "項目を編集",
+        "editDescription": "用語、置換文字列、マッチ条件を変更します。",
+        "kindLabel": "種類",
+        "kind": {
+          "term": "用語（語彙ヒント）",
+          "substitution": "置換（検索して置換）"
+        },
+        "kindHint": {
+          "term": "用語は語彙ヒントとして音声認識エンジンに渡されます。書き起こし自体は書き換えられません。",
+          "substitution": "置換は書き起こし中の用語をすべて置き換えます。"
+        },
+        "termLabel": "用語",
+        "termPlaceholder": "検出する単語やフレーズ",
+        "termRequired": "用語を入力してください。",
+        "replacementLabel": "置換文字列",
+        "replacementPlaceholder": "書き起こしで使う文字列",
+        "replacementRequired": "置換には置換文字列が必要です。",
+        "languageLabel": "言語",
+        "languagePlaceholder": "例: ja",
+        "priorityLabel": "優先度",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "単語単位のみ",
+        "wholeWordDescription": "用語が単語として独立している場合だけ一致します。",
+        "caseSensitiveLabel": "大文字と小文字を区別",
+        "caseSensitiveDescription": "表記が完全に一致するときだけ一致します。",
+        "submitAdd": "項目を追加",
+        "submitSave": "変更を保存",
+        "cancel": "キャンセル"
+      },
+      "preview": {
+        "title": "プレビュー",
+        "description": "有効なルールが文をどう変えるか確認できます。",
+        "inputLabel": "サンプルテキスト",
+        "inputPlaceholder": "置換を試す文を入力してください。",
+        "apply": "ルールを適用",
+        "resultLabel": "結果",
+        "hint": "適用されるのは有効な置換のみです。語彙ヒントはテキストを変更しません。",
+        "error": "プレビューを生成できませんでした。"
+      },
+      "transfer": {
+        "title": "インポートとエクスポート",
+        "description": "辞書の項目を別のデバイスへ移します。",
+        "filesTitle": "辞書ファイル",
+        "filesDescription": "エクスポートはすべての項目を含む JSON ファイルを書き出し、インポートはファイル内の項目を追加します。",
+        "export": "エクスポート",
+        "import": "インポート",
+        "exportSuccess": "エクスポートした項目: {{count}}",
+        "importSuccess": "インポートした項目: {{count}}",
+        "exportEmpty": "エクスポートできる項目がありません。",
+        "importInvalid": "このファイルは有効な辞書のエクスポートではありません。",
+        "exportError": "辞書をエクスポートできませんでした。",
+        "importError": "辞書をインポートできませんでした。"
       }
     },
     "history": {

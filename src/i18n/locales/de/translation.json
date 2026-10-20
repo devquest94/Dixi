@@ -14,6 +14,7 @@
     "models": "Modelle",
     "advanced": "Erweitert",
     "postProcessing": "Nachbearbeitung",
+    "dictionary": "Wörterbuch",
     "history": "Verlauf",
     "debug": "Debug",
     "about": "Info"
@@ -442,6 +443,103 @@
         "cancel": "Abbrechen",
         "selectToEdit": "Wähle oben einen Prompt aus, um dessen Details anzuzeigen und zu bearbeiten.",
         "createFirst": "Klicke oben auf 'Neuen Prompt erstellen', um deinen ersten Nachbearbeitungs-Prompt zu erstellen."
+      }
+    },
+    "dictionary": {
+      "title": "Persönliches Wörterbuch",
+      "description": "Bringe Dixi bei, welche Wörter du verwendest und wie sie im Transkript geschrieben werden sollen.",
+      "loadError": "Das Wörterbuch konnte nicht geladen werden.",
+      "saveError": "Der Wörterbucheintrag konnte nicht gespeichert werden.",
+      "deleteError": "Der Wörterbucheintrag konnte nicht gelöscht werden.",
+      "toggleError": "Der Wörterbucheintrag konnte nicht aktualisiert werden.",
+      "added": "Eintrag hinzugefügt.",
+      "updated": "Eintrag aktualisiert.",
+      "deleted": "Eintrag gelöscht.",
+      "entries": {
+        "title": "Einträge",
+        "description": "Begriffe verbessern die Erkennung des Transkripts; Ersetzungen schreiben es danach um."
+      },
+      "search": {
+        "label": "Suchen",
+        "description": "Filtere die Einträge nach Begriff oder Ersetzung.",
+        "placeholder": "Einträge suchen"
+      },
+      "filter": {
+        "all": "Alle",
+        "terms": "Begriffe",
+        "substitutions": "Ersetzungen"
+      },
+      "empty": "Noch keine Einträge. Füge unten deinen ersten Begriff hinzu.",
+      "noMatches": "Keine Einträge entsprechen den aktuellen Filtern.",
+      "entry": {
+        "kind": {
+          "term": "Begriff"
+        },
+        "hits": "Verwendungen: {{count}}",
+        "wholeWord": "Ganzes Wort",
+        "caseSensitive": "Groß-/Kleinschreibung",
+        "enabled": "Aktiv",
+        "enabledDescription": "Schalte die Regel ein oder aus, ohne sie zu löschen.",
+        "edit": "Eintrag bearbeiten",
+        "delete": "Eintrag löschen",
+        "deleteTitle": "Wörterbucheintrag löschen",
+        "deleteConfirm": "„{{term}}“ wird aus dem Wörterbuch entfernt. Möchtest du fortfahren?"
+      },
+      "form": {
+        "addTitle": "Eintrag hinzufügen",
+        "description": "Erstelle einen Vokabelhinweis oder eine Regel, die das Transkript umschreibt.",
+        "editTitle": "Eintrag bearbeiten",
+        "editDescription": "Ändere den Begriff, die Ersetzung oder die Suchoptionen.",
+        "kindLabel": "Typ",
+        "kind": {
+          "term": "Begriff (Vokabelhinweis)",
+          "substitution": "Ersetzung (Suchen und Ersetzen)"
+        },
+        "kindHint": {
+          "term": "Begriffe werden der Sprachengine als Vokabelhinweis übergeben. Das Transkript wird nicht umgeschrieben.",
+          "substitution": "Ersetzungen ersetzen jede Übereinstimmung des Begriffs im Transkript."
+        },
+        "termLabel": "Begriff",
+        "termPlaceholder": "Wort oder Ausdruck, der erkannt werden soll",
+        "termRequired": "Gib einen Begriff ein.",
+        "replacementLabel": "Ersetzung",
+        "replacementPlaceholder": "Text, der im Transkript verwendet wird",
+        "replacementRequired": "Ersetzungen benötigen einen Ersetzungstext.",
+        "languageLabel": "Sprache",
+        "languagePlaceholder": "z. B. de",
+        "priorityLabel": "Priorität",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "Nur ganze Wörter",
+        "wholeWordDescription": "Trifft nur zu, wenn der Begriff ein vollständiges Wort ist.",
+        "caseSensitiveLabel": "Groß-/Kleinschreibung beachten",
+        "caseSensitiveDescription": "Trifft nur bei gleicher Schreibweise zu.",
+        "submitAdd": "Eintrag hinzufügen",
+        "submitSave": "Änderungen speichern",
+        "cancel": "Abbrechen"
+      },
+      "preview": {
+        "title": "Vorschau",
+        "description": "Prüfe, wie die aktiven Regeln einen Satz verändern.",
+        "inputLabel": "Beispieltext",
+        "inputPlaceholder": "Schreibe einen Satz, um die Ersetzungen zu testen.",
+        "apply": "Regeln anwenden",
+        "resultLabel": "Ergebnis",
+        "hint": "Es werden nur aktive Ersetzungen angewendet. Vokabelhinweise ändern den Text nicht.",
+        "error": "Die Vorschau konnte nicht erzeugt werden."
+      },
+      "transfer": {
+        "title": "Import und Export",
+        "description": "Übertrage deine Wörterbucheinträge auf ein anderes Gerät.",
+        "filesTitle": "Wörterbuchdatei",
+        "filesDescription": "Der Export schreibt eine JSON-Datei mit allen Einträgen; der Import fügt die Einträge einer Datei hinzu.",
+        "export": "Exportieren",
+        "import": "Importieren",
+        "exportSuccess": "Exportierte Einträge: {{count}}",
+        "importSuccess": "Importierte Einträge: {{count}}",
+        "exportEmpty": "Es gibt keine Einträge zum Exportieren.",
+        "importInvalid": "Die Datei ist kein gültiger Wörterbuch-Export.",
+        "exportError": "Das Wörterbuch konnte nicht exportiert werden.",
+        "importError": "Das Wörterbuch konnte nicht importiert werden."
       }
     },
     "history": {

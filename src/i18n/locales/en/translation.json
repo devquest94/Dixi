@@ -14,6 +14,7 @@
     "models": "Models",
     "advanced": "Advanced",
     "postProcessing": "Post Process",
+    "dictionary": "Dictionary",
     "history": "History",
     "debug": "Debug",
     "about": "About"
@@ -442,6 +443,103 @@
         "cancel": "Cancel",
         "selectToEdit": "Select a prompt above to view and edit its details.",
         "createFirst": "Click 'Create New Prompt' above to create your first post-processing prompt."
+      }
+    },
+    "dictionary": {
+      "title": "Personal Dictionary",
+      "description": "Teach Dixi the words you use and how they should be written in the transcript.",
+      "loadError": "The dictionary could not be loaded.",
+      "saveError": "The dictionary entry could not be saved.",
+      "deleteError": "The dictionary entry could not be deleted.",
+      "toggleError": "The dictionary entry could not be updated.",
+      "added": "Entry added.",
+      "updated": "Entry updated.",
+      "deleted": "Entry deleted.",
+      "entries": {
+        "title": "Entries",
+        "description": "Terms improve how the transcript is recognized; substitutions rewrite it afterwards."
+      },
+      "search": {
+        "label": "Search",
+        "description": "Filter the entries by term or replacement.",
+        "placeholder": "Search entries"
+      },
+      "filter": {
+        "all": "All",
+        "terms": "Terms",
+        "substitutions": "Substitutions"
+      },
+      "empty": "No entries yet. Add your first term below.",
+      "noMatches": "No entries match the current filters.",
+      "entry": {
+        "kind": {
+          "term": "Term"
+        },
+        "hits": "Uses: {{count}}",
+        "wholeWord": "Whole word",
+        "caseSensitive": "Case sensitive",
+        "enabled": "Enabled",
+        "enabledDescription": "Turn the rule on or off without deleting it.",
+        "edit": "Edit entry",
+        "delete": "Delete entry",
+        "deleteTitle": "Delete dictionary entry",
+        "deleteConfirm": "\"{{term}}\" will be removed from the dictionary. Do you want to continue?"
+      },
+      "form": {
+        "addTitle": "Add entry",
+        "description": "Create a vocabulary hint or a rule that rewrites the transcript.",
+        "editTitle": "Edit entry",
+        "editDescription": "Change the term, the replacement or the matching options.",
+        "kindLabel": "Type",
+        "kind": {
+          "term": "Term (vocabulary hint)",
+          "substitution": "Substitution (find and replace)"
+        },
+        "kindHint": {
+          "term": "Terms are sent to the speech engine as a vocabulary hint. The transcript is not rewritten.",
+          "substitution": "Substitutions replace every match of the term in the transcript."
+        },
+        "termLabel": "Term",
+        "termPlaceholder": "Word or phrase to detect",
+        "termRequired": "Enter a term.",
+        "replacementLabel": "Replacement",
+        "replacementPlaceholder": "Text used in the transcript",
+        "replacementRequired": "A replacement is required for substitutions.",
+        "languageLabel": "Language",
+        "languagePlaceholder": "e.g. en",
+        "priorityLabel": "Priority",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "Whole word only",
+        "wholeWordDescription": "Match only when the term is a complete word.",
+        "caseSensitiveLabel": "Case sensitive",
+        "caseSensitiveDescription": "Match the term only with the same letter case.",
+        "submitAdd": "Add entry",
+        "submitSave": "Save changes",
+        "cancel": "Cancel"
+      },
+      "preview": {
+        "title": "Preview",
+        "description": "Check how the enabled rules change a sentence.",
+        "inputLabel": "Sample text",
+        "inputPlaceholder": "Write a sentence to test the substitutions.",
+        "apply": "Apply rules",
+        "resultLabel": "Result",
+        "hint": "Only the enabled substitutions are applied. Vocabulary hints do not change the text.",
+        "error": "The preview could not be generated."
+      },
+      "transfer": {
+        "title": "Import and export",
+        "description": "Move your dictionary entries to another device.",
+        "filesTitle": "Dictionary file",
+        "filesDescription": "Export writes a JSON file with every entry; import adds the entries contained in a file.",
+        "export": "Export",
+        "import": "Import",
+        "exportSuccess": "Entries exported: {{count}}",
+        "importSuccess": "Entries imported: {{count}}",
+        "exportEmpty": "There are no entries to export.",
+        "importInvalid": "The file is not a valid dictionary export.",
+        "exportError": "The dictionary could not be exported.",
+        "importError": "The dictionary could not be imported."
       }
     },
     "history": {

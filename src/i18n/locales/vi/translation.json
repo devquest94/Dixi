@@ -14,6 +14,7 @@
     "models": "Mô hình",
     "advanced": "Nâng cao",
     "postProcessing": "Xử lý sau",
+    "dictionary": "Từ điển",
     "history": "Lịch sử",
     "debug": "Gỡ lỗi",
     "about": "Giới thiệu"
@@ -442,6 +443,103 @@
         "cancel": "Hủy",
         "selectToEdit": "Chọn một prompt ở trên để xem và chỉnh sửa chi tiết.",
         "createFirst": "Nhấn 'Tạo Prompt mới' ở trên để tạo prompt xử lý sau đầu tiên của bạn."
+      }
+    },
+    "dictionary": {
+      "title": "Từ điển cá nhân",
+      "description": "Dạy Dixi những từ bạn dùng và cách chúng nên được viết trong bản ghi.",
+      "loadError": "Không thể tải từ điển.",
+      "saveError": "Không thể lưu mục từ điển.",
+      "deleteError": "Không thể xóa mục từ điển.",
+      "toggleError": "Không thể cập nhật mục từ điển.",
+      "added": "Đã thêm mục.",
+      "updated": "Đã cập nhật mục.",
+      "deleted": "Đã xóa mục.",
+      "entries": {
+        "title": "Các mục",
+        "description": "Từ khóa giúp cải thiện khả năng nhận dạng bản ghi; quy tắc thay thế sẽ viết lại bản ghi sau đó."
+      },
+      "search": {
+        "label": "Tìm kiếm",
+        "description": "Lọc các mục theo từ khóa hoặc nội dung thay thế.",
+        "placeholder": "Tìm trong các mục"
+      },
+      "filter": {
+        "all": "Tất cả",
+        "terms": "Từ khóa",
+        "substitutions": "Thay thế"
+      },
+      "empty": "Chưa có mục nào. Hãy thêm từ khóa đầu tiên bên dưới.",
+      "noMatches": "Không có mục nào khớp với bộ lọc hiện tại.",
+      "entry": {
+        "kind": {
+          "term": "Từ khóa"
+        },
+        "hits": "Số lần dùng: {{count}}",
+        "wholeWord": "Cả từ",
+        "caseSensitive": "Phân biệt hoa thường",
+        "enabled": "Đang bật",
+        "enabledDescription": "Bật hoặc tắt quy tắc mà không cần xóa nó.",
+        "edit": "Sửa mục",
+        "delete": "Xóa mục",
+        "deleteTitle": "Xóa mục từ điển",
+        "deleteConfirm": "\"{{term}}\" sẽ bị xóa khỏi từ điển. Bạn có muốn tiếp tục không?"
+      },
+      "form": {
+        "addTitle": "Thêm mục",
+        "description": "Tạo gợi ý từ vựng hoặc quy tắc viết lại bản ghi.",
+        "editTitle": "Sửa mục",
+        "editDescription": "Thay đổi từ khóa, nội dung thay thế hoặc tùy chọn khớp.",
+        "kindLabel": "Loại",
+        "kind": {
+          "term": "Từ khóa (gợi ý từ vựng)",
+          "substitution": "Thay thế (tìm và thay thế)"
+        },
+        "kindHint": {
+          "term": "Từ khóa được gửi tới bộ nhận dạng giọng nói như một gợi ý từ vựng. Bản ghi không bị viết lại.",
+          "substitution": "Quy tắc thay thế thay mọi lần xuất hiện của từ khóa trong bản ghi."
+        },
+        "termLabel": "Từ khóa",
+        "termPlaceholder": "Từ hoặc cụm từ cần nhận dạng",
+        "termRequired": "Hãy nhập một từ khóa.",
+        "replacementLabel": "Nội dung thay thế",
+        "replacementPlaceholder": "Văn bản dùng trong bản ghi",
+        "replacementRequired": "Quy tắc thay thế bắt buộc có nội dung thay thế.",
+        "languageLabel": "Ngôn ngữ",
+        "languagePlaceholder": "ví dụ vi",
+        "priorityLabel": "Độ ưu tiên",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "Chỉ cả từ",
+        "wholeWordDescription": "Chỉ khớp khi từ khóa là một từ hoàn chỉnh.",
+        "caseSensitiveLabel": "Phân biệt hoa thường",
+        "caseSensitiveDescription": "Chỉ khớp khi cách viết hoa thường hoàn toàn giống nhau.",
+        "submitAdd": "Thêm mục",
+        "submitSave": "Lưu thay đổi",
+        "cancel": "Hủy"
+      },
+      "preview": {
+        "title": "Xem trước",
+        "description": "Kiểm tra cách các quy tắc đang bật thay đổi một câu.",
+        "inputLabel": "Văn bản mẫu",
+        "inputPlaceholder": "Viết một câu để thử các quy tắc thay thế.",
+        "apply": "Áp dụng quy tắc",
+        "resultLabel": "Kết quả",
+        "hint": "Chỉ các quy tắc thay thế đang bật mới được áp dụng. Gợi ý từ vựng không thay đổi văn bản.",
+        "error": "Không thể tạo bản xem trước."
+      },
+      "transfer": {
+        "title": "Nhập và xuất",
+        "description": "Chuyển các mục từ điển sang thiết bị khác.",
+        "filesTitle": "Tệp từ điển",
+        "filesDescription": "Xuất ghi một tệp JSON chứa mọi mục; nhập thêm các mục có trong tệp.",
+        "export": "Xuất",
+        "import": "Nhập",
+        "exportSuccess": "Số mục đã xuất: {{count}}",
+        "importSuccess": "Số mục đã nhập: {{count}}",
+        "exportEmpty": "Không có mục nào để xuất.",
+        "importInvalid": "Tệp không phải là bản xuất từ điển hợp lệ.",
+        "exportError": "Không thể xuất từ điển.",
+        "importError": "Không thể nhập từ điển."
       }
     },
     "history": {

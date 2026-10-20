@@ -14,6 +14,7 @@
     "models": "Modèles",
     "advanced": "Avancé",
     "postProcessing": "Post-traitement",
+    "dictionary": "Dictionnaire",
     "history": "Historique",
     "debug": "Débogage",
     "about": "À propos"
@@ -442,6 +443,103 @@
         "cancel": "Annuler",
         "selectToEdit": "Sélectionnez un prompt ci-dessus pour voir et modifier ses détails.",
         "createFirst": "Cliquez sur 'Créer un nouveau prompt' ci-dessus pour créer votre premier prompt de post-traitement."
+      }
+    },
+    "dictionary": {
+      "title": "Dictionnaire personnel",
+      "description": "Apprenez à Dixi les mots que vous utilisez et la façon dont ils doivent être écrits dans la transcription.",
+      "loadError": "Le dictionnaire n'a pas pu être chargé.",
+      "saveError": "L'entrée du dictionnaire n'a pas pu être enregistrée.",
+      "deleteError": "L'entrée du dictionnaire n'a pas pu être supprimée.",
+      "toggleError": "L'entrée du dictionnaire n'a pas pu être mise à jour.",
+      "added": "Entrée ajoutée.",
+      "updated": "Entrée mise à jour.",
+      "deleted": "Entrée supprimée.",
+      "entries": {
+        "title": "Entrées",
+        "description": "Les termes améliorent la reconnaissance de la transcription ; les substitutions la réécrivent ensuite."
+      },
+      "search": {
+        "label": "Rechercher",
+        "description": "Filtrez les entrées par terme ou par remplacement.",
+        "placeholder": "Rechercher des entrées"
+      },
+      "filter": {
+        "all": "Toutes",
+        "terms": "Termes",
+        "substitutions": "Substitutions"
+      },
+      "empty": "Aucune entrée pour le moment. Ajoutez votre premier terme ci-dessous.",
+      "noMatches": "Aucune entrée ne correspond aux filtres actuels.",
+      "entry": {
+        "kind": {
+          "term": "Terme"
+        },
+        "hits": "Utilisations : {{count}}",
+        "wholeWord": "Mot entier",
+        "caseSensitive": "Sensible à la casse",
+        "enabled": "Activée",
+        "enabledDescription": "Activez ou désactivez la règle sans la supprimer.",
+        "edit": "Modifier l'entrée",
+        "delete": "Supprimer l'entrée",
+        "deleteTitle": "Supprimer l'entrée du dictionnaire",
+        "deleteConfirm": "« {{term}} » sera retiré du dictionnaire. Voulez-vous continuer ?"
+      },
+      "form": {
+        "addTitle": "Ajouter une entrée",
+        "description": "Créez un indice de vocabulaire ou une règle qui réécrit la transcription.",
+        "editTitle": "Modifier l'entrée",
+        "editDescription": "Modifiez le terme, le remplacement ou les options de correspondance.",
+        "kindLabel": "Type",
+        "kind": {
+          "term": "Terme (indice de vocabulaire)",
+          "substitution": "Substitution (rechercher et remplacer)"
+        },
+        "kindHint": {
+          "term": "Les termes sont transmis au moteur vocal comme indice de vocabulaire. La transcription n'est pas réécrite.",
+          "substitution": "Les substitutions remplacent chaque occurrence du terme dans la transcription."
+        },
+        "termLabel": "Terme",
+        "termPlaceholder": "Mot ou expression à détecter",
+        "termRequired": "Saisissez un terme.",
+        "replacementLabel": "Remplacement",
+        "replacementPlaceholder": "Texte utilisé dans la transcription",
+        "replacementRequired": "Un remplacement est obligatoire pour les substitutions.",
+        "languageLabel": "Langue",
+        "languagePlaceholder": "p. ex. fr",
+        "priorityLabel": "Priorité",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "Mots entiers uniquement",
+        "wholeWordDescription": "Correspond uniquement lorsque le terme est un mot entier.",
+        "caseSensitiveLabel": "Sensible à la casse",
+        "caseSensitiveDescription": "Correspond uniquement si la casse est identique.",
+        "submitAdd": "Ajouter l'entrée",
+        "submitSave": "Enregistrer les modifications",
+        "cancel": "Annuler"
+      },
+      "preview": {
+        "title": "Aperçu",
+        "description": "Vérifiez comment les règles actives modifient une phrase.",
+        "inputLabel": "Texte d'exemple",
+        "inputPlaceholder": "Écrivez une phrase pour tester les substitutions.",
+        "apply": "Appliquer les règles",
+        "resultLabel": "Résultat",
+        "hint": "Seules les substitutions actives sont appliquées. Les indices de vocabulaire ne modifient pas le texte.",
+        "error": "L'aperçu n'a pas pu être généré."
+      },
+      "transfer": {
+        "title": "Import et export",
+        "description": "Transférez vos entrées de dictionnaire vers un autre appareil.",
+        "filesTitle": "Fichier du dictionnaire",
+        "filesDescription": "L'export écrit un fichier JSON avec toutes les entrées ; l'import ajoute les entrées contenues dans un fichier.",
+        "export": "Exporter",
+        "import": "Importer",
+        "exportSuccess": "Entrées exportées : {{count}}",
+        "importSuccess": "Entrées importées : {{count}}",
+        "exportEmpty": "Il n'y a aucune entrée à exporter.",
+        "importInvalid": "Le fichier n'est pas un export de dictionnaire valide.",
+        "exportError": "Le dictionnaire n'a pas pu être exporté.",
+        "importError": "Le dictionnaire n'a pas pu être importé."
       }
     },
     "history": {

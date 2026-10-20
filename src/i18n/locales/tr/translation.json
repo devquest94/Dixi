@@ -14,6 +14,7 @@
     "models": "Modeller",
     "advanced": "Gelişmiş",
     "postProcessing": "Son İşlem",
+    "dictionary": "Sözlük",
     "history": "Geçmiş",
     "debug": "Hata Ayıklama",
     "about": "Hakkında"
@@ -442,6 +443,103 @@
         "cancel": "İptal",
         "selectToEdit": "Ayrıntılarını görüntülemek ve düzenlemek için yukarıdan bir prompt seçin.",
         "createFirst": "İlk son işlem promptunuzu oluşturmak için yukarıdaki “Yeni Prompt Oluştur” seçeneğine tıklayın."
+      }
+    },
+    "dictionary": {
+      "title": "Kişisel sözlük",
+      "description": "Dixi'ye kullandığınız kelimeleri ve bunların transkriptte nasıl yazılması gerektiğini öğretin.",
+      "loadError": "Sözlük yüklenemedi.",
+      "saveError": "Sözlük kaydı kaydedilemedi.",
+      "deleteError": "Sözlük kaydı silinemedi.",
+      "toggleError": "Sözlük kaydı güncellenemedi.",
+      "added": "Kayıt eklendi.",
+      "updated": "Kayıt güncellendi.",
+      "deleted": "Kayıt silindi.",
+      "entries": {
+        "title": "Kayıtlar",
+        "description": "Terimler transkriptin tanınmasını iyileştirir; değiştirmeler ise metni sonradan yeniden yazar."
+      },
+      "search": {
+        "label": "Ara",
+        "description": "Kayıtları terim veya değiştirme metnine göre filtreleyin.",
+        "placeholder": "Kayıtlarda ara"
+      },
+      "filter": {
+        "all": "Tümü",
+        "terms": "Terimler",
+        "substitutions": "Değiştirmeler"
+      },
+      "empty": "Henüz kayıt yok. Aşağıya ilk teriminizi ekleyin.",
+      "noMatches": "Geçerli filtrelerle eşleşen kayıt yok.",
+      "entry": {
+        "kind": {
+          "term": "Terim"
+        },
+        "hits": "Kullanım: {{count}}",
+        "wholeWord": "Tam kelime",
+        "caseSensitive": "Büyük/küçük harf duyarlı",
+        "enabled": "Etkin",
+        "enabledDescription": "Kuralı silmeden açıp kapatın.",
+        "edit": "Kaydı düzenle",
+        "delete": "Kaydı sil",
+        "deleteTitle": "Sözlük kaydını sil",
+        "deleteConfirm": "\"{{term}}\" sözlükten kaldırılacak. Devam edilsin mi?"
+      },
+      "form": {
+        "addTitle": "Kayıt ekle",
+        "description": "Bir kelime ipucu veya transkripti yeniden yazan bir kural oluşturun.",
+        "editTitle": "Kaydı düzenle",
+        "editDescription": "Terimi, değiştirme metnini veya eşleştirme seçeneklerini değiştirin.",
+        "kindLabel": "Tür",
+        "kind": {
+          "term": "Terim (kelime ipucu)",
+          "substitution": "Değiştirme (bul ve değiştir)"
+        },
+        "kindHint": {
+          "term": "Terimler konuşma motoruna kelime ipucu olarak iletilir. Transkript yeniden yazılmaz.",
+          "substitution": "Değiştirmeler transkriptteki terimin her geçişini değiştirir."
+        },
+        "termLabel": "Terim",
+        "termPlaceholder": "Algılanacak kelime veya ifade",
+        "termRequired": "Bir terim girin.",
+        "replacementLabel": "Değiştirme metni",
+        "replacementPlaceholder": "Transkriptte kullanılacak metin",
+        "replacementRequired": "Değiştirmeler için bir değiştirme metni gerekir.",
+        "languageLabel": "Dil",
+        "languagePlaceholder": "örn. tr",
+        "priorityLabel": "Öncelik",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "Yalnızca tam kelimeler",
+        "wholeWordDescription": "Yalnızca terim tam bir kelime olduğunda eşleşir.",
+        "caseSensitiveLabel": "Büyük/küçük harf duyarlı",
+        "caseSensitiveDescription": "Yalnızca harf büyüklüğü aynı olduğunda eşleşir.",
+        "submitAdd": "Kayıt ekle",
+        "submitSave": "Değişiklikleri kaydet",
+        "cancel": "İptal"
+      },
+      "preview": {
+        "title": "Önizleme",
+        "description": "Etkin kuralların bir cümleyi nasıl değiştirdiğini kontrol edin.",
+        "inputLabel": "Örnek metin",
+        "inputPlaceholder": "Değiştirmeleri denemek için bir cümle yazın.",
+        "apply": "Kuralları uygula",
+        "resultLabel": "Sonuç",
+        "hint": "Yalnızca etkin değiştirmeler uygulanır. Kelime ipuçları metni değiştirmez.",
+        "error": "Önizleme oluşturulamadı."
+      },
+      "transfer": {
+        "title": "İçe ve dışa aktarma",
+        "description": "Sözlük kayıtlarınızı başka bir cihaza taşıyın.",
+        "filesTitle": "Sözlük dosyası",
+        "filesDescription": "Dışa aktarma tüm kayıtları içeren bir JSON dosyası yazar; içe aktarma bir dosyadaki kayıtları ekler.",
+        "export": "Dışa aktar",
+        "import": "İçe aktar",
+        "exportSuccess": "Dışa aktarılan kayıt: {{count}}",
+        "importSuccess": "İçe aktarılan kayıt: {{count}}",
+        "exportEmpty": "Dışa aktarılacak kayıt yok.",
+        "importInvalid": "Dosya geçerli bir sözlük dışa aktarımı değil.",
+        "exportError": "Sözlük dışa aktarılamadı.",
+        "importError": "Sözlük içe aktarılamadı."
       }
     },
     "history": {

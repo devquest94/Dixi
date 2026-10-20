@@ -14,6 +14,7 @@
     "models": "Modeller",
     "advanced": "Avancerat",
     "postProcessing": "Efterbearbetning",
+    "dictionary": "Ordbok",
     "history": "Historik",
     "debug": "Felsökning",
     "about": "Om"
@@ -442,6 +443,103 @@
         "cancel": "Avbryt",
         "selectToEdit": "Välj en prompt ovan för att visa och redigera dess detaljer.",
         "createFirst": "Klicka på 'Skapa ny prompt' ovan för att skapa din första prompt för efterbearbetning."
+      }
+    },
+    "dictionary": {
+      "title": "Personlig ordbok",
+      "description": "Lär Dixi de ord du använder och hur de ska skrivas i transkriberingen.",
+      "loadError": "Ordbooken kunde inte läsas in.",
+      "saveError": "Ordboksposten kunde inte sparas.",
+      "deleteError": "Ordboksposten kunde inte tas bort.",
+      "toggleError": "Ordboksposten kunde inte uppdateras.",
+      "added": "Posten har lagts till.",
+      "updated": "Posten har uppdaterats.",
+      "deleted": "Posten har tagits bort.",
+      "entries": {
+        "title": "Poster",
+        "description": "Termer förbättrar igenkänningen av transkriberingen; ersättningar skriver om den i efterhand."
+      },
+      "search": {
+        "label": "Sök",
+        "description": "Filtrera posterna efter term eller ersättning.",
+        "placeholder": "Sök poster"
+      },
+      "filter": {
+        "all": "Alla",
+        "terms": "Termer",
+        "substitutions": "Ersättningar"
+      },
+      "empty": "Inga poster ännu. Lägg till din första term nedan.",
+      "noMatches": "Inga poster matchar de aktuella filtren.",
+      "entry": {
+        "kind": {
+          "term": "Term"
+        },
+        "hits": "Användningar: {{count}}",
+        "wholeWord": "Helt ord",
+        "caseSensitive": "Skiftlägeskänslig",
+        "enabled": "Aktiverad",
+        "enabledDescription": "Slå på eller av regeln utan att ta bort den.",
+        "edit": "Redigera post",
+        "delete": "Ta bort post",
+        "deleteTitle": "Ta bort ordbokspost",
+        "deleteConfirm": "\"{{term}}\" tas bort från ordboken. Vill du fortsätta?"
+      },
+      "form": {
+        "addTitle": "Lägg till post",
+        "description": "Skapa en vokabulärledtråd eller en regel som skriver om transkriberingen.",
+        "editTitle": "Redigera post",
+        "editDescription": "Ändra termen, ersättningen eller matchningsalternativen.",
+        "kindLabel": "Typ",
+        "kind": {
+          "term": "Term (vokabulärledtråd)",
+          "substitution": "Ersättning (sök och ersätt)"
+        },
+        "kindHint": {
+          "term": "Termer skickas till talmotorn som vokabulärledtråd. Transkriberingen skrivs inte om.",
+          "substitution": "Ersättningar byter ut varje förekomst av termen i transkriberingen."
+        },
+        "termLabel": "Term",
+        "termPlaceholder": "Ord eller fras att känna igen",
+        "termRequired": "Ange en term.",
+        "replacementLabel": "Ersättning",
+        "replacementPlaceholder": "Text som används i transkriberingen",
+        "replacementRequired": "Ersättningar kräver en ersatt text.",
+        "languageLabel": "Språk",
+        "languagePlaceholder": "t.ex. sv",
+        "priorityLabel": "Prioritet",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "Endast hela ord",
+        "wholeWordDescription": "Matchar endast när termen är ett helt ord.",
+        "caseSensitiveLabel": "Skiftlägeskänslig",
+        "caseSensitiveDescription": "Matchar endast med exakt samma skiftläge.",
+        "submitAdd": "Lägg till post",
+        "submitSave": "Spara ändringar",
+        "cancel": "Avbryt"
+      },
+      "preview": {
+        "title": "Förhandsvisning",
+        "description": "Kontrollera hur de aktiverade reglerna förändrar en mening.",
+        "inputLabel": "Exempeltext",
+        "inputPlaceholder": "Skriv en mening för att testa ersättningarna.",
+        "apply": "Tillämpa regler",
+        "resultLabel": "Resultat",
+        "hint": "Endast aktiverade ersättningar tillämpas. Vokabulärledtrådar ändrar inte texten.",
+        "error": "Förhandsvisningen kunde inte genereras."
+      },
+      "transfer": {
+        "title": "Import och export",
+        "description": "Flytta dina ordbokposter till en annan enhet.",
+        "filesTitle": "Ordbooksfil",
+        "filesDescription": "Exporten skriver en JSON-fil med alla poster; importen lägger till posterna i en fil.",
+        "export": "Exportera",
+        "import": "Importera",
+        "exportSuccess": "Exporterade poster: {{count}}",
+        "importSuccess": "Importerade poster: {{count}}",
+        "exportEmpty": "Det finns inga poster att exportera.",
+        "importInvalid": "Filen är ingen giltig ordboksexport.",
+        "exportError": "Ordboken kunde inte exporteras.",
+        "importError": "Ordboken kunde inte importeras."
       }
     },
     "history": {

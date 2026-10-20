@@ -14,6 +14,7 @@
     "models": "Modeller",
     "advanced": "Avanceret",
     "postProcessing": "Efterbehandling",
+    "dictionary": "Ordbog",
     "history": "Historik",
     "debug": "Fejlfinding",
     "about": "Om"
@@ -442,6 +443,103 @@
         "cancel": "Annuller",
         "selectToEdit": "Vælg en prompt ovenfor for at se og redigere dens detaljer.",
         "createFirst": "Klik på 'Opret ny prompt' ovenfor for at oprette din første efterbehandlingsprompt."
+      }
+    },
+    "dictionary": {
+      "title": "Personlig ordbog",
+      "description": "Lær Dixi de ord, du bruger, og hvordan de skal skrives i transskriptionen.",
+      "loadError": "Ordbogen kunne ikke indlæses.",
+      "saveError": "Ordbogsposten kunne ikke gemmes.",
+      "deleteError": "Ordbogsposten kunne ikke slettes.",
+      "toggleError": "Ordbogsposten kunne ikke opdateres.",
+      "added": "Posten er tilføjet.",
+      "updated": "Posten er opdateret.",
+      "deleted": "Posten er slettet.",
+      "entries": {
+        "title": "Poster",
+        "description": "Ord forbedrer genkendelsen af transskriptionen; erstatninger omskriver den bagefter."
+      },
+      "search": {
+        "label": "Søg",
+        "description": "Filtrér poster efter ord eller erstatning.",
+        "placeholder": "Søg i poster"
+      },
+      "filter": {
+        "all": "Alle",
+        "terms": "Ord",
+        "substitutions": "Erstatninger"
+      },
+      "empty": "Ingen poster endnu. Tilføj dit første ord nedenfor.",
+      "noMatches": "Ingen poster matcher de aktuelle filtre.",
+      "entry": {
+        "kind": {
+          "term": "Ord"
+        },
+        "hits": "Anvendelser: {{count}}",
+        "wholeWord": "Helt ord",
+        "caseSensitive": "Forskel på store og små bogstaver",
+        "enabled": "Aktiveret",
+        "enabledDescription": "Slå reglen til eller fra uden at slette den.",
+        "edit": "Redigér post",
+        "delete": "Slet post",
+        "deleteTitle": "Slet ordbogspost",
+        "deleteConfirm": "\"{{term}}\" fjernes fra ordbogen. Vil du fortsætte?"
+      },
+      "form": {
+        "addTitle": "Tilføj post",
+        "description": "Opret et ordforrådshint eller en regel, der omskriver transskriptionen.",
+        "editTitle": "Redigér post",
+        "editDescription": "Ret ordet, erstatningen eller matchningsindstillingerne.",
+        "kindLabel": "Type",
+        "kind": {
+          "term": "Ord (ordforrådshint)",
+          "substitution": "Erstatning (søg og erstat)"
+        },
+        "kindHint": {
+          "term": "Ord sendes til taleenheden som et ordforrådshint. Transskriptionen omskrives ikke.",
+          "substitution": "Erstatninger udskifter alle forekomster af ordet i transskriptionen."
+        },
+        "termLabel": "Ord",
+        "termPlaceholder": "Ord eller frase, der skal genkendes",
+        "termRequired": "Indtast et ord.",
+        "replacementLabel": "Erstatning",
+        "replacementPlaceholder": "Tekst, der bruges i transskriptionen",
+        "replacementRequired": "Erstatninger kræver en erstatningstekst.",
+        "languageLabel": "Sprog",
+        "languagePlaceholder": "f.eks. da",
+        "priorityLabel": "Prioritet",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "Kun hele ord",
+        "wholeWordDescription": "Matcher kun, når ordet er et helt ord.",
+        "caseSensitiveLabel": "Forskel på store og små bogstaver",
+        "caseSensitiveDescription": "Matcher kun med præcis samme skrivemåde.",
+        "submitAdd": "Tilføj post",
+        "submitSave": "Gem ændringer",
+        "cancel": "Annullér"
+      },
+      "preview": {
+        "title": "Forhåndsvisning",
+        "description": "Kontrollér, hvordan de aktiverede regler ændrer en sætning.",
+        "inputLabel": "Eksempeltekst",
+        "inputPlaceholder": "Skriv en sætning for at teste erstatningerne.",
+        "apply": "Anvend regler",
+        "resultLabel": "Resultat",
+        "hint": "Kun aktiverede erstatninger anvendes. Ordforrådshints ændrer ikke teksten.",
+        "error": "Forhåndsvisningen kunne ikke genereres."
+      },
+      "transfer": {
+        "title": "Import og eksport",
+        "description": "Flyt dine ordbogsposter til en anden enhed.",
+        "filesTitle": "Ordbogsfil",
+        "filesDescription": "Eksporten skriver en JSON-fil med alle poster; importen tilføjer posterne i en fil.",
+        "export": "Eksportér",
+        "import": "Importér",
+        "exportSuccess": "Eksporterede poster: {{count}}",
+        "importSuccess": "Importerede poster: {{count}}",
+        "exportEmpty": "Der er ingen poster at eksportere.",
+        "importInvalid": "Filen er ikke en gyldig ordbogseksport.",
+        "exportError": "Ordbogen kunne ikke eksporteres.",
+        "importError": "Ordbogen kunne ikke importeres."
       }
     },
     "history": {

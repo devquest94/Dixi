@@ -14,6 +14,7 @@
     "models": "Modely",
     "advanced": "Pokročilé",
     "postProcessing": "Následné zpracování",
+    "dictionary": "Slovník",
     "history": "Historie",
     "debug": "Ladění",
     "about": "O aplikaci"
@@ -442,6 +443,103 @@
         "cancel": "Zrušit",
         "selectToEdit": "Vyberte výše prompt, abyste zobrazili a upravili jeho podrobnosti.",
         "createFirst": "Klikněte nahoře na 'Vytvořit nový prompt' a vytvořte svůj první prompt pro následné zpracování."
+      }
+    },
+    "dictionary": {
+      "title": "Osobní slovník",
+      "description": "Naučte Dixi slova, která používáte, a jak se mají zapisovat v přepisu.",
+      "loadError": "Slovník se nepodařilo načíst.",
+      "saveError": "Položku slovníku se nepodařilo uložit.",
+      "deleteError": "Položku slovníku se nepodařilo smazat.",
+      "toggleError": "Položku slovníku se nepodařilo aktualizovat.",
+      "added": "Položka přidána.",
+      "updated": "Položka aktualizována.",
+      "deleted": "Položka smazána.",
+      "entries": {
+        "title": "Položky",
+        "description": "Termíny zlepšují rozpoznávání přepisu; náhrady ho následně přepisují."
+      },
+      "search": {
+        "label": "Hledat",
+        "description": "Filtrovat položky podle termínu nebo náhrady.",
+        "placeholder": "Hledat položky"
+      },
+      "filter": {
+        "all": "Vše",
+        "terms": "Termíny",
+        "substitutions": "Náhrady"
+      },
+      "empty": "Zatím žádné položky. Přidejte níže první termín.",
+      "noMatches": "Aktuálním filtrům neodpovídá žádná položka.",
+      "entry": {
+        "kind": {
+          "term": "Termín"
+        },
+        "hits": "Použití: {{count}}",
+        "wholeWord": "Celé slovo",
+        "caseSensitive": "Rozlišovat velikost písmen",
+        "enabled": "Zapnuto",
+        "enabledDescription": "Pravidlo zapnete nebo vypnete bez jeho smazání.",
+        "edit": "Upravit položku",
+        "delete": "Smazat položku",
+        "deleteTitle": "Smazat položku slovníku",
+        "deleteConfirm": "„{{term}}“ bude odstraněn ze slovníku. Chcete pokračovat?"
+      },
+      "form": {
+        "addTitle": "Přidat položku",
+        "description": "Vytvořte slovníkový podnet nebo pravidlo, které přepisuje přepis.",
+        "editTitle": "Upravit položku",
+        "editDescription": "Změňte termín, náhradu nebo možnosti shody.",
+        "kindLabel": "Typ",
+        "kind": {
+          "term": "Termín (slovníkový podnet)",
+          "substitution": "Náhrada (najít a nahradit)"
+        },
+        "kindHint": {
+          "term": "Termíny se předávají rozpoznávacímu enginu jako slovníkový podnet. Přepis se nepřepisuje.",
+          "substitution": "Náhrady nahradí každý výskyt termínu v přepisu."
+        },
+        "termLabel": "Termín",
+        "termPlaceholder": "Slovo nebo fráze k rozpoznání",
+        "termRequired": "Zadejte termín.",
+        "replacementLabel": "Náhrada",
+        "replacementPlaceholder": "Text použitý v přepisu",
+        "replacementRequired": "Náhrady vyžadují náhradní text.",
+        "languageLabel": "Jazyk",
+        "languagePlaceholder": "např. cs",
+        "priorityLabel": "Priorita",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "Pouze celá slova",
+        "wholeWordDescription": "Odpovídá pouze tehdy, když je termín celé slovo.",
+        "caseSensitiveLabel": "Rozlišovat velikost písmen",
+        "caseSensitiveDescription": "Odpovídá pouze při stejném zápisu velikosti písmen.",
+        "submitAdd": "Přidat položku",
+        "submitSave": "Uložit změny",
+        "cancel": "Zrušit"
+      },
+      "preview": {
+        "title": "Náhled",
+        "description": "Zkontrolujte, jak zapnutá pravidla mění větu.",
+        "inputLabel": "Ukázkový text",
+        "inputPlaceholder": "Napište větu pro otestování náhrad.",
+        "apply": "Použít pravidla",
+        "resultLabel": "Výsledek",
+        "hint": "Použijí se pouze zapnuté náhrady. Slovníkové podnety text nemění.",
+        "error": "Náhled se nepodařilo vytvořit."
+      },
+      "transfer": {
+        "title": "Import a export",
+        "description": "Přeneste položky slovníku do jiného zařízení.",
+        "filesTitle": "Soubor slovníku",
+        "filesDescription": "Export zapíše soubor JSON se všemi položkami; import přidá položky obsažené v souboru.",
+        "export": "Exportovat",
+        "import": "Importovat",
+        "exportSuccess": "Exportované položky: {{count}}",
+        "importSuccess": "Importované položky: {{count}}",
+        "exportEmpty": "Nejsou k dispozici žádné položky k exportu.",
+        "importInvalid": "Soubor není platným exportem slovníku.",
+        "exportError": "Slovník se nepodařilo exportovat.",
+        "importError": "Slovník se nepodařilo importovat."
       }
     },
     "history": {

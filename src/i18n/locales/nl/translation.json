@@ -14,6 +14,7 @@
     "models": "Modellen",
     "advanced": "Geavanceerd",
     "postProcessing": "Naverwerking",
+    "dictionary": "Woordenboek",
     "history": "Geschiedenis",
     "debug": "Probleemoplossing",
     "about": "Over Dixi"
@@ -442,6 +443,103 @@
         "cancel": "Annuleren",
         "selectToEdit": "Selecteer hierboven een prompt om de details te bekijken en te bewerken.",
         "createFirst": "Klik hierboven op 'Nieuwe prompt maken' om je eerste naverwerkingsprompt aan te maken."
+      }
+    },
+    "dictionary": {
+      "title": "Persoonlijk woordenboek",
+      "description": "Leer Dixi de woorden die je gebruikt en hoe ze in het transcript moeten staan.",
+      "loadError": "Het woordenboek kon niet worden geladen.",
+      "saveError": "De woordenboekvermelding kon niet worden opgeslagen.",
+      "deleteError": "De woordenboekvermelding kon niet worden verwijderd.",
+      "toggleError": "De woordenboekvermelding kon niet worden bijgewerkt.",
+      "added": "Vermelding toegevoegd.",
+      "updated": "Vermelding bijgewerkt.",
+      "deleted": "Vermelding verwijderd.",
+      "entries": {
+        "title": "Vermeldingen",
+        "description": "Termen verbeteren de herkenning van het transcript; vervangingen herschrijven het daarna."
+      },
+      "search": {
+        "label": "Zoeken",
+        "description": "Filter de vermeldingen op term of vervanging.",
+        "placeholder": "Vermeldingen zoeken"
+      },
+      "filter": {
+        "all": "Alle",
+        "terms": "Termen",
+        "substitutions": "Vervangingen"
+      },
+      "empty": "Nog geen vermeldingen. Voeg hieronder je eerste term toe.",
+      "noMatches": "Geen vermeldingen komen overeen met de huidige filters.",
+      "entry": {
+        "kind": {
+          "term": "Term"
+        },
+        "hits": "Gebruiken: {{count}}",
+        "wholeWord": "Heel woord",
+        "caseSensitive": "Hoofdlettergevoelig",
+        "enabled": "Ingeschakeld",
+        "enabledDescription": "Schakel de regel aan of uit zonder hem te verwijderen.",
+        "edit": "Vermelding bewerken",
+        "delete": "Vermelding verwijderen",
+        "deleteTitle": "Woordenboekvermelding verwijderen",
+        "deleteConfirm": "\"{{term}}\" wordt uit het woordenboek verwijderd. Wil je doorgaan?"
+      },
+      "form": {
+        "addTitle": "Vermelding toevoegen",
+        "description": "Maak een woordenschat-hint of een regel die het transcript herschrijft.",
+        "editTitle": "Vermelding bewerken",
+        "editDescription": "Wijzig de term, de vervanging of de zoekopties.",
+        "kindLabel": "Type",
+        "kind": {
+          "term": "Term (woordenschat-hint)",
+          "substitution": "Vervanging (zoeken en vervangen)"
+        },
+        "kindHint": {
+          "term": "Termen worden als woordenschat-hint aan de spraakengine doorgegeven. Het transcript wordt niet herschreven.",
+          "substitution": "Vervangingen vervangen elke voorkoming van de term in het transcript."
+        },
+        "termLabel": "Term",
+        "termPlaceholder": "Woord of zin om te herkennen",
+        "termRequired": "Voer een term in.",
+        "replacementLabel": "Vervanging",
+        "replacementPlaceholder": "Tekst die in het transcript wordt gebruikt",
+        "replacementRequired": "Vervangingen vereisen een vervangende tekst.",
+        "languageLabel": "Taal",
+        "languagePlaceholder": "bijv. nl",
+        "priorityLabel": "Prioriteit",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "Alleen hele woorden",
+        "wholeWordDescription": "Komt alleen overeen wanneer de term een heel woord is.",
+        "caseSensitiveLabel": "Hoofdlettergevoelig",
+        "caseSensitiveDescription": "Komt alleen overeen bij dezelfde letterkast.",
+        "submitAdd": "Vermelding toevoegen",
+        "submitSave": "Wijzigingen opslaan",
+        "cancel": "Annuleren"
+      },
+      "preview": {
+        "title": "Voorbeeld",
+        "description": "Controleer hoe de ingeschakelde regels een zin veranderen.",
+        "inputLabel": "Voorbeeldtekst",
+        "inputPlaceholder": "Schrijf een zin om de vervangingen te testen.",
+        "apply": "Regels toepassen",
+        "resultLabel": "Resultaat",
+        "hint": "Alleen de ingeschakelde vervangingen worden toegepast. Woordenschat-hints veranderen de tekst niet.",
+        "error": "Het voorbeeld kon niet worden gegenereerd."
+      },
+      "transfer": {
+        "title": "Importeren en exporteren",
+        "description": "Verplaats je woordenboekvermeldingen naar een ander apparaat.",
+        "filesTitle": "Woordenboekbestand",
+        "filesDescription": "Exporteren schrijft een JSON-bestand met alle vermeldingen; importeren voegt de vermeldingen uit een bestand toe.",
+        "export": "Exporteren",
+        "import": "Importeren",
+        "exportSuccess": "Geëxporteerde vermeldingen: {{count}}",
+        "importSuccess": "Geïmporteerde vermeldingen: {{count}}",
+        "exportEmpty": "Er zijn geen vermeldingen om te exporteren.",
+        "importInvalid": "Het bestand is geen geldige woordenboekexport.",
+        "exportError": "Het woordenboek kon niet worden geëxporteerd.",
+        "importError": "Het woordenboek kon niet worden geïmporteerd."
       }
     },
     "history": {

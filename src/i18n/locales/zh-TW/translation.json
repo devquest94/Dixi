@@ -14,6 +14,7 @@
     "models": "模型",
     "advanced": "進階",
     "postProcessing": "後處理",
+    "dictionary": "詞典",
     "history": "歷史紀錄",
     "debug": "偵錯",
     "about": "關於"
@@ -442,6 +443,103 @@
         "cancel": "取消",
         "selectToEdit": "選擇上方的提示詞以檢視和編輯其詳細資訊",
         "createFirst": "點選上方的「建立新提示詞」來建立您的第一個後處理提示詞"
+      }
+    },
+    "dictionary": {
+      "title": "個人詞典",
+      "description": "告訴 Dixi 你常用的詞，以及它們在逐字稿中應該如何書寫。",
+      "loadError": "無法載入詞典。",
+      "saveError": "無法儲存詞典項目。",
+      "deleteError": "無法刪除詞典項目。",
+      "toggleError": "無法更新詞典項目。",
+      "added": "項目已新增。",
+      "updated": "項目已更新。",
+      "deleted": "項目已刪除。",
+      "entries": {
+        "title": "項目",
+        "description": "詞彙提示可以提升逐字稿的辨識率；取代規則則會在之後改寫逐字稿。"
+      },
+      "search": {
+        "label": "搜尋",
+        "description": "依詞條或取代內容篩選項目。",
+        "placeholder": "搜尋項目"
+      },
+      "filter": {
+        "all": "全部",
+        "terms": "詞彙提示",
+        "substitutions": "取代規則"
+      },
+      "empty": "還沒有項目。請在下方新增第一個詞條。",
+      "noMatches": "沒有項目符合目前的篩選條件。",
+      "entry": {
+        "kind": {
+          "term": "詞條"
+        },
+        "hits": "使用次數：{{count}}",
+        "wholeWord": "整詞比對",
+        "caseSensitive": "區分大小寫",
+        "enabled": "已啟用",
+        "enabledDescription": "不必刪除規則即可啟用或停用它。",
+        "edit": "編輯項目",
+        "delete": "刪除項目",
+        "deleteTitle": "刪除詞典項目",
+        "deleteConfirm": "「{{term}}」將從詞典中移除。是否繼續？"
+      },
+      "form": {
+        "addTitle": "新增項目",
+        "description": "建立詞彙提示，或一條會改寫逐字稿的規則。",
+        "editTitle": "編輯項目",
+        "editDescription": "修改詞條、取代內容或比對選項。",
+        "kindLabel": "類型",
+        "kind": {
+          "term": "詞條（詞彙提示）",
+          "substitution": "取代規則（尋找並取代）"
+        },
+        "kindHint": {
+          "term": "詞條會作為詞彙提示傳給語音辨識引擎，逐字稿本身不會被改寫。",
+          "substitution": "取代規則會取代逐字稿中該詞條的每一次出現。"
+        },
+        "termLabel": "詞條",
+        "termPlaceholder": "要辨識的詞語",
+        "termRequired": "請輸入詞條。",
+        "replacementLabel": "取代內容",
+        "replacementPlaceholder": "在逐字稿中使用的文字",
+        "replacementRequired": "取代規則必須填寫取代內容。",
+        "languageLabel": "語言",
+        "languagePlaceholder": "例如 zh-TW",
+        "priorityLabel": "優先權",
+        "priorityPlaceholder": "0",
+        "wholeWordLabel": "僅整詞比對",
+        "wholeWordDescription": "只有詞條是完整單字時才會比對成功。",
+        "caseSensitiveLabel": "區分大小寫",
+        "caseSensitiveDescription": "只有大小寫完全相同時才會比對成功。",
+        "submitAdd": "新增項目",
+        "submitSave": "儲存變更",
+        "cancel": "取消"
+      },
+      "preview": {
+        "title": "預覽",
+        "description": "查看已啟用的規則會如何改變句子。",
+        "inputLabel": "範例文字",
+        "inputPlaceholder": "寫一句話來測試取代規則。",
+        "apply": "套用規則",
+        "resultLabel": "結果",
+        "hint": "只會套用已啟用的取代規則。詞彙提示不會改變文字。",
+        "error": "無法產生預覽。"
+      },
+      "transfer": {
+        "title": "匯入與匯出",
+        "description": "把你的詞典項目搬到另一台裝置。",
+        "filesTitle": "詞典檔案",
+        "filesDescription": "匯出會產生包含所有項目的 JSON 檔案，匯入會加入檔案中的項目。",
+        "export": "匯出",
+        "import": "匯入",
+        "exportSuccess": "已匯出項目：{{count}}",
+        "importSuccess": "已匯入項目：{{count}}",
+        "exportEmpty": "沒有可匯出的項目。",
+        "importInvalid": "此檔案不是有效的詞典匯出檔。",
+        "exportError": "無法匯出詞典。",
+        "importError": "無法匯入詞典。"
       }
     },
     "history": {
