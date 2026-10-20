@@ -1026,6 +1026,18 @@ pub fn get_default_settings() -> AppSettings {
     #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
     let default_post_process_shortcut = "alt+shift+space";
 
+    // The capture shortcut. It is deliberately apart from the dictation
+    // ones, and it is configurable: the user can move it away from
+    // whatever another application already uses.
+    #[cfg(target_os = "windows")]
+    let default_capture_selection_shortcut = "ctrl+alt+c";
+    #[cfg(target_os = "macos")]
+    let default_capture_selection_shortcut = "ctrl+alt+c";
+    #[cfg(target_os = "linux")]
+    let default_capture_selection_shortcut = "ctrl+alt+c";
+    #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
+    let default_capture_selection_shortcut = "ctrl+alt+c";
+
     bindings.insert(
         "transcribe_with_post_process".to_string(),
         ShortcutBinding {
@@ -1045,6 +1057,20 @@ pub fn get_default_settings() -> AppSettings {
             description: "Cancels the current recording.".to_string(),
             default_binding: "escape".to_string(),
             current_binding: "escape".to_string(),
+        },
+    );
+    // The capture of a selection in another application has to happen while
+    // that application has the focus, and only a global shortcut leaves the
+    // focus where it is: that is why this binding exists.
+    bindings.insert(
+        "capture_selection".to_string(),
+        ShortcutBinding {
+            id: "capture_selection".to_string(),
+            name: "Capture the selection".to_string(),
+            description: "Takes the text selected in the application that has the focus."
+                .to_string(),
+            default_binding: default_capture_selection_shortcut.to_string(),
+            current_binding: default_capture_selection_shortcut.to_string(),
         },
     );
 

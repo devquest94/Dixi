@@ -1,112 +1,91 @@
-use crate::managers::selection::{current_selection, replace_selection, SelectionError};
-use tauri::AppHandle;
+//! The commands that read and replace the text selection of another
+//! application.
+//!
+//! The capture only works while the application the text was selected in
+//! has the focus, so it is done from the global shortcut, which does not
+//! move the focus. The result is kept with the context of the selection —
+//! the window, the control and the text — and that context is what the
+//! write needs to put the result back in exactly the same place.
 
-/// The text that is selected in the application that has the focus.
+use std::sync::Arc;
+
+use tauri::{AppHandle, Manager, State};
+
+use crate::managers::selection::{
+    self, SelectionContext, SelectionContextStore, SelectionFailure,
+};
+use crate::managers::text_history::{HistoryKind, TextHistoryManager};
+
+/// Captures the selection of the application that has the focus.
+///
+/// The application that has the focus has to be the one the text was
+/// selected in. A click on a button of Dixi gives Dixi the focus, so from
+/// the interface this only works when Dixi does not have the focus; the
+/// reliable way is the global shortcut, which leaves the focus where it is.
 #[tauri::command]
 #[specta::specta]
-pub async fn capture_selection() -> Result<SelectionInfo, String> {
-    match current_selection() {
-        Ok(selection) => Ok(SelectionInfo {
-            text: selection.text,
-            window: selection.window,
-            control: selection.control,
-            app_name: selection.app_name,
-        }),
-        Err(SelectionError::NothingSelected) => Ok(SelectionInfo {
-            text: String::new(),
-            window: 0,
-            control: 0,
-            app_name: None,
-        }),
-        Err(error) => Err(describe(error)),
-    }
+pub async fn capture_selection(app: AppHandle) -> Result<SelectionContext, SelectionFailure> {
+    let context = selection::capture_context().map_err(selection::failure)?;
+    app.state::<SelectionContextStore>().set(context.clone());
+    Ok(context)
 }
 
-/// Replaces the selection, but only if it is still the one that was read.
-///
-/// When the selection changed while the transformation was running, nothing
-/// is written: the caller offers to copy the result instead.
-///
-/// The control that holds the selection is part of the identity of the
-/// selection: the same text in another control is not the same selection.
+/// The selection captured the last time, if there is one.
 #[tauri::command]
 #[specta::specta]
-pub async fn replace_text_selection(
-    _app: AppHandle,
-    expected_text: String,
-    expected_window: isize,
-    expected_control: isize,
+pub async fn get_captured_selection(
+    app: AppHandle,
+) -> Result<Option<SelectionContext>, SelectionFailure> {
+    Ok(app.state::<SelectionContextStore>().get())
+}
+
+/// Forgets the captured selection.
+#[tauri::command]
+#[specta::specta]
+pub async fn clear_captured_selection(app: AppHandle) -> Result<(), SelectionFailure> {
+    app.state::<SelectionContextStore>().clear();
+    Ok(())
+}
+
+/// Writes text over the captured selection.
+///
+/// Nothing is written unless the window, the control and the selected text
+/// are still the ones that were captured, and the destination is not a
+/// protected field. When the selection moved, the failure says so and
+/// nothing is written: the caller then offers the text as a copy instead of
+/// writing it somewhere else.
+///
+/// The change is recorded in the history with the place where it was made,
+/// so that it can be put back later.
+#[tauri::command]
+#[specta::specta]
+pub async fn apply_to_captured_selection(
+    app: AppHandle,
+    history_manager: State<'_, Arc<TextHistoryManager>>,
     new_text: String,
-) -> Result<bool, String> {
-    let expected = expected_selection(expected_text, expected_window, expected_control);
+    source_id: Option<String>,
+) -> Result<Option<i64>, SelectionFailure> {
+    let store = app.state::<SelectionContextStore>();
+    let context = store
+        .get()
+        .ok_or_else(|| selection::failure(selection::SelectionError::NothingSelected))?;
 
-    match replace_selection(&expected, &new_text) {
-        Ok(()) => Ok(true),
-        Err(SelectionError::SelectionChanged) => Ok(false),
-        Err(error) => Err(describe(error)),
-    }
-}
+    let expected = context.text.clone();
+    selection::write_to_context(&context, &expected, &new_text).map_err(selection::failure)?;
 
-/// Builds the selection that the caller expects to still be in place.
-///
-/// The control is kept: the same text inside another control is a different
-/// selection, and the check that refuses to write over a selection that
-/// moved compares the control as well.
-fn expected_selection(
-    expected_text: String,
-    expected_window: isize,
-    expected_control: isize,
-) -> crate::managers::selection::Selection {
-    crate::managers::selection::Selection {
-        text: expected_text,
-        window: expected_window,
-        control: expected_control,
-        app_name: None,
-    }
-}
+    // The change is recorded with the place where it was made: without it,
+    // putting the original text back would mean writing it wherever the
+    // focus happens to be.
+    let entry = history_manager
+        .record_with_context(
+            HistoryKind::Transform,
+            source_id.as_deref(),
+            context.app_name.as_deref(),
+            Some(&context),
+            &expected,
+            &new_text,
+        )
+        .map_err(|error| selection::failure(selection::SelectionError::Write(error)))?;
 
-/// A selection, ready to be shown.
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, specta::Type)]
-pub struct SelectionInfo {
-    /// The selected text. Empty when nothing was selected.
-    pub text: String,
-    /// The handle of the window that had the focus.
-    pub window: isize,
-    /// The handle of the focused control.
-    pub control: isize,
-    /// The name of the executable, when it could be read.
-    pub app_name: Option<String>,
-}
-
-/// Turns a selection failure into a message the user can read.
-fn describe(error: SelectionError) -> String {
-    match error {
-        SelectionError::NothingSelected => "There is no selected text".to_string(),
-        SelectionError::PasswordField => {
-            "A password field cannot be read or written".to_string()
-        }
-        SelectionError::Clipboard(detail) => {
-            format!("The clipboard could not be used: {detail}")
-        }
-        SelectionError::SelectionChanged => {
-            "The selection changed while the transformation was running".to_string()
-        }
-        SelectionError::Write(detail) => format!("The text could not be written: {detail}"),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn the_expected_selection_keeps_the_control_that_holds_it() {
-        // El control forma parte de la identidad de la seleccion: si se
-        // pierde, la comprobacion que se niega a escribir sobre una
-        // seleccion que ha cambiado nunca puede coincidir.
-        let expected = expected_selection("hola".to_string(), 1234, 5678);
-        assert_eq!(expected.text, "hola");
-        assert_eq!(expected.window, 1234);
-        assert_eq!(expected.control, 5678);
-    }
+    Ok(entry)
 }
