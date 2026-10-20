@@ -8,6 +8,10 @@ import {
   Sparkles,
   Cpu,
   BookText,
+  PenTool,
+  Blocks,
+  WandSparkles,
+  ScrollText,
 } from "lucide-react";
 import DixiTextLogo from "./icons/DixiTextLogo";
 import DixiMark from "./icons/DixiMark";
@@ -21,6 +25,10 @@ import {
   PostProcessingSettings,
   ModelsSettings,
   DictionarySettings,
+  ProfilesSettings,
+  SnippetsSettings,
+  TransformsSettings,
+  TextHistorySettings,
 } from "./settings";
 
 export type SidebarSection = keyof typeof SECTIONS_CONFIG;
@@ -75,6 +83,30 @@ export const SECTIONS_CONFIG = {
     labelKey: "sidebar.dictionary",
     icon: BookText,
     component: DictionarySettings,
+    enabled: () => true,
+  },
+  profiles: {
+    labelKey: "sidebar.profiles",
+    icon: PenTool,
+    component: ProfilesSettings,
+    enabled: () => true,
+  },
+  snippets: {
+    labelKey: "sidebar.snippets",
+    icon: Blocks,
+    component: SnippetsSettings,
+    enabled: () => true,
+  },
+  transforms: {
+    labelKey: "sidebar.transforms",
+    icon: WandSparkles,
+    component: TransformsSettings,
+    enabled: () => true,
+  },
+  textHistory: {
+    labelKey: "sidebar.textHistory",
+    icon: ScrollText,
+    component: TextHistorySettings,
     enabled: () => true,
   },
   debug: {
