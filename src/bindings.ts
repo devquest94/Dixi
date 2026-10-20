@@ -101,6 +101,19 @@ async changeSelectedLanguageSetting(language: string) : Promise<Result<null, str
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Sets the transcription context: the free-text hint handed to the engine
+ * as its initial prompt (the language the user speaks, the domain they work
+ * in, or a sample of how their dictation reads).
+ */
+async changeTranscriptionContextSetting(context: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_transcription_context_setting", { context }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async changeOverlayPositionSetting(position: string) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_overlay_position_setting", { position }) };
@@ -499,7 +512,7 @@ async getAvailableAccelerators() : Promise<AvailableAccelerators> {
  */
 async startDixiKeysRecording(bindingId: string) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("start_handy_keys_recording", { bindingId }) };
+    return { status: "ok", data: await TAURI_INVOKE("start_dixi_keys_recording", { bindingId }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -510,7 +523,7 @@ async startDixiKeysRecording(bindingId: string) : Promise<Result<null, string>> 
  */
 async stopDixiKeysRecording() : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("stop_handy_keys_recording") };
+    return { status: "ok", data: await TAURI_INVOKE("stop_dixi_keys_recording") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -935,10 +948,131 @@ async updateRecordingRetentionPeriod(period: string) : Promise<Result<null, stri
 }
 },
 /**
- * Checks if the Mac is a laptop by detecting battery presence
+ * Every dictionary entry, longest term first.
+ */
+async listDictionaryEntries(scope: string | null) : Promise<Result<DictionaryEntry[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_dictionary_entries", { scope }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Adds a dictionary entry.
+ */
+async addDictionaryEntry(entry: DictionaryEntryInput) : Promise<Result<DictionaryEntry, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("add_dictionary_entry", { entry }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Updates a dictionary entry.
+ */
+async updateDictionaryEntry(id: number, entry: DictionaryEntryInput) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("update_dictionary_entry", { id, entry }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Deletes a dictionary entry.
+ */
+async deleteDictionaryEntry(id: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("delete_dictionary_entry", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Enables or disables a dictionary entry.
+ */
+async setDictionaryEntryEnabled(id: number, enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_dictionary_entry_enabled", { id, enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Adds several entries at once, skipping duplicates.
+ * Returns how many entries were actually added.
+ */
+async importDictionaryEntries(entries: DictionaryEntryInput[]) : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("import_dictionary_entries", { entries }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Reads a dictionary from a JSON file the user chose and adds its entries.
  * 
- * This uses pmset to check for battery information.
- * Returns true if a battery is detected (laptop), false otherwise (desktop)
+ * Entries that already exist are skipped, so importing the same file twice
+ * changes nothing. Returns how many entries were actually added.
+ */
+async importDictionaryEntriesFromFile(path: string) : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("import_dictionary_entries_from_file", { path }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Writes the dictionary to a JSON file the user chose.
+ * 
+ * The file is written by the backend on purpose: the frontend's filesystem
+ * plugin is scoped to the application data directory, and widening that
+ * scope to every place a user might save a file would hand the webview
+ * more reach than the feature needs. The path always comes from the
+ * native save dialog, which is the user choosing the destination.
+ */
+async exportDictionaryEntries(path: string) : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("export_dictionary_entries", { path }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The vocabulary the ASR engine would receive for the given scope.
+ */
+async getDictionaryVocabulary(scope: string | null) : Promise<Result<string[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_dictionary_vocabulary", { scope }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Applies the substitution rules to a piece of text and returns the result.
+ * 
+ * Used by the settings screen to preview a rule before enabling it, and by
+ * the tests to exercise the engine end to end.
+ */
+async applyDictionarySubstitutions(text: string, scope: string | null) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("apply_dictionary_substitutions", { text, scope }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Stub implementation for non-macOS platforms
+ * Always returns false since laptop detection is macOS-specific
  */
 async isLaptop() : Promise<Result<boolean, string>> {
     try {
@@ -1009,7 +1143,14 @@ whats_new_last_seen_version?: string; selected_model?: string; onboarding_comple
  * Which input channel to use on the selected microphone device.
  * None means "average all channels" (original behavior).
  */
-selected_channel?: number | null; clamshell_microphone?: string | null; selected_output_device?: string | null; translate_to_english?: boolean; selected_language?: string; overlay_position?: OverlayPosition; debug_mode?: boolean; log_level?: LogLevel; custom_words?: string[]; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod; paste_method?: PasteMethod; clipboard_handling?: ClipboardHandling; auto_submit?: boolean; auto_submit_key?: AutoSubmitKey; post_process_enabled?: boolean; post_process_provider_id?: string; post_process_providers?: PostProcessProvider[]; post_process_api_keys?: SecretMap; post_process_models?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[]; post_process_selected_prompt_id?: string | null; mute_while_recording?: boolean; append_trailing_space?: boolean; app_language?: string; theme?: Theme; experimental_enabled?: boolean; lazy_stream_close?: boolean; keyboard_implementation?: KeyboardImplementation; show_tray_icon?: boolean; paste_delay_ms?: number; paste_delay_after_ms?: number; 
+selected_channel?: number | null; clamshell_microphone?: string | null; selected_output_device?: string | null; translate_to_english?: boolean; selected_language?: string; overlay_position?: OverlayPosition; debug_mode?: boolean; log_level?: LogLevel; custom_words?: string[]; 
+/**
+ * Free-text context handed to the engine as its initial prompt: the
+ * language the user speaks, the domain they work in, or a sample of how
+ * their dictation reads. Only models that advertise the initial-prompt
+ * capability receive it.
+ */
+transcription_context?: string; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod; paste_method?: PasteMethod; clipboard_handling?: ClipboardHandling; auto_submit?: boolean; auto_submit_key?: AutoSubmitKey; post_process_enabled?: boolean; post_process_provider_id?: string; post_process_providers?: PostProcessProvider[]; post_process_api_keys?: SecretMap; post_process_models?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[]; post_process_selected_prompt_id?: string | null; mute_while_recording?: boolean; append_trailing_space?: boolean; app_language?: string; theme?: Theme; experimental_enabled?: boolean; lazy_stream_close?: boolean; keyboard_implementation?: KeyboardImplementation; show_tray_icon?: boolean; paste_delay_ms?: number; paste_delay_after_ms?: number; 
 /**
  * Debug-gated ("beta") receipt-sequenced paste: restore the clipboard only
  * after the target app actually reads the transcript, instead of after a
@@ -1058,6 +1199,59 @@ export type ChineseScript =
 "as_transcribed" | "simplified" | "traditional"
 export type ClipboardHandling = "dont_modify" | "copy_to_clipboard"
 export type CustomSounds = { start: boolean; stop: boolean }
+/**
+ * A stored dictionary entry.
+ */
+export type DictionaryEntry = { id: number; term: string; replacement: string; kind: DictionaryEntryKind; enabled: boolean; scope: string; case_sensitive: boolean; whole_word: boolean; hit_count: number; created_at: number; updated_at: number; 
+/**
+ * Higher priority wins when two rules could match the same text.
+ */
+priority: number; 
+/**
+ * Optional language tag: the rule only applies to transcripts in that
+ * language. Empty means "every language".
+ */
+language: string | null }
+/**
+ * The writable fields of a dictionary entry.
+ */
+export type DictionaryEntryInput = { term: string; replacement: string; kind: DictionaryEntryKind; 
+/**
+ * Defaults to enabled when absent.
+ */
+enabled?: boolean | null; 
+/**
+ * Defaults to [`GLOBAL_SCOPE`] when absent.
+ */
+scope?: string | null; 
+/**
+ * Defaults to case-insensitive matching when absent.
+ */
+case_sensitive?: boolean | null; 
+/**
+ * Defaults to whole-word matching when absent.
+ */
+whole_word?: boolean | null; 
+/**
+ * Defaults to zero when absent.
+ */
+priority?: number | null; 
+/**
+ * Defaults to "every language" when absent.
+ */
+language?: string | null }
+/**
+ * What an entry does when it matches.
+ */
+export type DictionaryEntryKind = 
+/**
+ * Vocabulary hint only: fed to the ASR engine, never rewrites text.
+ */
+"term" | 
+/**
+ * Rewrites the transcript after transcription.
+ */
+"substitution"
 export type GpuDeviceOption = { id: string; name: string; total_vram_mb: number }
 export type HistoryEntry = { id: number; file_name: string; timestamp: number; saved: boolean; title: string; transcription_text: string; post_processed_text: string | null; post_process_prompt: string | null; post_process_requested: boolean }
 export type HistoryUpdatePayload = { action: "added"; entry: HistoryEntry } | { action: "updated"; entry: HistoryEntry } | { action: "deleted"; id: number } | { action: "toggled"; id: number }
@@ -1080,7 +1274,7 @@ export type LogLevel = "trace" | "debug" | "info" | "warn" | "error"
 export type ModelInfo = { id: string; name: string; description: string; filename: string; source: ModelSource; size_mb: number; is_downloaded: boolean; is_downloading: boolean; partial_size: number; accuracy_score: number; speed_score: number; supports_translation: boolean; is_recommended: boolean; supported_languages: string[]; supports_language_selection: boolean; is_custom: boolean; supports_streaming: boolean; supports_language_detection: boolean }
 export type ModelLoadStatus = { is_loaded: boolean; current_model: string | null }
 /**
- * Where a model comes from and how Dixi obtains it — the routing discriminant
+ * Where a model comes from and how Handy obtains it — the routing discriminant
  * for downloading and on-disk resolution.
  */
 export type ModelSource = 
@@ -1221,7 +1415,7 @@ export type StreamTextEvent = { committed: string; tentative: string }
 export type StreamWorkKind = "transcribing" | "polishing"
 /**
  * UI appearance mode. `System` follows the OS `prefers-color-scheme`; `Light`
- * and `Dark` force one of the two palettes Dixi already ships.
+ * and `Dark` force one of the two palettes Handy already ships.
  */
 export type Theme = "system" | "light" | "dark"
 export type TranscribeAcceleratorSetting = "auto" | "cpu" | "gpu"
