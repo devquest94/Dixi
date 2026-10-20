@@ -1202,6 +1202,30 @@ pub fn change_post_process_model_setting(
 
 #[tauri::command]
 #[specta::specta]
+pub fn change_post_process_effort_setting(
+    app: AppHandle,
+    provider_id: String,
+    effort: String,
+) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    validate_provider_exists(&settings, &provider_id)?;
+
+    let normalized = effort.trim().to_lowercase();
+    if !matches!(normalized.as_str(), "low" | "medium" | "high" | "xhigh" | "max") {
+        return Err(format!(
+            "'{effort}' is not a valid reasoning effort. Use low, medium, high, xhigh or max."
+        ));
+    }
+
+    settings
+        .post_process_efforts
+        .insert(provider_id, normalized);
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn set_post_process_provider(app: AppHandle, provider_id: String) -> Result<(), String> {
     let mut settings = settings::get_settings(&app);
     validate_provider_exists(&settings, &provider_id)?;

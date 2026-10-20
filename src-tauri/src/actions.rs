@@ -186,6 +186,9 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
         .cloned()
         .unwrap_or_default();
 
+    // The reasoning depth, for the providers that expose one (MiniMax).
+    let effort = settings.post_process_efforts.get(&provider.id).cloned();
+
     // Ask these providers to skip reasoning/thinking — post-processing rarely
     // benefits from it and it adds seconds of latency. llm_client picks the
     // field the endpoint understands and retries without it if rejected.
@@ -262,6 +265,7 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
             Some(system_prompt),
             Some(json_schema),
             disable_reasoning,
+            effort.as_deref(),
         )
         .await
         {
@@ -318,6 +322,7 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
         &model,
         processed_prompt,
         disable_reasoning,
+        effort.as_deref(),
     )
     .await
     {

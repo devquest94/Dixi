@@ -117,6 +117,10 @@ pub struct PostProcessProvider {
     pub models_endpoint: Option<String>,
     #[serde(default)]
     pub supports_structured_output: bool,
+    /// The provider exposes a reasoning depth the user can choose
+    /// (`low`, `medium`, `high`, `xhigh`, `max`). Only MiniMax does today.
+    #[serde(default)]
+    pub supports_reasoning_effort: bool,
     #[serde(default)]
     pub api_format: PostProcessApiFormat,
 }
@@ -473,6 +477,10 @@ pub struct AppSettings {
     pub post_process_api_keys: SecretMap,
     #[serde(default = "default_post_process_models")]
     pub post_process_models: HashMap<String, String>,
+    /// Reasoning depth per provider, for the providers that expose one.
+    /// Values: `low`, `medium`, `high`, `xhigh`, `max`.
+    #[serde(default)]
+    pub post_process_efforts: HashMap<String, String>,
     #[serde(default = "default_post_process_prompts")]
     pub post_process_prompts: Vec<LLMPrompt>,
     #[serde(default)]
@@ -693,6 +701,7 @@ fn default_post_process_providers() -> Vec<PostProcessProvider> {
             allow_base_url_edit: false,
             models_endpoint: Some("/models".to_string()),
             supports_structured_output: true,
+            supports_reasoning_effort: false,
             api_format: PostProcessApiFormat::OpenAi,
         },
         PostProcessProvider {
@@ -702,6 +711,7 @@ fn default_post_process_providers() -> Vec<PostProcessProvider> {
             allow_base_url_edit: false,
             models_endpoint: Some("/models".to_string()),
             supports_structured_output: true,
+            supports_reasoning_effort: false,
             api_format: PostProcessApiFormat::OpenAi,
         },
         PostProcessProvider {
@@ -711,6 +721,7 @@ fn default_post_process_providers() -> Vec<PostProcessProvider> {
             allow_base_url_edit: false,
             models_endpoint: Some("/models".to_string()),
             supports_structured_output: true,
+            supports_reasoning_effort: false,
             api_format: PostProcessApiFormat::OpenAi,
         },
         PostProcessProvider {
@@ -720,6 +731,7 @@ fn default_post_process_providers() -> Vec<PostProcessProvider> {
             allow_base_url_edit: false,
             models_endpoint: Some("/models".to_string()),
             supports_structured_output: false,
+            supports_reasoning_effort: false,
             api_format: PostProcessApiFormat::Anthropic,
         },
         PostProcessProvider {
@@ -729,6 +741,7 @@ fn default_post_process_providers() -> Vec<PostProcessProvider> {
             allow_base_url_edit: false,
             models_endpoint: Some("/models".to_string()),
             supports_structured_output: false,
+            supports_reasoning_effort: false,
             api_format: PostProcessApiFormat::OpenAi,
         },
         PostProcessProvider {
@@ -738,6 +751,7 @@ fn default_post_process_providers() -> Vec<PostProcessProvider> {
             allow_base_url_edit: false,
             models_endpoint: Some("/models".to_string()),
             supports_structured_output: true,
+            supports_reasoning_effort: false,
             api_format: PostProcessApiFormat::OpenAi,
         },
         // MiniMax speaks the OpenAI Chat Completions shape on
@@ -751,6 +765,9 @@ fn default_post_process_providers() -> Vec<PostProcessProvider> {
             allow_base_url_edit: false,
             models_endpoint: Some("/models".to_string()),
             supports_structured_output: false,
+            // MiniMax exposes the reasoning depth, and its API never accepts
+            // "none": the depth is chosen, it is not switched off.
+            supports_reasoning_effort: true,
             api_format: PostProcessApiFormat::OpenAi,
         },
     ];
@@ -768,6 +785,7 @@ fn default_post_process_providers() -> Vec<PostProcessProvider> {
             allow_base_url_edit: false,
             models_endpoint: None,
             supports_structured_output: true,
+            supports_reasoning_effort: false,
             api_format: PostProcessApiFormat::OpenAi,
         });
     }
@@ -780,6 +798,7 @@ fn default_post_process_providers() -> Vec<PostProcessProvider> {
         allow_base_url_edit: false,
         models_endpoint: Some("/models".to_string()),
         supports_structured_output: true,
+        supports_reasoning_effort: false,
         api_format: PostProcessApiFormat::OpenAi,
     });
 
@@ -791,6 +810,7 @@ fn default_post_process_providers() -> Vec<PostProcessProvider> {
         allow_base_url_edit: true,
         models_endpoint: Some("/models".to_string()),
         supports_structured_output: false,
+        supports_reasoning_effort: false,
         api_format: PostProcessApiFormat::OpenAi,
     });
 
@@ -819,6 +839,25 @@ fn default_post_process_models() -> HashMap<String, String> {
             provider.id.clone(),
             default_model_for_provider(&provider.id),
         );
+    }
+    map
+}
+
+/// The reasoning depth a provider starts with.
+///
+/// `low` is the right default for dictation clean-ups: the model is rewriting
+/// a transcript, not solving a problem, and the deeper settings cost time and
+/// money for no gain.
+fn default_post_process_effort() -> String {
+    "low".to_string()
+}
+
+fn default_post_process_efforts() -> HashMap<String, String> {
+    let mut map = HashMap::new();
+    for provider in default_post_process_providers() {
+        if provider.supports_reasoning_effort {
+            map.insert(provider.id.clone(), default_post_process_effort());
+        }
     }
     map
 }
@@ -1022,6 +1061,7 @@ pub fn get_default_settings() -> AppSettings {
         post_process_providers: default_post_process_providers(),
         post_process_api_keys: default_post_process_api_keys(),
         post_process_models: default_post_process_models(),
+        post_process_efforts: default_post_process_efforts(),
         post_process_prompts: default_post_process_prompts(),
         post_process_selected_prompt_id: None,
         mute_while_recording: false,

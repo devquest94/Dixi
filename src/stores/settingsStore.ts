@@ -517,7 +517,7 @@ export const useSettingsStore = create<SettingsStore>()(
 
     // Generic updater for post-processing provider settings
     updatePostProcessSetting: async (
-      settingType: "base_url" | "api_key" | "model",
+      settingType: "base_url" | "api_key" | "model" | "effort",
       providerId: string,
       value: string,
     ) => {
@@ -533,6 +533,8 @@ export const useSettingsStore = create<SettingsStore>()(
           await commands.changePostProcessApiKeySetting(providerId, value);
         } else if (settingType === "model") {
           await commands.changePostProcessModelSetting(providerId, value);
+        } else if (settingType === "effort") {
+          await commands.changePostProcessEffortSetting(providerId, value);
         }
         await refreshSettings();
       } catch (error) {

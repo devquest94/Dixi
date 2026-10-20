@@ -487,6 +487,9 @@ pub fn parse_sse_data_line(line: &str) -> Result<Option<MiniMaxChunk>, MiniMaxEr
 ///
 /// The OpenAI format carries the reasoning depth in `reasoning_effort` and the
 /// Anthropic format in `output_config.effort`. The value is never `none`.
+///
+/// An empty system prompt is left out of the body instead of being sent as
+/// an empty message.
 pub fn build_request_body(
     format: MiniMaxApiFormat,
     config: &MiniMaxConfig,
@@ -494,26 +497,36 @@ pub fn build_request_body(
     user_text: &str,
 ) -> Value {
     match format {
-        MiniMaxApiFormat::OpenAi => json!({
-            "model": config.model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_text},
-            ],
-            // Never "none": MiniMax-M3.1-Flash always reasons and answers
-            // HTTP 400 when reasoning is disabled.
-            "reasoning_effort": config.effort.as_str(),
-            "max_tokens": config.max_tokens,
-        }),
-        MiniMaxApiFormat::Anthropic => json!({
-            "model": config.model,
-            "system": system_prompt,
-            "messages": [
-                {"role": "user", "content": user_text},
-            ],
-            "max_tokens": config.max_tokens,
-            "output_config": {"effort": config.effort.as_str()},
-        }),
+        MiniMaxApiFormat::OpenAi => {
+            let mut messages = Vec::new();
+            if !system_prompt.is_empty() {
+                messages.push(json!({"role": "system", "content": system_prompt}));
+            }
+            messages.push(json!({"role": "user", "content": user_text}));
+
+            json!({
+                "model": config.model,
+                "messages": messages,
+                // Never "none": MiniMax-M3.1-Flash always reasons and answers
+                // HTTP 400 when reasoning is disabled.
+                "reasoning_effort": config.effort.as_str(),
+                "max_tokens": config.max_tokens,
+            })
+        }
+        MiniMaxApiFormat::Anthropic => {
+            let mut body = json!({
+                "model": config.model,
+                "messages": [
+                    {"role": "user", "content": user_text},
+                ],
+                "max_tokens": config.max_tokens,
+                "output_config": {"effort": config.effort.as_str()},
+            });
+            if !system_prompt.is_empty() {
+                body["system"] = json!(system_prompt);
+            }
+            body
+        }
     }
 }
 

@@ -340,12 +340,16 @@ fn report_reqwest_error(context: &str, error: &reqwest::Error) -> String {
 /// Send a chat completion request to an OpenAI-compatible API
 /// Returns Ok(Some(content)) on success, Ok(None) if response has no content,
 /// or Err on actual errors (HTTP, parsing, etc.)
+///
+/// `effort` is the reasoning depth for the providers that expose one
+/// (MiniMax); it is ignored by the others.
 pub async fn send_chat_completion(
     provider: &PostProcessProvider,
     api_key: String,
     model: &str,
     prompt: String,
     disable_reasoning: bool,
+    effort: Option<&str>,
 ) -> Result<Option<String>, String> {
     if provider.api_format == PostProcessApiFormat::Anthropic {
         return send_anthropic_message(provider, api_key, model, prompt).await;
@@ -359,6 +363,7 @@ pub async fn send_chat_completion(
         None,
         None,
         disable_reasoning,
+        effort,
     )
     .await
 }
@@ -373,6 +378,9 @@ pub async fn send_chat_completion(
 /// upstreams reject with 400), so a 400/422 answer to such a request triggers
 /// one retry without the fields, and the rejection is remembered per
 /// (base_url, model) so later requests skip the failing attempt entirely.
+///
+/// `effort` is the reasoning depth for the providers that expose one
+/// (MiniMax); it is ignored by the others.
 pub async fn send_chat_completion_with_schema(
     provider: &PostProcessProvider,
     api_key: String,
@@ -381,6 +389,7 @@ pub async fn send_chat_completion_with_schema(
     system_prompt: Option<String>,
     json_schema: Option<Value>,
     disable_reasoning: bool,
+    effort: Option<&str>,
 ) -> Result<Option<String>, String> {
     let base_url = provider.base_url.trim_end_matches('/');
     let url = format!("{}/chat/completions", base_url);
@@ -391,6 +400,23 @@ pub async fn send_chat_completion_with_schema(
     );
 
     let client = create_client(provider, &api_key)?;
+
+    // MiniMax speaks the OpenAI Chat Completions shape, so it uses the same
+    // client, the same URL and the same error handling. Only the body and
+    // the response parsing differ: the error can arrive inside an HTTP 200
+    // and the reasoning must never reach the user's text.
+    if is_minimax(provider) {
+        return send_minimax_completion(
+            provider,
+            &client,
+            &url,
+            model,
+            user_content,
+            system_prompt,
+            effort,
+        )
+        .await;
+    }
 
     // Build messages vector
     let mut messages = Vec::new();
@@ -514,6 +540,122 @@ pub async fn send_chat_completion_with_schema(
     }
 
     Ok(choice.message.content)
+}
+
+/// The provider id of MiniMax.
+const MINIMAX_PROVIDER_ID: &str = "minimax";
+
+/// Whether the provider is MiniMax.
+///
+/// MiniMax speaks the OpenAI Chat Completions shape, but its responses carry
+/// an extra `base_resp` envelope — an error can arrive with HTTP 200 — and it
+/// separates the reasoning from the answer. Both need the dedicated parser
+/// in [`crate::minimax`].
+fn is_minimax(provider: &PostProcessProvider) -> bool {
+    provider.id.eq_ignore_ascii_case(MINIMAX_PROVIDER_ID)
+}
+
+/// The reasoning depth MiniMax should use.
+///
+/// MiniMax never accepts "none": `MiniMax-M3.1-Flash` answers HTTP 400 when
+/// reasoning is switched off, and the default of the API is `max`, which is
+/// slow and expensive for a transcript clean-up. The depth is therefore
+/// always a real level, and an unknown or missing value falls back to the
+/// cheapest one.
+fn minimax_effort(configured: Option<&str>) -> crate::minimax::MiniMaxEffort {
+    use crate::minimax::MiniMaxEffort;
+    match configured
+        .map(|value| value.trim().to_lowercase())
+        .as_deref()
+    {
+        Some("medium") => MiniMaxEffort::Medium,
+        Some("high") => MiniMaxEffort::High,
+        Some("xhigh") => MiniMaxEffort::XHigh,
+        Some("max") => MiniMaxEffort::Max,
+        _ => MiniMaxEffort::Low,
+    }
+}
+
+/// Sends a completion request to MiniMax.
+///
+/// The HTTP client, the URL and the failure handling are the ones the generic
+/// OpenAI path uses. What changes is the body — MiniMax carries the
+/// reasoning depth in its own field — and the response: the `base_resp`
+/// envelope is read even when the HTTP status says 200, and the reasoning is
+/// discarded instead of being pasted into the user's text.
+async fn send_minimax_completion(
+    provider: &PostProcessProvider,
+    client: &reqwest::Client,
+    url: &str,
+    model: &str,
+    user_content: String,
+    system_prompt: Option<String>,
+    effort: Option<&str>,
+) -> Result<Option<String>, String> {
+    let config = crate::minimax::MiniMaxConfig {
+        base_url: provider.base_url.clone(),
+        model: model.to_string(),
+        // The key travels in the Authorization header, never in the body.
+        api_key: String::new(),
+        effort: minimax_effort(effort),
+        ..Default::default()
+    };
+
+    let body = crate::minimax::build_request_body(
+        crate::minimax::MiniMaxApiFormat::OpenAi,
+        &config,
+        system_prompt.as_deref().unwrap_or_default(),
+        &user_content,
+    );
+
+    let response = client
+        .post(url)
+        .timeout(std::time::Duration::from_secs(config.timeout_secs))
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| report_reqwest_error("HTTP request failed", &e))?;
+
+    let status = response.status();
+    debug!(
+        "MiniMax response received with status {} over {:?} from {}",
+        status,
+        response.version(),
+        sanitized_url(response.url())
+    );
+
+    let payload = response
+        .text()
+        .await
+        .unwrap_or_else(|e| report_reqwest_error("Failed to read API response", &e));
+
+    // The failure may be reported inside an HTTP 200, so the body is read as
+    // JSON and handed to the MiniMax parser either way.
+    let parsed: Option<Value> = serde_json::from_str(&payload).ok();
+
+    if !status.is_success() {
+        let detail = match &parsed {
+            Some(value) => crate::minimax::classify_http_error(status.as_u16(), value).to_string(),
+            None => payload.chars().take(200).collect::<String>(),
+        };
+        return Err(format!(
+            "API request failed with status {}: {}",
+            status, detail
+        ));
+    }
+
+    let Some(value) = parsed else {
+        // The body of a successful answer is not echoed: it can contain the
+        // user's dictation.
+        return Err("The MiniMax response was not valid JSON".to_string());
+    };
+
+    let text = crate::minimax::parse_chat_completion(&value).map_err(|e| e.to_string())?;
+
+    if text.trim().is_empty() {
+        return Ok(None);
+    }
+    Ok(Some(text))
 }
 
 /// Send a single-prompt request to an Anthropic Messages API (`/messages`).
@@ -685,6 +827,7 @@ mod tests {
             allow_base_url_edit: true,
             models_endpoint: None,
             supports_structured_output: false,
+            supports_reasoning_effort: false,
             api_format: PostProcessApiFormat::OpenAi,
         }
     }
@@ -726,6 +869,287 @@ mod tests {
         });
 
         format!("http://{address}")
+    }
+
+    /// A provider that speaks like MiniMax: OpenAI format, but with the
+    /// reasoning depth exposed.
+    fn minimax_provider(base_url: &str) -> PostProcessProvider {
+        PostProcessProvider {
+            id: "minimax".to_string(),
+            label: "MiniMax".to_string(),
+            base_url: base_url.to_string(),
+            allow_base_url_edit: false,
+            models_endpoint: None,
+            supports_structured_output: false,
+            supports_reasoning_effort: true,
+            api_format: PostProcessApiFormat::OpenAi,
+        }
+    }
+
+    /// Serves one response and hands back the request body it received.
+    ///
+    /// The returned handle yields the raw request, so a test can assert what
+    /// the client actually put on the wire.
+    async fn serve_one_captured(status: &str, body: &str) -> (String, tokio::task::JoinHandle<String>) {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let response = format!(
+            "HTTP/1.1 {status}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+            body.len()
+        );
+
+        let handle = tokio::spawn(async move {
+            let (mut stream, _) = listener.accept().await.unwrap();
+
+            // Read the head, then exactly the announced body.
+            let mut head = Vec::new();
+            let mut byte = [0_u8; 1];
+            while !head.ends_with(b"\r\n\r\n") {
+                if stream.read(&mut byte).await.unwrap_or(0) == 0 {
+                    break;
+                }
+                head.push(byte[0]);
+            }
+            let head_text = String::from_utf8_lossy(&head).to_string();
+            let length: usize = head_text
+                .lines()
+                .find_map(|line| {
+                    let (name, value) = line.split_once(':')?;
+                    if name.trim().eq_ignore_ascii_case("content-length") {
+                        value.trim().parse().ok()
+                    } else {
+                        None
+                    }
+                })
+                .unwrap_or(0);
+
+            let mut body_bytes = vec![0_u8; length];
+            if length > 0 {
+                let _ = stream.read_exact(&mut body_bytes).await;
+            }
+            stream.write_all(response.as_bytes()).await.unwrap();
+
+            format!("{head_text}{}", String::from_utf8_lossy(&body_bytes))
+        });
+
+        (format!("http://{address}"), handle)
+    }
+
+    #[tokio::test]
+    async fn minimax_reports_the_error_of_a_base_resp_with_http_200() {
+        // MiniMax reports its failures inside the payload. A client that only
+        // looks at the HTTP status would treat this as a success and paste
+        // the error message into the user's text.
+        let (base_url, _server) = serve_one_captured(
+            "200 OK",
+            r#"{"base_resp":{"status_code":1002,"status_msg":"rate limited"},"choices":[]}"#,
+        )
+        .await;
+
+        let result = send_chat_completion(
+            &minimax_provider(&base_url),
+            "key".to_string(),
+            "MiniMax-M3",
+            "hola".to_string(),
+            false,
+            None,
+        )
+        .await;
+
+        let error = result.expect_err("a base_resp error must not be a success");
+        assert!(
+            error.contains("rate limit"),
+            "the error must name the failure, got: {error}"
+        );
+    }
+
+    #[tokio::test]
+    async fn minimax_reports_an_exhausted_quota() {
+        let (base_url, _server) = serve_one_captured(
+            "200 OK",
+            r#"{"base_resp":{"status_code":2056,"status_msg":"quota exhausted"},"choices":[]}"#,
+        )
+        .await;
+
+        let result = send_chat_completion(
+            &minimax_provider(&base_url),
+            "key".to_string(),
+            "MiniMax-M3",
+            "hola".to_string(),
+            false,
+            None,
+        )
+        .await;
+
+        let error = result.expect_err("an exhausted quota must not be a success");
+        assert!(
+            error.contains("quota"),
+            "the error must name the failure, got: {error}"
+        );
+    }
+
+    #[tokio::test]
+    async fn minimax_discards_the_reasoning_from_the_answer() {
+        let (base_url, _server) = serve_one_captured(
+            "200 OK",
+            r#"{"base_resp":{"status_code":0,"status_msg":"success"},
+                "choices":[{"message":{"content":"Texto limpio",
+                "reasoning_content":"razonamiento interno que no debe aparecer"}}]}"#,
+        )
+        .await;
+
+        let result = send_chat_completion(
+            &minimax_provider(&base_url),
+            "key".to_string(),
+            "MiniMax-M3",
+            "hola".to_string(),
+            false,
+            None,
+        )
+        .await;
+
+        let text = result.expect("the request must succeed").expect("text expected");
+        assert_eq!(text, "Texto limpio");
+        assert!(
+            !text.contains("razonamiento"),
+            "the reasoning must never reach the user's text"
+        );
+    }
+
+    #[tokio::test]
+    async fn minimax_sends_the_configured_effort_and_never_none() {
+        let (base_url, server) = serve_one_captured(
+            "200 OK",
+            r#"{"base_resp":{"status_code":0,"status_msg":"success"},"choices":[{"message":{"content":"ok"}}]}"#,
+        )
+        .await;
+
+        let result = send_chat_completion(
+            &minimax_provider(&base_url),
+            "key".to_string(),
+            "MiniMax-M3",
+            "hola".to_string(),
+            false,
+            Some("high"),
+        )
+        .await;
+        assert!(result.is_ok());
+
+        let request = server.await.unwrap();
+        assert!(
+            request.contains("\"reasoning_effort\":\"high\""),
+            "the configured effort must be sent, got: {request}"
+        );
+        assert!(
+            !request.contains("\"none\""),
+            "MiniMax answers HTTP 400 when the effort is none, got: {request}"
+        );
+    }
+
+    #[tokio::test]
+    async fn minimax_defaults_to_the_cheapest_effort() {
+        let (base_url, server) = serve_one_captured(
+            "200 OK",
+            r#"{"base_resp":{"status_code":0,"status_msg":"success"},"choices":[{"message":{"content":"ok"}}]}"#,
+        )
+        .await;
+
+        let result = send_chat_completion(
+            &minimax_provider(&base_url),
+            "key".to_string(),
+            "MiniMax-M3",
+            "hola".to_string(),
+            false,
+            None,
+        )
+        .await;
+        assert!(result.is_ok());
+
+        let request = server.await.unwrap();
+        assert!(
+            request.contains("\"reasoning_effort\":\"low\""),
+            "an unset effort must fall back to the cheapest one, got: {request}"
+        );
+    }
+
+    #[tokio::test]
+    async fn minimax_reports_a_http_failure() {
+        let (base_url, _server) = serve_one_captured(
+            "500 Internal Server Error",
+            r#"{"base_resp":{"status_code":0,"status_msg":"success"}}"#,
+        )
+        .await;
+
+        let result = send_chat_completion(
+            &minimax_provider(&base_url),
+            "key".to_string(),
+            "MiniMax-M3",
+            "hola".to_string(),
+            false,
+            None,
+        )
+        .await;
+
+        let error = result.expect_err("an HTTP failure must not be a success");
+        assert!(
+            error.contains("500"),
+            "the error must carry the status, got: {error}"
+        );
+    }
+
+    #[tokio::test]
+    async fn minimax_sends_the_api_key_in_the_header_only() {
+        let (base_url, server) = serve_one_captured(
+            "200 OK",
+            r#"{"base_resp":{"status_code":0,"status_msg":"success"},"choices":[{"message":{"content":"ok"}}]}"#,
+        )
+        .await;
+
+        let result = send_chat_completion(
+            &minimax_provider(&base_url),
+            "super-secret-key".to_string(),
+            "MiniMax-M3",
+            "hola".to_string(),
+            false,
+            None,
+        )
+        .await;
+        assert!(result.is_ok());
+
+        let request = server.await.unwrap();
+        let head = request.to_lowercase();
+        assert!(
+            head.contains("authorization: bearer super-secret-key"),
+            "the key must travel in the header, got: {request}"
+        );
+        assert!(
+            !request.contains("\"api_key\""),
+            "the key must never be part of the body, got: {request}"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_non_minimax_provider_is_not_treated_as_one() {
+        // The MiniMax parser must not hijack the other providers: the same
+        // payload that is an error for MiniMax is a normal answer for a
+        // generic OpenAI-compatible endpoint.
+        let (base_url, _server) = serve_one_captured(
+            "200 OK",
+            r#"{"choices":[{"message":{"content":"Cleaned text"}}]}"#,
+        )
+        .await;
+
+        let result = send_chat_completion(
+            &provider("custom", &base_url),
+            "key".to_string(),
+            "test-model",
+            "raw text".to_string(),
+            false,
+            None,
+        )
+        .await;
+
+        assert_eq!(result, Ok(Some("Cleaned text".to_string())));
     }
 
     #[test]
@@ -923,6 +1347,7 @@ mod tests {
             "claude-haiku",
             "raw text".to_string(),
             true,
+            None,
         )
         .await;
         assert_eq!(result, Ok(Some("Cleaned text".to_string())));
@@ -941,6 +1366,7 @@ mod tests {
             "test-model",
             "raw text".to_string(),
             false,
+            None,
         )
         .await;
         assert!(result.unwrap_err().contains("truncated"));
@@ -959,6 +1385,7 @@ mod tests {
             "claude-haiku",
             "raw text".to_string(),
             true,
+            None,
         )
         .await;
         assert!(result.unwrap_err().contains("truncated"));
