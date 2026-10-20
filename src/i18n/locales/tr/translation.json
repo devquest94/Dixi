@@ -759,7 +759,9 @@
     "open": "Aç",
     "copy": "Kopyala",
     "clear": "Temizle",
-    "noOptionsFound": "Seçenek bulunamadı"
+    "noOptionsFound": "Seçenek bulunamadı",
+    "downloading": "İndiriliyor...",
+    "downloadingCount": "{{count}} indiriliyor..."
   },
   "accessibility": {
     "permissionsDescription": "Dixi, transkribe edilen metni yazabilmek için erişilebilirlik izinlerine ihtiyaç duyar.",

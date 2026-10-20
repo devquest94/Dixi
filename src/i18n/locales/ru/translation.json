@@ -759,7 +759,9 @@
     "open": "Открыть",
     "copy": "Копировать",
     "clear": "Очистить",
-    "noOptionsFound": "Вариантов не найдено"
+    "noOptionsFound": "Вариантов не найдено",
+    "downloading": "Загрузка...",
+    "downloadingCount": "Загрузка: {{count}}..."
   },
   "accessibility": {
     "permissionsDescription": "Dixi необходимы разрешения на доступ для ввода расшифрованного текста.",

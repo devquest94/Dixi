@@ -759,7 +759,9 @@
     "open": "Отваряне",
     "copy": "Копиране",
     "clear": "Изчистване",
-    "noOptionsFound": "Няма намерени опции"
+    "noOptionsFound": "Няма намерени опции",
+    "downloading": "Изтегляне...",
+    "downloadingCount": "Изтегляне на {{count}}..."
   },
   "accessibility": {
     "permissionsDescription": "Dixi се нуждае от разрешения за достъпност, за да въвежда транскрибирания текст.",

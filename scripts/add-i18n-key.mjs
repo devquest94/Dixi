@@ -31,8 +31,8 @@ const localesDir = join("src", "i18n", "locales");
 const translations = JSON.parse(readFileSync(translationsFile, "utf8"));
 
 const path = keyPath.split(".");
-if (path[0] !== "settings") {
-  console.error("the key path must start with 'settings.'");
+if (path.length < 2 || path.some((step) => step.length === 0)) {
+  console.error("the key path must have at least two segments, e.g. 'common.downloading'");
   process.exit(2);
 }
 const key = path.pop();

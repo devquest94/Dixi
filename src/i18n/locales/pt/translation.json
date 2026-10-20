@@ -759,7 +759,9 @@
     "open": "Abrir",
     "copy": "Copiar",
     "clear": "Limpar",
-    "noOptionsFound": "Nenhuma opção encontrada"
+    "noOptionsFound": "Nenhuma opção encontrada",
+    "downloading": "A transferir...",
+    "downloadingCount": "A transferir {{count}}..."
   },
   "accessibility": {
     "permissionsDescription": "O Dixi precisa de permissões de acessibilidade para digitar o texto transcrito.",

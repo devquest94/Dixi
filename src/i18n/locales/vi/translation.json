@@ -759,7 +759,9 @@
     "open": "Mở",
     "copy": "Sao chép",
     "clear": "Xóa",
-    "noOptionsFound": "Không tìm thấy tùy chọn"
+    "noOptionsFound": "Không tìm thấy tùy chọn",
+    "downloading": "Đang tải xuống...",
+    "downloadingCount": "Đang tải xuống {{count}}..."
   },
   "accessibility": {
     "permissionsDescription": "Dixi cần quyền truy cập để gõ văn bản đã chuyển đổi.",

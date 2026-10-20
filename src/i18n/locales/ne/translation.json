@@ -762,7 +762,9 @@
     "open": "खोल्नुहोस्",
     "copy": "कपी गर्नुहोस्",
     "clear": "खाली गर्नुहोस्",
-    "noOptionsFound": "कुनै विकल्प भेटिएन"
+    "noOptionsFound": "कुनै विकल्प भेटिएन",
+    "downloading": "डाउनलोड हुँदैछ...",
+    "downloadingCount": "{{count}} डाउनलोड हुँदैछन्..."
   },
   "accessibility": {
     "permissionsDescription": "ट्रान्सक्राइब गरिएको टेक्स्ट टाइप गर्न Dixi लाई एक्सेसिबिलिटी अनुमति चाहिन्छ।",

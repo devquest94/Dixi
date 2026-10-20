@@ -759,7 +759,9 @@
     "open": "Otwórz",
     "copy": "Kopiuj",
     "clear": "Wyczyść",
-    "noOptionsFound": "Nie znaleziono opcji"
+    "noOptionsFound": "Nie znaleziono opcji",
+    "downloading": "Pobieranie...",
+    "downloadingCount": "Pobieranie {{count}}..."
   },
   "accessibility": {
     "permissionsDescription": "Dixi potrzebuje uprawnień dostępności, aby wpisywać transkrybowany tekst.",

@@ -759,7 +759,9 @@
     "open": "פתח",
     "copy": "העתק",
     "clear": "נקה",
-    "noOptionsFound": "לא נמצאו אפשרויות"
+    "noOptionsFound": "לא נמצאו אפשרויות",
+    "downloading": "מוריד...",
+    "downloadingCount": "מוריד {{count}}..."
   },
   "accessibility": {
     "permissionsDescription": "Dixi צריך הרשאות נגישות כדי להקליד את הטקסט המתומלל.",

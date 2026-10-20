@@ -759,7 +759,9 @@
     "open": "Otevřít",
     "copy": "Kopírovat",
     "clear": "Vymazat",
-    "noOptionsFound": "Nenalezeny žádné možnosti"
+    "noOptionsFound": "Nenalezeny žádné možnosti",
+    "downloading": "Stahování...",
+    "downloadingCount": "Stahování {{count}}..."
   },
   "accessibility": {
     "permissionsDescription": "Dixi potřebuje oprávnění usnadnění přístupu, aby mohlo psát přepsaný text.",

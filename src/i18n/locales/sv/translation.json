@@ -759,7 +759,9 @@
     "open": "Öppna",
     "copy": "Kopiera",
     "clear": "Rensa",
-    "noOptionsFound": "Inga alternativ hittades"
+    "noOptionsFound": "Inga alternativ hittades",
+    "downloading": "Laddar ner...",
+    "downloadingCount": "{{count}} nedladdningar..."
   },
   "accessibility": {
     "permissionsDescription": "Dixi behöver behörighet för hjälpmedel för att kunna skriva transkriberad text.",

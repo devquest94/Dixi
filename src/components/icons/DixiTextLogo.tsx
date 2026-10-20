@@ -51,6 +51,8 @@ const DixiTextLogo = ({
           className="logo-primary"
         />
       ))}
+      {/* The brand name is part of the logo, not a translatable string. */}
+      {/* eslint-disable-next-line i18next/no-literal-string */}
       <text
         x="94"
         y="76"
