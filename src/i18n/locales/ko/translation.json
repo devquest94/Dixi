@@ -149,6 +149,10 @@
           "transcribe_with_post_process": {
             "name": "후처리 단축키",
             "description": "선택 사항: 항상 AI 후처리를 적용하는 전용 단축키입니다."
+          },
+          "capture_selection": {
+            "name": "선택 영역 캡처",
+            "description": "포커스가 있는 앱에서 선택된 텍스트를 가져옵니다."
           }
         },
         "errors": {
@@ -946,7 +950,13 @@
         "copied": "결과를 복사했습니다.",
         "captureSelection": "선택한 텍스트 사용",
         "selectionEmpty": "포커스가 있는 앱에서 선택된 텍스트가 없습니다.",
-        "selectionChanged": "변환을 실행하는 동안 선택한 텍스트가 바뀌어 아무것도 기록되지 않았습니다. 대신 결과를 복사하세요."
+        "selectionChanged": "변환을 실행하는 동안 선택한 텍스트가 바뀌어 아무것도 기록되지 않았습니다. 대신 결과를 복사하세요.",
+        "captured": "캡처한 텍스트",
+        "capturedFrom": "{{app}} 앱에서",
+        "hotkeyHint": "텍스트가 선택된 앱에서 {{shortcut}} 키를 누른 뒤 여기로 돌아오세요.",
+        "captureCountdown": "앱으로 돌아가 텍스트를 선택하세요. {{seconds}}초 후 캡처합니다…",
+        "nothingCaptured": "아직 캡처된 텍스트가 없습니다.",
+        "acceptNeedsCapture": "수락하기 전에 선택 영역을 캡처하세요."
       },
       "diff": {
         "title": "변경 사항",
@@ -1014,6 +1024,19 @@
       "errors": {
         "load": "텍스트 기록을 불러올 수 없습니다.",
         "action": "변경을 되돌리지 못했습니다."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "포커스가 있는 앱에 선택된 텍스트가 없습니다.",
+        "passwordField": "비밀번호 입력란이라 Dixi가 읽지 않습니다.",
+        "unsupportedControl": "Dixi가 해당 컨트롤을 알 수 없어 읽지 않습니다.",
+        "clipboardNotPreservable": "클립보드에 정확히 복원할 수 없는 내용이 있어 Dixi가 건드리지 않았습니다. 클립보드를 비운 뒤 다시 시도하세요.",
+        "clipboard": "클립보드를 사용할 수 없습니다.",
+        "selectionChanged": "선택 영역이 변경되어 아무것도 기록되지 않았습니다.",
+        "destinationUnavailable": "Dixi가 앱을 다시 앞으로 가져오지 못해 아무것도 기록되지 않았습니다.",
+        "destinationGone": "텍스트를 선택했던 앱이 닫혀서 아무것도 기록되지 않았습니다.",
+        "write": "텍스트를 작성할 수 없습니다."
       }
     }
   },

@@ -149,6 +149,10 @@
           "transcribe_with_post_process": {
             "name": "Snabbkommando för efterbearbetning",
             "description": "Valfritt: En dedikerad snabbknapp som alltid tillämpar AI-efterbearbetning på din transkription."
+          },
+          "capture_selection": {
+            "name": "Samla in markering",
+            "description": "Tar den text som är markerad i appen som har fokus."
           }
         },
         "errors": {
@@ -946,7 +950,13 @@
         "copied": "Resultatet kopierades.",
         "captureSelection": "Använd den markerade texten",
         "selectionEmpty": "Ingen text är markerad i appen som har fokus.",
-        "selectionChanged": "Den markerade texten ändrades under transformeringen, så inget skrevs. Kopiera resultatet i stället."
+        "selectionChanged": "Den markerade texten ändrades under transformeringen, så inget skrevs. Kopiera resultatet i stället.",
+        "captured": "Insamlad text",
+        "capturedFrom": "Från {{app}}",
+        "hotkeyHint": "Tryck på {{shortcut}} i appen där texten är markerad och kom sedan tillbaka hit.",
+        "captureCountdown": "Gå tillbaka till appen och markera texten. Insamling om {{seconds}}…",
+        "nothingCaptured": "Ingen text har insamlats än.",
+        "acceptNeedsCapture": "Samla in en markering innan du accepterar."
       },
       "diff": {
         "title": "Ändringar",
@@ -1014,6 +1024,19 @@
       "errors": {
         "load": "Texthistoriken kunde inte läsas in.",
         "action": "Ändringen kunde inte ångras."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "Det finns ingen markerad text i appen som har fokus.",
+        "passwordField": "Det är ett lösenordsfält, så Dixi läser det inte.",
+        "unsupportedControl": "Dixi känner inte till den här kontrollen, så den läses inte.",
+        "clipboardNotPreservable": "Ditt urklipp innehåller innehåll som inte kan återställas exakt, så Dixi har inte rört det. Rensa urklippet och försök igen.",
+        "clipboard": "Urklippet kunde inte användas.",
+        "selectionChanged": "Markeringen ändrades, så inget skrevs.",
+        "destinationUnavailable": "Dixi kunde inte föra appen fram, så inget skrevs.",
+        "destinationGone": "Appen där texten var markerad är stängd, så inget skrevs.",
+        "write": "Texten kunde inte skrivas."
       }
     }
   },

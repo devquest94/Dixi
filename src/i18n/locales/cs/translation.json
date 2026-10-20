@@ -176,6 +176,10 @@
           "transcribe_with_post_process": {
             "name": "Klávesa pro následné zpracování",
             "description": "Volitelné: Vyhrazená klávesová zkratka, která vždy použije AI následné zpracování na váš přepis."
+          },
+          "capture_selection": {
+            "name": "Zachytit výběr",
+            "description": "Zachytí text vybraný v aplikaci, která má fokus."
           }
         },
         "errors": {
@@ -946,7 +950,13 @@
         "copied": "Výsledek byl zkopírován.",
         "captureSelection": "Použít vybraný text",
         "selectionEmpty": "V aplikaci s fokusem není vybraný žádný text.",
-        "selectionChanged": "Vybraný text se mezitím během transformace změnil, takže se nic nezapsalo. Zkopírujte výsledek místo toho."
+        "selectionChanged": "Vybraný text se mezitím během transformace změnil, takže se nic nezapsalo. Zkopírujte výsledek místo toho.",
+        "captured": "Zachycený text",
+        "capturedFrom": "Z {{app}}",
+        "hotkeyHint": "Stiskněte {{shortcut}} v aplikaci, kde je text vybraný, a pak se vraťte sem.",
+        "captureCountdown": "Vraťte se do aplikace a vyberte text. Zachytávání za {{seconds}}…",
+        "nothingCaptured": "Zatím nebyl zachycen žádný text.",
+        "acceptNeedsCapture": "Nejprve zachytněte výběr, teprve poté přijměte."
       },
       "diff": {
         "title": "Změny",
@@ -1014,6 +1024,19 @@
       "errors": {
         "load": "Historii textu se nepodařilo načíst.",
         "action": "Změnu se nepodařilo vrátit zpět."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "V aplikaci, která má fokus, není vybraný žádný text.",
+        "passwordField": "Je to pole hesla, takže ho Dixi nepřečte.",
+        "unsupportedControl": "Dixi tento ovládací prvek nezná, proto ho nepřečte.",
+        "clipboardNotPreservable": "Ve schránce je obsah, který nelze přesně vrátit, takže se ho Dixi nedotkl. Vymažte schránku a zkuste to znovu.",
+        "clipboard": "Schránku se nepodařilo použít.",
+        "selectionChanged": "Výběr se změnil, takže se nic nezapsalo.",
+        "destinationUnavailable": "Dixi nepřevedl aplikaci do popředí, takže se nic nezapsalo.",
+        "destinationGone": "Aplikace, ve které byl vybraný text, je zavřená, takže se nic nezapsalo.",
+        "write": "Text se nepodařilo zapsat."
       }
     }
   },

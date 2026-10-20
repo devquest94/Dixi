@@ -176,6 +176,10 @@
           "transcribe_with_post_process": {
             "name": "Tecla de post procesamiento",
             "description": "Opcional: Una tecla de acceso rápido dedicada que siempre aplica post procesamiento con IA a tu transcripción."
+          },
+          "capture_selection": {
+            "name": "Capturar la selección",
+            "description": "Toma el texto seleccionado en la aplicación que tiene el foco."
           }
         },
         "errors": {
@@ -946,7 +950,13 @@
         "copied": "Se copió el resultado.",
         "captureSelection": "Usar el texto seleccionado",
         "selectionEmpty": "No hay texto seleccionado en la aplicación que tiene el foco.",
-        "selectionChanged": "El texto seleccionado cambió mientras se ejecutaba la transformación, así que no se escribió nada. Copiá el resultado en su lugar."
+        "selectionChanged": "El texto seleccionado cambió mientras se ejecutaba la transformación, así que no se escribió nada. Copiá el resultado en su lugar.",
+        "captured": "Texto capturado",
+        "capturedFrom": "Desde {{app}}",
+        "hotkeyHint": "Pulsá {{shortcut}} en la aplicación donde esté seleccionado el texto y volvé acá.",
+        "captureCountdown": "Volvé a la aplicación y seleccioná el texto. Capturando en {{seconds}}…",
+        "nothingCaptured": "Todavía no hay texto capturado.",
+        "acceptNeedsCapture": "Capturá una selección antes de aceptar."
       },
       "diff": {
         "title": "Cambios",
@@ -1014,6 +1024,19 @@
       "errors": {
         "load": "No se pudo cargar el historial de texto.",
         "action": "No se pudo revertir el cambio."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "No hay texto seleccionado en la aplicación que tiene el foco.",
+        "passwordField": "Es un campo de contraseña, así que Dixi no lo lee.",
+        "unsupportedControl": "Dixi no conoce ese control, así que no lo lee.",
+        "clipboardNotPreservable": "Tu portapapeles contiene contenido que no se puede restaurar exactamente, así que Dixi no lo tocó. Vacía el portapapeles e inténtalo de nuevo.",
+        "clipboard": "No se pudo usar el portapapeles.",
+        "selectionChanged": "La selección cambió, así que no se escribió nada.",
+        "destinationUnavailable": "Dixi no pudo traer la aplicación al frente, así que no se escribió nada.",
+        "destinationGone": "La aplicación donde estaba seleccionado el texto está cerrada, así que no se escribió nada.",
+        "write": "No se pudo escribir el texto."
       }
     }
   },

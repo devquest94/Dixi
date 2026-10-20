@@ -176,6 +176,10 @@
           "transcribe_with_post_process": {
             "name": "Skrót postprocessingu",
             "description": "Opcjonalnie: Dedykowany skrót klawiszowy, który zawsze stosuje postprocessing AI do transkrypcji."
+          },
+          "capture_selection": {
+            "name": "Przechwyć zaznaczenie",
+            "description": "Przechwytuje tekst zaznaczony w aplikacji z fokusem."
           }
         },
         "errors": {
@@ -946,7 +950,13 @@
         "copied": "Wynik został skopiowany.",
         "captureSelection": "Użyj zaznaczonego tekstu",
         "selectionEmpty": "W aplikacji z fokusem nie zaznaczono tekstu.",
-        "selectionChanged": "Zaznaczony tekst zmienił się w trakcie transformacji, więc nic nie zapisano. Skopiuj zamiast tego wynik."
+        "selectionChanged": "Zaznaczony tekst zmienił się w trakcie transformacji, więc nic nie zapisano. Skopiuj zamiast tego wynik.",
+        "captured": "Przechwycony tekst",
+        "capturedFrom": "Z {{app}}",
+        "hotkeyHint": "Naciśnij {{shortcut}} w aplikacji, w której zaznaczono tekst, a następnie wróć tutaj.",
+        "captureCountdown": "Wróć do aplikacji i zaznacz tekst. Przechwytywanie za {{seconds}}…",
+        "nothingCaptured": "Nie przechwycono jeszcze żadnego tekstu.",
+        "acceptNeedsCapture": "Przechwyć zaznaczenie przed zaakceptowaniem."
       },
       "diff": {
         "title": "Zmiany",
@@ -1014,6 +1024,19 @@
       "errors": {
         "load": "Nie udało się wczytać historii tekstu.",
         "action": "Nie udało się cofnąć zmiany."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "W aplikacji z fokusem nie ma zaznaczonego tekstu.",
+        "passwordField": "To pole hasła, więc Dixi go nie odczytuje.",
+        "unsupportedControl": "Dixi nie zna tego elementu sterowania, więc go nie odczytuje.",
+        "clipboardNotPreservable": "Twój schowek zawiera treść, której nie można odtworzyć dokładnie, więc Dixi go nie zmieniał. Wyczyść schowek i spróbuj ponownie.",
+        "clipboard": "Nie udało się użyć schowka.",
+        "selectionChanged": "Zaznaczenie się zmieniło, więc nic nie zostało zapisane.",
+        "destinationUnavailable": "Dixi nie mógł przywrócić aplikacji na wierzch, więc nic nie zostało zapisane.",
+        "destinationGone": "Aplikacja, w której zaznaczono tekst, została zamknięta, więc nic nie zostało zapisane.",
+        "write": "Nie udało się zapisać tekstu."
       }
     }
   },

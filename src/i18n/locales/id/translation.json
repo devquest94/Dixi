@@ -149,6 +149,10 @@
           "transcribe_with_post_process": {
             "name": "Pintasan Pascaproses",
             "description": "Opsional: pintasan khusus yang selalu menerapkan pascaproses AI pada transkripsi Anda."
+          },
+          "capture_selection": {
+            "name": "Tangkap pilihan",
+            "description": "Mengambil teks yang dipilih di aplikasi yang memiliki fokus."
           }
         },
         "errors": {
@@ -946,7 +950,13 @@
         "copied": "Hasil disalin.",
         "captureSelection": "Gunakan teks yang dipilih",
         "selectionEmpty": "Tidak ada teks yang dipilih di aplikasi yang memiliki fokus.",
-        "selectionChanged": "Teks yang dipilih berubah saat transformasi berjalan, jadi tidak ada yang ditulis. Salin hasilnya sebagai gantinya."
+        "selectionChanged": "Teks yang dipilih berubah saat transformasi berjalan, jadi tidak ada yang ditulis. Salin hasilnya sebagai gantinya.",
+        "captured": "Teks yang ditangkap",
+        "capturedFrom": "Dari {{app}}",
+        "hotkeyHint": "Tekan {{shortcut}} di aplikasi tempat teks dipilih, lalu kembali ke sini.",
+        "captureCountdown": "Kembali ke aplikasi dan pilih teks. Tangkapan dalam {{seconds}}…",
+        "nothingCaptured": "Belum ada teks yang ditangkap.",
+        "acceptNeedsCapture": "Tangkap pilihan sebelum menerima."
       },
       "diff": {
         "title": "Perubahan",
@@ -1014,6 +1024,19 @@
       "errors": {
         "load": "Riwayat teks tidak dapat dimuat.",
         "action": "Perubahan tidak dapat dibatalkan."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "Tidak ada teks yang dipilih di aplikasi yang memiliki fokus.",
+        "passwordField": "Itu adalah kolom kata sandi, jadi Dixi tidak membacanya.",
+        "unsupportedControl": "Dixi tidak mengenali kendali itu, jadi tidak membacanya.",
+        "clipboardNotPreservable": "Papan klip Anda berisi konten yang tidak bisa dikembalikan persis, jadi Dixi tidak menyentuhnya. Bersihkan papan klip lalu coba lagi.",
+        "clipboard": "Papan klip tidak dapat digunakan.",
+        "selectionChanged": "Pilihan berubah, jadi tidak ada yang ditulis.",
+        "destinationUnavailable": "Dixi tidak dapat membawa aplikasi ke depan, jadi tidak ada yang ditulis.",
+        "destinationGone": "Aplikasi tempat teks dipilih sudah ditutup, jadi tidak ada yang ditulis.",
+        "write": "Teks tidak dapat ditulis."
       }
     }
   },

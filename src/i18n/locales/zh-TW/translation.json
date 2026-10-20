@@ -149,6 +149,10 @@
           "transcribe_with_post_process": {
             "name": "後處理快捷鍵",
             "description": "可選：專用快捷鍵，使用時一律對轉錄結果套用 AI 後處理"
+          },
+          "capture_selection": {
+            "name": "擷取選取範圍",
+            "description": "取得焦點的應用程式中選取的文字。"
           }
         },
         "errors": {
@@ -946,7 +950,13 @@
         "copied": "已複製結果。",
         "captureSelection": "使用選取的文字",
         "selectionEmpty": "具有焦點的應用程式中沒有選取的文字。",
-        "selectionChanged": "轉換執行時選取的文字發生變化，因此沒有寫入任何內容。請改為複製結果。"
+        "selectionChanged": "轉換執行時選取的文字發生變化，因此沒有寫入任何內容。請改為複製結果。",
+        "captured": "已擷取的文字",
+        "capturedFrom": "來自 {{app}}",
+        "hotkeyHint": "在選取文字的應用程式中按 {{shortcut}}，然後返回這裡。",
+        "captureCountdown": "回到應用程式並選取文字。將在 {{seconds}} 秒後擷取…",
+        "nothingCaptured": "尚未擷取任何文字。",
+        "acceptNeedsCapture": "請先擷取選取範圍，再接受。"
       },
       "diff": {
         "title": "變更",
@@ -1014,6 +1024,19 @@
       "errors": {
         "load": "無法載入文字歷程。",
         "action": "無法復原該變更。"
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "取得焦點的應用程式中沒有選取的文字。",
+        "passwordField": "這是密碼欄位，Dixi 不會讀取它。",
+        "unsupportedControl": "Dixi 不認識該控制項，因此不會讀取它。",
+        "clipboardNotPreservable": "剪貼簿中的內容無法完全還原，因此 Dixi 沒有變更它。請清空剪貼簿後再試一次。",
+        "clipboard": "無法使用剪貼簿。",
+        "selectionChanged": "選取範圍發生變更，因此沒有寫入任何內容。",
+        "destinationUnavailable": "Dixi 無法將應用程式切回前景，因此沒有寫入任何內容。",
+        "destinationGone": "選取文字的應用程式已關閉，因此沒有寫入任何內容。",
+        "write": "無法寫入文字。"
       }
     }
   },

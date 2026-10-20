@@ -149,6 +149,10 @@
           "transcribe_with_post_process": {
             "name": "Drecera de postprocessament",
             "description": "Opcional: una drecera específica que sempre aplica postprocessament amb IA a la transcripció."
+          },
+          "capture_selection": {
+            "name": "Captura la selecció",
+            "description": "Agafa el text seleccionat a l'aplicació amb el focus."
           }
         },
         "errors": {
@@ -946,7 +950,13 @@
         "copied": "El resultat es va copiar.",
         "captureSelection": "Utilitza el text seleccionat",
         "selectionEmpty": "No hi ha cap text seleccionat a l'aplicació amb el focus.",
-        "selectionChanged": "El text seleccionat va canviar mentre s'executava la transformació, així que no s'ha escrit res. Copieu el resultat en comptes d'això."
+        "selectionChanged": "El text seleccionat va canviar mentre s'executava la transformació, així que no s'ha escrit res. Copieu el resultat en comptes d'això.",
+        "captured": "Text capturat",
+        "capturedFrom": "De {{app}}",
+        "hotkeyHint": "Premeu {{shortcut}} a l'aplicació on està seleccionat el text i torneu aquí.",
+        "captureCountdown": "Torneu a l'aplicació i seleccioneu el text. Capturant en {{seconds}}…",
+        "nothingCaptured": "Encara no s'ha capturat cap text.",
+        "acceptNeedsCapture": "Captureu una selecció abans d'acceptar."
       },
       "diff": {
         "title": "Canvis",
@@ -1014,6 +1024,19 @@
       "errors": {
         "load": "No s'ha pogut carregar l'historial de text.",
         "action": "No es pot desfer el canvi."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "No hi ha cap text seleccionat a l'aplicació amb el focus.",
+        "passwordField": "És un camp de contrasenya, així que Dixi no el llegeix.",
+        "unsupportedControl": "Dixi no coneix aquest control, així que no el llegeix.",
+        "clipboardNotPreservable": "El teu porta-retalls conté contingut que no es pot restaurar exactament, així que Dixi no l'ha tocat. Buida el porta-retalls i torna-ho a provar.",
+        "clipboard": "No es va poder fer servir el porta-retalls.",
+        "selectionChanged": "La selecció ha canviat, així que no s'ha escrit res.",
+        "destinationUnavailable": "Dixi no va poder portar l'aplicació al davant, així que no s'ha escrit res.",
+        "destinationGone": "L'aplicació on estava seleccionat el text està tancada, així que no s'ha escrit res.",
+        "write": "No es va poder escriure el text."
       }
     }
   },

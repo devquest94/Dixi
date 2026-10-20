@@ -149,6 +149,10 @@
           "transcribe_with_post_process": {
             "name": "Genvej til efterbehandling",
             "description": "Valgfrit: En dedikeret genvej, der altid anvender AI-efterbehandling på din transskription."
+          },
+          "capture_selection": {
+            "name": "Opsaml markering",
+            "description": "Tager den tekst, der er valgt i den app, der har fokus."
           }
         },
         "errors": {
@@ -946,7 +950,13 @@
         "copied": "Resultatet blev kopieret.",
         "captureSelection": "Brug den valgte tekst",
         "selectionEmpty": "Der er ikke valgt tekst i appen med fokus.",
-        "selectionChanged": "Den valgte tekst ændrede sig, mens transformationen kørte, så der blev ikke skrevet noget. Kopiér resultatet i stedet."
+        "selectionChanged": "Den valgte tekst ændrede sig, mens transformationen kørte, så der blev ikke skrevet noget. Kopiér resultatet i stedet.",
+        "captured": "Opslaget tekst",
+        "capturedFrom": "Fra {{app}}",
+        "hotkeyHint": "Tryk på {{shortcut}} i den app, hvor teksten er valgt, og kom så tilbage hertil.",
+        "captureCountdown": "Gå tilbage til appen og vælg teksten. Opsamling om {{seconds}}…",
+        "nothingCaptured": "Der er endnu ikke opslaget tekst.",
+        "acceptNeedsCapture": "Opsaml en markering, før du accepterer."
       },
       "diff": {
         "title": "Ændringer",
@@ -1014,6 +1024,19 @@
       "errors": {
         "load": "Teksthistorikken kunne ikke indlæses.",
         "action": "Ændringen kunne ikke fortrydes."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "Der er ikke valgt tekst i den app, der har fokus.",
+        "passwordField": "Det er et adgangskodefelt, så Dixi læser det ikke.",
+        "unsupportedControl": "Dixi kender ikke denne kontrol, så den læses ikke.",
+        "clipboardNotPreservable": "Din udklipsholder indeholder indhold, der ikke kan sættes tilbage præcist, så Dixi har ikke rørt den. Ryd udklipsholderen, og prøv igen.",
+        "clipboard": "Udklipsholderen kunne ikke bruges.",
+        "selectionChanged": "Markeringen ændrede sig, så der blev ikke skrevet noget.",
+        "destinationUnavailable": "Dixi kunne ikke bringe appen frem forrest, så der blev ikke skrevet noget.",
+        "destinationGone": "Appen, hvor teksten blev valgt, er lukket, så der blev ikke skrevet noget.",
+        "write": "Teksten kunne ikke skrives."
       }
     }
   },

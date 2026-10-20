@@ -176,6 +176,10 @@
           "transcribe_with_post_process": {
             "name": "Son İşlem Kısayolu",
             "description": "İsteğe bağlı: Transkripsiyonunuza her zaman yapay zekâ ile son işlem uygulayan özel bir kısayol tuşu."
+          },
+          "capture_selection": {
+            "name": "Seçimi yakala",
+            "description": "Odakta olan uygulamada seçili metni alır."
           }
         },
         "errors": {
@@ -946,7 +950,13 @@
         "copied": "Sonuç kopyalandı.",
         "captureSelection": "Seçili metni kullan",
         "selectionEmpty": "Odakta olan uygulamada seçili metin yok.",
-        "selectionChanged": "Dönüşüm çalışırken seçili metin değişti, bu yüzden hiçbir şey yazılmadı. Bunun yerine sonucu kopyalayın."
+        "selectionChanged": "Dönüşüm çalışırken seçili metin değişti, bu yüzden hiçbir şey yazılmadı. Bunun yerine sonucu kopyalayın.",
+        "captured": "Yakalanan metin",
+        "capturedFrom": "{{app}} uygulamasından",
+        "hotkeyHint": "Metnin seçili olduğu uygulamada {{shortcut}} tuşuna basın, sonra buraya geri dönün.",
+        "captureCountdown": "Uygulamaya dönün ve metni seçin. {{seconds}} sonra yakalanıyor…",
+        "nothingCaptured": "Henüz metin yakalanmadı.",
+        "acceptNeedsCapture": "Kabul etmeden önce bir seçimi yakalayın."
       },
       "diff": {
         "title": "Değişiklikler",
@@ -1014,6 +1024,19 @@
       "errors": {
         "load": "Metin geçmişi yüklenemedi.",
         "action": "Değişiklik geri alınamadı."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "Odakta olan uygulamada seçili metin yok.",
+        "passwordField": "Bu bir parola alanı, bu yüzden Dixi onu okumuyor.",
+        "unsupportedControl": "Dixi bu denetimi tanımıyor, bu yüzden onu okumuyor.",
+        "clipboardNotPreservable": "Panenizde tam olarak geri konulamayan içerik var, bu yüzden Dixi ona dokunmadı. Panoyu temizleyip yeniden deneyin.",
+        "clipboard": "Pano kullanılamadı.",
+        "selectionChanged": "Seçim değişti, bu yüzden hiçbir şey yazılmadı.",
+        "destinationUnavailable": "Dixi uygulamayı öne getiremedi, bu yüzden hiçbir şey yazılmadı.",
+        "destinationGone": "Metnin seçildiği uygulama kapandı, bu yüzden hiçbir şey yazılmadı.",
+        "write": "Metin yazılamadı."
       }
     }
   },

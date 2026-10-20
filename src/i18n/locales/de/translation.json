@@ -176,6 +176,10 @@
           "transcribe_with_post_process": {
             "name": "Nachbearbeitungs-Tastenkürzel",
             "description": "Optional: Ein dediziertes Tastenkürzel, das immer die KI-Nachbearbeitung auf deine Transkription anwendet."
+          },
+          "capture_selection": {
+            "name": "Auswahl erfassen",
+            "description": "Übernimmt den in der fokussierten Anwendung ausgewählten Text."
           }
         },
         "errors": {
@@ -946,7 +950,13 @@
         "copied": "Das Ergebnis wurde kopiert.",
         "captureSelection": "Ausgewählten Text verwenden",
         "selectionEmpty": "In der fokussierten Anwendung ist kein Text ausgewählt.",
-        "selectionChanged": "Der ausgewählte Text hat sich während der Transformation geändert, daher wurde nichts geschrieben. Kopieren Sie stattdessen das Ergebnis."
+        "selectionChanged": "Der ausgewählte Text hat sich während der Transformation geändert, daher wurde nichts geschrieben. Kopieren Sie stattdessen das Ergebnis.",
+        "captured": "Erfasster Text",
+        "capturedFrom": "Aus {{app}}",
+        "hotkeyHint": "Drücken Sie {{shortcut}} in der Anwendung, in der der Text ausgewählt ist, und kehren Sie dann hierher zurück.",
+        "captureCountdown": "Kehren Sie zur Anwendung zurück und wählen Sie den Text aus. Erfassung in {{seconds}}…",
+        "nothingCaptured": "Noch kein Text erfasst.",
+        "acceptNeedsCapture": "Erfassen Sie eine Auswahl, bevor Sie übernehmen."
       },
       "diff": {
         "title": "Änderungen",
@@ -1014,6 +1024,19 @@
       "errors": {
         "load": "Der Textverlauf konnte nicht geladen werden.",
         "action": "Die Änderung konnte nicht zurückgenommen werden."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "In der fokussierten Anwendung ist kein Text ausgewählt.",
+        "passwordField": "Das ist ein Passwortfeld, daher liest Dixi es nicht.",
+        "unsupportedControl": "Dixi kennt dieses Steuerelement nicht und liest es daher nicht.",
+        "clipboardNotPreservable": "Die Zwischenablage enthält Inhalt, der nicht genau wiederhergestellt werden kann, daher hat Dixi sie nicht verändert. Leere die Zwischenablage und versuche es erneut.",
+        "clipboard": "Die Zwischenablage konnte nicht verwendet werden.",
+        "selectionChanged": "Die Auswahl hat sich geändert, daher wurde nichts geschrieben.",
+        "destinationUnavailable": "Dixi konnte die Anwendung nicht in den Vordergrund bringen, daher wurde nichts geschrieben.",
+        "destinationGone": "Die Anwendung, in der der Text ausgewählt war, ist geschlossen, daher wurde nichts geschrieben.",
+        "write": "Der Text konnte nicht geschrieben werden."
       }
     }
   },

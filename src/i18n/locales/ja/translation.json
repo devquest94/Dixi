@@ -176,6 +176,10 @@
           "transcribe_with_post_process": {
             "name": "後処理のショートカット",
             "description": "文字起こしに常に AI 後処理を適用するキーボードショートカット。 (任意)"
+          },
+          "capture_selection": {
+            "name": "選択範囲を取得",
+            "description": "フォーカスのあるアプリで選択されたテキストを取得します。"
           }
         },
         "errors": {
@@ -946,7 +950,13 @@
         "copied": "結果をコピーしました。",
         "captureSelection": "選択中のテキストを使う",
         "selectionEmpty": "フォーカスのあるアプリでテキストが選択されていません。",
-        "selectionChanged": "変換の実行中に選択中のテキストが変わったため、何も書き込まれませんでした。代わりに結果をコピーしてください。"
+        "selectionChanged": "変換の実行中に選択中のテキストが変わったため、何も書き込まれませんでした。代わりに結果をコピーしてください。",
+        "captured": "取得したテキスト",
+        "capturedFrom": "{{app}} から",
+        "hotkeyHint": "テキストが選択されているアプリで {{shortcut}} を押し、ここに戻ってください。",
+        "captureCountdown": "アプリに戻ってテキストを選択してください。{{seconds}} 後に取得します…",
+        "nothingCaptured": "まだテキストを取得していません。",
+        "acceptNeedsCapture": "採用する前に選択内容を取得してください。"
       },
       "diff": {
         "title": "変更点",
@@ -1014,6 +1024,19 @@
       "errors": {
         "load": "テキスト履歴を読み込めませんでした。",
         "action": "変更を取り消せませんでした。"
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "フォーカスのあるアプリに選択されたテキストはありません。",
+        "passwordField": "パスワード欄なので、Dixi は読み取りません。",
+        "unsupportedControl": "Dixi はそのコントロールを認識できないため、読み取りません。",
+        "clipboardNotPreservable": "クリップボードには正確に復元できない内容が入っているため、Dixi は変更しませんでした。クリップボードを空にしてからやり直してください。",
+        "clipboard": "クリップボードを使用できませんでした。",
+        "selectionChanged": "選択範囲が変わったため、何も書き込まれませんでした。",
+        "destinationUnavailable": "Dixi はアプリを前面に戻せなかったため、何も書き込まれませんでした。",
+        "destinationGone": "テキストが選択されていたアプリが閉じたため、何も書き込まれませんでした。",
+        "write": "テキストを書き込めませんでした。"
       }
     }
   },

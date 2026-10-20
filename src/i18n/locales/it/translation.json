@@ -176,6 +176,10 @@
           "transcribe_with_post_process": {
             "name": "Tasto di post-elaborazione",
             "description": "Facoltativo: Un tasto di scelta rapida dedicato che applica sempre la post-elaborazione IA alla trascrizione."
+          },
+          "capture_selection": {
+            "name": "Acquisisci la selezione",
+            "description": "Acquisisce il testo selezionato nell'applicazione che ha il focus."
           }
         },
         "errors": {
@@ -946,7 +950,13 @@
         "copied": "Il risultato è stato copiato.",
         "captureSelection": "Usa il testo selezionato",
         "selectionEmpty": "Nessun testo selezionato nell'applicazione che ha il focus.",
-        "selectionChanged": "Il testo selezionato è cambiato durante la trasformazione, quindi non è stato scritto nulla. Copia il risultato invece."
+        "selectionChanged": "Il testo selezionato è cambiato durante la trasformazione, quindi non è stato scritto nulla. Copia il risultato invece.",
+        "captured": "Testo acquisito",
+        "capturedFrom": "Da {{app}}",
+        "hotkeyHint": "Premi {{shortcut}} nell'app in cui il testo è selezionato, poi torna qui.",
+        "captureCountdown": "Torna nell'app e seleziona il testo. Acquisizione tra {{seconds}}…",
+        "nothingCaptured": "Nessun testo acquisito finora.",
+        "acceptNeedsCapture": "Acquisisci una selezione prima di accettare."
       },
       "diff": {
         "title": "Modifiche",
@@ -1014,6 +1024,19 @@
       "errors": {
         "load": "Impossibile caricare la cronologia del testo.",
         "action": "Impossibile annullare la modifica."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "Nessun testo selezionato nell'applicazione che ha il focus.",
+        "passwordField": "È un campo password, quindi Dixi non lo legge.",
+        "unsupportedControl": "Dixi non conosce quel controllo, quindi non lo legge.",
+        "clipboardNotPreservable": "La tua area appunti contiene contenuto che non può essere ripristinato esattamente, quindi Dixi non l'ha toccata. Svuota l'area appunti e riprova.",
+        "clipboard": "Non è stato possibile usare l'area appunti.",
+        "selectionChanged": "La selezione è cambiata, quindi non è stato scritto nulla.",
+        "destinationUnavailable": "Dixi non è riuscito a portare in primo piano l'app, quindi non è stato scritto nulla.",
+        "destinationGone": "L'app in cui era selezionato il testo è chiusa, quindi non è stato scritto nulla.",
+        "write": "Non è stato possibile scrivere il testo."
       }
     }
   },
