@@ -27,11 +27,12 @@ use std::path::PathBuf;
 use std::sync::RwLock;
 
 use rusqlite::{params, Connection};
-use rusqlite_migration::{Migrations, M};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::AppHandle;
 
+use super::personal_store::PersonalStore;
+use super::text_engine::{apply_rules, TextRule};
 use crate::portable::app_data_dir;
 
 /// Scope that applies to every transcription.
@@ -42,39 +43,6 @@ pub const MAX_TERM_LENGTH: usize = 200;
 
 /// Maximum length of a substitution replacement, in characters.
 pub const MAX_REPLACEMENT_LENGTH: usize = 500;
-
-/// Database migrations for the personal dictionary.
-///
-/// Each migration is applied in order. The library tracks which migrations
-/// have been applied using SQLite's user_version pragma.
-static MIGRATIONS: &[M] = &[M::up(
-    "CREATE TABLE IF NOT EXISTS dictionary_entries (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        term TEXT NOT NULL,
-        replacement TEXT NOT NULL DEFAULT '',
-        kind TEXT NOT NULL DEFAULT 'term',
-        enabled INTEGER NOT NULL DEFAULT 1,
-        scope TEXT NOT NULL DEFAULT 'global',
-        case_sensitive INTEGER NOT NULL DEFAULT 0,
-        whole_word INTEGER NOT NULL DEFAULT 1,
-        hit_count INTEGER NOT NULL DEFAULT 0,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL
-    );",
-),
-M::up(
-    // The replacement is part of the key on purpose: two rules may share a
-    // term and differ in what they write, and the priority is what decides
-    // between them. Only an exact repetition is refused.
-    "CREATE UNIQUE INDEX IF NOT EXISTS idx_dictionary_unique
-        ON dictionary_entries (term COLLATE NOCASE, scope, kind, replacement);",
-),
-// Priority and the per-entry language tag were part of the model from the
-// start, but they are added by a migration so an existing database picks
-// them up without losing its entries.
-M::up("ALTER TABLE dictionary_entries ADD COLUMN priority INTEGER NOT NULL DEFAULT 0;"),
-M::up("ALTER TABLE dictionary_entries ADD COLUMN language TEXT;"),
-];
 
 /// What an entry does when it matches.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -144,49 +112,38 @@ pub struct SubstitutionOutcome {
 
 /// Owns the dictionary database and the in-memory snapshot of its entries.
 pub struct DictionaryManager {
-    db_path: PathBuf,
+    store: PersonalStore,
     entries: RwLock<Vec<DictionaryEntry>>,
 }
 
 impl DictionaryManager {
-    /// Opens (or creates) the dictionary database and loads the snapshot.
+    /// Opens (or creates) the personal database and loads the snapshot.
     pub fn new(app_handle: &AppHandle) -> Result<Self, String> {
-        let app_data_dir = app_data_dir(app_handle)
-            .map_err(|e| format!("Failed to resolve the application data directory: {e}"))?;
-        Self::with_db_path(app_data_dir.join("dictionary.db"))
+        let store = PersonalStore::new(app_handle)?;
+        Self::with_store(store)
     }
 
-    /// Opens (or creates) the dictionary database at an explicit path.
+    /// Opens (or creates) the personal database at an explicit path.
     ///
     /// The path-based constructor is the seam that keeps the manager
     /// independent of the Tauri application handle, and it is what lets the
     /// tests work on an isolated database.
     pub fn with_db_path(db_path: PathBuf) -> Result<Self, String> {
+        Self::with_store(PersonalStore::with_db_path(db_path)?)
+    }
+
+    /// Uses an already opened personal database.
+    pub fn with_store(store: PersonalStore) -> Result<Self, String> {
         let manager = Self {
-            db_path,
+            store,
             entries: RwLock::new(Vec::new()),
         };
-        manager.initialize_database()?;
         manager.reload_snapshot()?;
         Ok(manager)
     }
 
-    fn initialize_database(&self) -> Result<(), String> {
-        let mut conn = self.connection()?;
-        let migrations = Migrations::new(MIGRATIONS.to_vec());
-
-        #[cfg(debug_assertions)]
-        migrations.validate().expect("Invalid migrations");
-
-        migrations
-            .to_latest(&mut conn)
-            .map_err(|e| format!("Failed to apply dictionary migrations: {e}"))?;
-        Ok(())
-    }
-
     fn connection(&self) -> Result<Connection, String> {
-        Connection::open(&self.db_path)
-            .map_err(|e| format!("Failed to open dictionary database: {e}"))
+        self.store.connection()
     }
 
     /// Re-reads every entry from disk into the snapshot.
@@ -571,62 +528,25 @@ pub fn apply_substitutions(
         };
     }
 
-    // Longest term first, then by descending priority: the first rule that
-    // matches at a position is the one that wins there.
-    let mut ordered: Vec<&DictionaryEntry> = rules
+    // The matching itself is the shared engine's, so the dictionary, the
+    // snippets and the format rules of a profile cannot drift apart.
+    let applicable: Vec<TextRule> = rules
         .iter()
         .filter(|rule| rule_applies_to_language(rule, language))
+        .map(|rule| TextRule {
+            id: rule.id,
+            needle: rule.term.clone(),
+            replacement: rule.replacement.clone(),
+            whole_word: rule.whole_word,
+            case_sensitive: rule.case_sensitive,
+            priority: rule.priority,
+        })
         .collect();
-    ordered.sort_by(|a, b| {
-        b.term
-            .chars()
-            .count()
-            .cmp(&a.term.chars().count())
-            .then(b.priority.cmp(&a.priority))
-    });
 
-    let chars: Vec<char> = text.chars().collect();
-    let mut out = String::with_capacity(text.len());
-    let mut applied: Vec<i64> = Vec::new();
-    let mut i = 0usize;
-
-    while i < chars.len() {
-        let mut matched = false;
-
-        for rule in &ordered {
-            let term_chars: Vec<char> = rule.term.chars().collect();
-            if term_chars.is_empty() {
-                continue;
-            }
-            if i + term_chars.len() > chars.len() {
-                continue;
-            }
-            if !matches_at(&chars, i, &term_chars, rule.case_sensitive) {
-                continue;
-            }
-            if rule.whole_word && !has_word_boundaries(&chars, i, term_chars.len()) {
-                continue;
-            }
-
-            let matched_text: String = chars[i..i + term_chars.len()].iter().collect();
-            out.push_str(&apply_case_style(&rule.replacement, &matched_text));
-            if !applied.contains(&rule.id) {
-                applied.push(rule.id);
-            }
-            i += term_chars.len();
-            matched = true;
-            break;
-        }
-
-        if !matched {
-            out.push(chars[i]);
-            i += 1;
-        }
-    }
-
+    let outcome = apply_rules(text, &applicable);
     SubstitutionOutcome {
-        text: out,
-        applied,
+        text: outcome.text,
+        applied: outcome.applied,
     }
 }
 
@@ -647,60 +567,6 @@ fn rule_applies_to_language(rule: &DictionaryEntry, language: Option<&str>) -> b
     let tag = tag.to_lowercase();
     let language = language.to_lowercase();
     language == tag || language.starts_with(&format!("{tag}-"))
-}
-
-/// Whether `term` matches at `start`, honouring case sensitivity.
-fn matches_at(chars: &[char], start: usize, term: &[char], case_sensitive: bool) -> bool {
-    for (offset, t) in term.iter().enumerate() {
-        let c = chars[start + offset];
-        if case_sensitive {
-            if c != *t {
-                return false;
-            }
-        } else if !c.eq_ignore_ascii_case(t)
-            && !c.to_lowercase().eq(t.to_lowercase())
-        {
-            return false;
-        }
-    }
-    true
-}
-
-/// Whether the match at `start..start+len` is not glued to a word character.
-fn has_word_boundaries(chars: &[char], start: usize, len: usize) -> bool {
-    let before_ok = start == 0 || !is_word_char(chars[start - 1]);
-    let after_index = start + len;
-    let after_ok = after_index >= chars.len() || !is_word_char(chars[after_index]);
-    before_ok && after_ok
-}
-
-fn is_word_char(c: char) -> bool {
-    c.is_alphanumeric() || c == '_'
-}
-
-/// Applies the casing style of `matched` to `replacement`.
-fn apply_case_style(replacement: &str, matched: &str) -> String {
-    let letters: Vec<char> = matched.chars().filter(|c| c.is_alphabetic()).collect();
-    if letters.is_empty() {
-        return replacement.to_string();
-    }
-
-    let all_upper = letters.iter().all(|c| c.is_uppercase());
-    if all_upper && letters.len() > 1 {
-        return replacement.to_uppercase();
-    }
-
-    let first_upper = letters[0].is_uppercase();
-    let rest_lower = letters[1..].iter().all(|c| c.is_lowercase());
-    if first_upper && rest_lower {
-        let mut chars = replacement.chars();
-        return match chars.next() {
-            Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
-            None => replacement.to_string(),
-        };
-    }
-
-    replacement.to_string()
 }
 
 /// The on-disk shape of an exported dictionary.
