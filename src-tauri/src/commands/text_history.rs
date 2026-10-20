@@ -1,4 +1,5 @@
 use crate::managers::diff::{diff_words, DiffSegmentKind};
+use crate::managers::selection::{self, SelectionFailure};
 use crate::managers::text_history::{HistoryKind, TextHistoryEntry, TextHistoryManager};
 use std::sync::Arc;
 use tauri::{AppHandle, State};
@@ -54,6 +55,46 @@ pub async fn mark_text_change_undone(
     id: i64,
 ) -> Result<(), String> {
     history_manager.mark_undone(id)
+}
+
+/// Puts back the original text of a change, in the place where it was made.
+///
+/// The place is the window and the control that were stored with the change.
+/// The application is brought back to the front, the control and the text are
+/// checked, and only then is the original text written. When any of that
+/// fails, nothing is written: the result is `false` when the selection moved
+/// and an error when the application is gone or refuses the write.
+#[tauri::command]
+#[specta::specta]
+pub async fn revert_text_history_entry(
+    _app: AppHandle,
+    history_manager: State<'_, Arc<TextHistoryManager>>,
+    id: i64,
+) -> Result<bool, SelectionFailure> {
+    let Some(entry) = history_manager.get(id) else {
+        return Err(selection::failure(selection::SelectionError::DestinationGone));
+    };
+    if entry.undone {
+        return Err(selection::failure(selection::SelectionError::SelectionChanged));
+    }
+    let Some(context) = entry.context() else {
+        return Err(selection::failure(selection::SelectionError::DestinationGone));
+    };
+
+    let expected = entry.result_text.clone();
+    match selection::write_to_context(&context, &expected, &entry.original_text) {
+        Ok(()) => {
+            history_manager.mark_undone(id).map_err(|error| {
+                selection::failure(selection::SelectionError::Write(error))
+            })?;
+            Ok(true)
+        }
+        // The selection moved: nothing was written.
+        Err(selection::SelectionError::SelectionChanged) => {
+            Err(selection::failure(selection::SelectionError::SelectionChanged))
+        }
+        Err(error) => Err(selection::failure(error)),
+    }
 }
 
 /// One entry of the history.

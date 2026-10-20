@@ -22,6 +22,7 @@ use specta::Type;
 use tauri::AppHandle;
 
 use super::personal_store::PersonalStore;
+use super::selection::SelectionContext;
 
 /// The default retention of the history, in days.
 pub const DEFAULT_RETENTION_DAYS: i64 = 30;
@@ -72,8 +73,30 @@ pub struct TextHistoryEntry {
     pub original_text: String,
     /// The text after the change.
     pub result_text: String,
+    /// The window where the change was made, when it is known.
+    pub window_handle: Option<i64>,
+    /// The control where the change was made, when it is known.
+    pub control_handle: Option<i64>,
     /// Whether the change was already reverted.
     pub undone: bool,
+}
+
+impl TextHistoryEntry {
+    /// The place where the change was made, when it is known.
+    ///
+    /// The text of the context is the text that Dixi wrote, which is the
+    /// text that has to be there for the change to be revertible.
+    pub fn context(&self) -> Option<SelectionContext> {
+        let window = self.window_handle?;
+        let control = self.control_handle?;
+        Some(SelectionContext {
+            text: self.result_text.clone(),
+            window: window as isize,
+            control: control as isize,
+            app_name: self.app_name.clone(),
+            captured_at: self.created_at,
+        })
+    }
 }
 
 /// Owns the local history of text changes.
@@ -114,7 +137,8 @@ impl TextHistoryManager {
         let conn = self.connection()?;
         let mut stmt = conn
             .prepare(
-                "SELECT id, created_at, app_name, kind, source_id, original_text, result_text, undone
+                "SELECT id, created_at, app_name, kind, source_id, original_text, result_text,
+                        window_handle, control_handle, undone
                  FROM text_history
                  ORDER BY id DESC",
             )
@@ -130,6 +154,8 @@ impl TextHistoryManager {
                     source_id: row.get("source_id")?,
                     original_text: row.get("original_text")?,
                     result_text: row.get("result_text")?,
+                    window_handle: row.get("window_handle")?,
+                    control_handle: row.get("control_handle")?,
                     undone: row.get::<_, i64>("undone")? != 0,
                 })
             })
@@ -158,6 +184,30 @@ impl TextHistoryManager {
         original_text: &str,
         result_text: &str,
     ) -> Result<Option<i64>, String> {
+        self.record_with_context(
+            kind,
+            source_id,
+            app_name,
+            None,
+            original_text,
+            result_text,
+        )
+    }
+
+    /// Records a change, together with the place where it was made.
+    ///
+    /// The place is what makes the change revertible: without the window
+    /// and the control, putting the original text back would mean writing
+    /// it wherever the focus happens to be.
+    pub fn record_with_context(
+        &self,
+        kind: HistoryKind,
+        source_id: Option<&str>,
+        app_name: Option<&str>,
+        context: Option<&SelectionContext>,
+        original_text: &str,
+        result_text: &str,
+    ) -> Result<Option<i64>, String> {
         if original_text == result_text {
             return Ok(None);
         }
@@ -166,8 +216,9 @@ impl TextHistoryManager {
         let conn = self.connection()?;
         conn.execute(
             "INSERT INTO text_history
-                (created_at, app_name, kind, source_id, original_text, result_text, undone)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0)",
+                (created_at, app_name, kind, source_id, original_text, result_text,
+                 window_handle, control_handle, undone)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0)",
             params![
                 now,
                 app_name,
@@ -175,6 +226,8 @@ impl TextHistoryManager {
                 source_id,
                 original_text,
                 result_text,
+                context.map(|context| context.window),
+                context.map(|context| context.control),
             ],
         )
         .map_err(|e| format!("Failed to record the text history: {e}"))?;
@@ -313,6 +366,97 @@ mod tests {
         assert_eq!(entry.source_id.as_deref(), Some("formalizar"));
         assert_eq!(entry.app_name.as_deref(), Some("notepad.exe"));
         assert!(!entry.undone);
+    }
+
+    #[test]
+    fn a_change_remembers_where_it_was_made() {
+        let (_dir, manager) = manager();
+        let context = SelectionContext {
+            text: "hola".to_string(),
+            window: 4242,
+            control: 8484,
+            app_name: Some("notepad.exe".to_string()),
+            captured_at: 1_700_000_000_000,
+        };
+
+        let id = manager
+            .record_with_context(
+                HistoryKind::Transform,
+                Some("formalizar"),
+                Some("notepad.exe"),
+                Some(&context),
+                "hola",
+                "buenos dias",
+            )
+            .expect("recorded")
+            .expect("an id");
+
+        let entry = manager.get(id).expect("the entry exists");
+        assert_eq!(entry.window_handle, Some(4242));
+        assert_eq!(entry.control_handle, Some(8484));
+
+        // The context of an entry is the place where the change was made,
+        // with the text that Dixi wrote: that is the text that has to be
+        // there for the change to be revertible.
+        let stored = entry.context().expect("the entry knows its place");
+        assert_eq!(stored.window, 4242);
+        assert_eq!(stored.control, 8484);
+        assert_eq!(stored.text, "buenos dias");
+        assert_eq!(stored.app_name.as_deref(), Some("notepad.exe"));
+    }
+
+    #[test]
+    fn a_change_without_a_place_cannot_be_reverted() {
+        let (_dir, manager) = manager();
+        let id = manager
+            .record(
+                HistoryKind::Cleanup,
+                None,
+                None,
+                "hola",
+                "buenos dias",
+            )
+            .expect("recorded")
+            .expect("an id");
+
+        let entry = manager.get(id).expect("the entry exists");
+        assert_eq!(entry.window_handle, None);
+        assert_eq!(entry.control_handle, None);
+        assert!(entry.context().is_none());
+    }
+
+    #[test]
+    fn the_place_of_a_change_survives_a_restart() {
+        let dir = TempDir::new().expect("a temporary folder");
+        let path = dir.path().join("dixi.db");
+
+        let context = SelectionContext {
+            text: "hola".to_string(),
+            window: 111,
+            control: 222,
+            app_name: None,
+            captured_at: 1,
+        };
+
+        let id = {
+            let manager = TextHistoryManager::with_db_path(path.clone()).expect("the manager opens");
+            manager
+                .record_with_context(
+                    HistoryKind::Transform,
+                    None,
+                    None,
+                    Some(&context),
+                    "hola",
+                    "buenos dias",
+                )
+                .expect("recorded")
+                .expect("an id")
+        };
+
+        let manager = TextHistoryManager::with_db_path(path).expect("the manager opens again");
+        let entry = manager.get(id).expect("the entry is still there");
+        assert_eq!(entry.window_handle, Some(111));
+        assert_eq!(entry.control_handle, Some(222));
     }
 
     #[test]

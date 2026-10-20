@@ -145,6 +145,12 @@ static MIGRATIONS: &[M] = &[
     // An entry that was reverted is kept (the user may want to see what
     // happened) but is not offered as undoable again.
     M::up("ALTER TABLE text_history ADD COLUMN undone INTEGER NOT NULL DEFAULT 0;"),
+    // Where the change was made. Without the window and the control there
+    // is no way to put the original text back in its place: the only thing
+    // that could be done would be to write it wherever the focus happens to
+    // be, which is never what the user meant.
+    M::up("ALTER TABLE text_history ADD COLUMN window_handle INTEGER;"),
+    M::up("ALTER TABLE text_history ADD COLUMN control_handle INTEGER;"),
 ];
 
 /// Owns the personal database file and the migrations.
