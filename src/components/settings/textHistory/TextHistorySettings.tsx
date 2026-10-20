@@ -16,6 +16,31 @@ import Badge from "@/components/ui/Badge";
 const HISTORY_LIMIT = 200;
 const PREVIEW_LENGTH = 120;
 
+// El backend manda el motivo de un fallo con un codigo estable en
+// snake_case ("nothing_selected") y la interfaz lo traduce con una clave en
+// camelCase ("nothingSelected"). Un codigo que no esta en la lista cae en el
+// error generico de escritura.
+const SELECTION_ERROR_KEYS = [
+  "nothingSelected",
+  "passwordField",
+  "unsupportedControl",
+  "clipboardNotPreservable",
+  "clipboard",
+  "selectionChanged",
+  "destinationUnavailable",
+  "destinationGone",
+  "write",
+] as const;
+
+const selectionErrorKey = (code: string): string => {
+  const camel = code.replace(/_([a-z])/g, (_match, letter: string) =>
+    letter.toUpperCase(),
+  );
+  return (SELECTION_ERROR_KEYS as readonly string[]).includes(camel)
+    ? camel
+    : "write";
+};
+
 const truncate = (text: string, max: number = PREVIEW_LENGTH): string =>
   text.length > max ? `${text.slice(0, max)}…` : text;
 
@@ -91,51 +116,36 @@ export const TextHistorySettings: React.FC = () => {
 
   /**
    * Reverting a change means putting the original text back where the change
-   * was made. The backend has no "undo" command, so the selection flow does
-   * it: the current selection is captured, checked against the text that was
-   * written, and only then replaced by the original one.
+   * was made. The backend does it: it brings the application back to the
+   * front, checks the window, the control and the text, and only then writes
+   * the original one. The interface does not capture nor replace anything,
+   * because doing that from here would take the focus from the application
+   * that has to be written in.
    */
   const handleRevert = async (entry: TextHistoryEntry) => {
     setIsMutating(true);
     try {
-      const selectionResult = await commands.captureSelection();
-      if (selectionResult.status !== "ok") {
-        toast.error(selectionResult.error);
+      const result = await commands.revertTextHistoryEntry(entry.id);
+      if (result.status !== "ok") {
+        const failure = result.error;
+        if (failure.code === "selection_changed") {
+          toast.error(t("settings.selection.errors.selectionChanged"));
+        } else {
+          toast.error(
+            t(`settings.selection.errors.${selectionErrorKey(failure.code)}`),
+          );
+        }
         return;
       }
 
-      if (!selectionResult.data.text) {
-        toast.error(t("settings.textHistory.revert.selectionEmpty"));
+      if (!result.data) {
+        // The selection moved: nothing was written.
+        toast.error(t("settings.selection.errors.selectionChanged"));
         return;
       }
 
-      if (selectionResult.data.text.trim() !== entry.result_text.trim()) {
-        toast.error(t("settings.textHistory.revert.selectionMismatch"));
-        return;
-      }
-
-      const replaceResult = await commands.replaceTextSelection(
-        selectionResult.data.text,
-        selectionResult.data.window,
-        selectionResult.data.control,
-        entry.original_text,
-      );
-      if (replaceResult.status !== "ok") {
-        toast.error(replaceResult.error);
-        return;
-      }
-      if (!replaceResult.data) {
-        toast.error(t("settings.textHistory.revert.selectionChanged"));
-        return;
-      }
-
-      const markResult = await commands.markTextChangeUndone(entry.id);
-      if (markResult.status === "ok") {
-        await loadHistory();
-        toast.success(t("settings.textHistory.revert.done"));
-      } else {
-        toast.error(markResult.error);
-      }
+      await loadHistory();
+      toast.success(t("settings.textHistory.revert.done"));
     } catch (error) {
       console.error("Failed to revert the change:", error);
       toast.error(t("settings.textHistory.errors.action"));
@@ -303,6 +313,11 @@ export const TextHistorySettings: React.FC = () => {
                     </span>
                   </div>
                 </div>
+                {entry.window_handle === null && (
+                  <div className="text-xs text-mid-gray">
+                    {t("settings.selection.errors.destinationGone")}
+                  </div>
+                )}
               </div>
 
               {isUndoable && (
@@ -321,7 +336,12 @@ export const TextHistorySettings: React.FC = () => {
                     variant="primary"
                     size="sm"
                     onClick={() => void handleRevert(entry)}
-                    disabled={isMutating}
+                    disabled={isMutating || entry.window_handle === null}
+                    title={
+                      entry.window_handle === null
+                        ? t("settings.selection.errors.destinationGone")
+                        : undefined
+                    }
                     className="flex items-center gap-1"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
