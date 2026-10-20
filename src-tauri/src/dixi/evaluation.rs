@@ -18,7 +18,7 @@
 //! # Example
 //!
 //! ```
-//! use crate::dixi::evaluation::{evaluate_case, EvalCase};
+//! use dixi_app_lib::dixi::evaluation::{evaluate_case, EvalCase};
 //!
 //! let case = EvalCase {
 //!     id: "es-001".to_string(),
