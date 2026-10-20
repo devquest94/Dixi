@@ -881,6 +881,15 @@ fn normalize_input(input: &SnippetInput) -> Result<NormalizedSnippet, String> {
                 "'{variable_name}' is not a valid variable name: use letters, digits and underscores"
             ));
         }
+        // The date and the time are filled by the machine, never by the
+        // user. A variable with one of those names would be declared and
+        // then ignored, so it is refused instead of silently losing its
+        // value.
+        if variable_name == DATE_VARIABLE || variable_name == TIME_VARIABLE {
+            return Err(format!(
+                "'{variable_name}' is a reserved variable: it is filled with the current date and time"
+            ));
+        }
         if variables.iter().any(|v| v.name == variable_name) {
             return Err(format!("The variable '{variable_name}' is declared twice"));
         }

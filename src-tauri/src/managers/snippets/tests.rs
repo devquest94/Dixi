@@ -718,6 +718,41 @@ fn rejects_a_variable_with_an_invalid_name() {
 }
 
 #[test]
+fn rejects_a_variable_that_shadows_the_date_or_the_time() {
+    // La fecha y la hora las rellena la maquina. Declararlas como variables
+    // las dejaria guardadas y sin usar, asi que se rechazan.
+    for reserved in ["fecha", "hora"] {
+        let (_dir, manager) = manager();
+        let mut broken = input("Saludo", "saludo", "Hola {nombre}");
+        broken.variables = vec![SnippetVariable {
+            name: reserved.to_string(),
+            required: true,
+            prompt: String::new(),
+        }];
+        assert!(
+            manager.add(broken).is_err(),
+            "'{reserved}' deberia rechazarse"
+        );
+    }
+}
+
+#[test]
+fn the_date_and_the_time_are_filled_without_being_declared() {
+    let (_dir, manager) = manager();
+    let mut original = input("Saludo", "saludo", "Hola {fecha}");
+    original.variables = Vec::new();
+    let stored = manager.add(original).expect("el fragmento se guarda");
+    let expansion = manager.expand(&stored, &HashMap::new());
+    match expansion {
+        Expansion::Text(text) => {
+            assert!(text.starts_with("Hola "));
+            assert_ne!(text, "Hola {fecha}");
+        }
+        other => panic!("la expansion se resuelve: {other:?}"),
+    }
+}
+
+#[test]
 fn rejects_a_variable_used_but_not_declared() {
     let (_dir, manager) = manager();
     let broken = input("Saludo", "saludo", "Hola {nombre}");
