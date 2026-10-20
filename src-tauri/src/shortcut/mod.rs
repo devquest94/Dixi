@@ -1196,8 +1196,7 @@ pub fn add_post_process_prompt(
 ) -> Result<LLMPrompt, String> {
     let mut settings = settings::get_settings(&app);
 
-    // Generate unique ID using timestamp and random component
-    let id = format!("prompt_{}", chrono::Utc::now().timestamp_millis());
+    let id = generate_prompt_id(&settings.post_process_prompts);
 
     let new_prompt = LLMPrompt {
         id: id.clone(),
@@ -1209,6 +1208,33 @@ pub fn add_post_process_prompt(
     settings::write_settings(&app, settings);
 
     Ok(new_prompt)
+}
+
+/// Generates an identifier that is unique among the prompts that already
+/// exist.
+///
+/// A bare millisecond timestamp is not enough: two prompts created inside the
+/// same millisecond received the same id, and because every prompt lookup
+/// (selection, update, delete) resolves by id and returns the FIRST match,
+/// editing one of them silently wrote the changes into the other. The
+/// counter makes the id unique within a process and the uniqueness check
+/// covers ids that survived a restart.
+fn generate_prompt_id(existing: &[LLMPrompt]) -> String {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+
+    let stamp = chrono::Utc::now().timestamp_millis();
+    let seq = COUNTER.fetch_add(1, Ordering::Relaxed);
+
+    let mut candidate = format!("prompt_{}_{}", stamp, seq);
+    // The counter is per-process, so a prompt restored from disk could still
+    // collide. Walk forward until the id is free.
+    let mut bump = 0u64;
+    while existing.iter().any(|p| p.id == candidate) {
+        bump += 1;
+        candidate = format!("prompt_{}_{}_{}", stamp, seq, bump);
+    }
+    candidate
 }
 
 #[tauri::command]
