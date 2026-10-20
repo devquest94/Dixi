@@ -25,7 +25,12 @@ param(
     [int]$IntervalMs = 250,
     [string]$InstanceDir = "$env:TEMP\dixi-phase2b-instance",
     [string]$OutDir = "",
-    [string]$ModelsDir = "$env:APPDATA\com.dixi.app\models"
+    [string]$ModelsDir = "$env:APPDATA\com.dixi.app\models",
+    # Tiempo de descarga del modelo de la instancia aislada. "never" lo deja
+    # en memoria; "sec15" (solo en modo debug) lo descarga a los 15 s.
+    [string]$ModelUnloadTimeout = 'sec15',
+    # Filtro de condiciones a medir, separado por comas. Vacio = todas.
+    [string]$Conditions = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -57,6 +62,17 @@ Copy-Item $releaseBinary (Join-Path $InstanceDir 'dixi.exe') -Force
 Set-Content -Path (Join-Path $InstanceDir 'portable') -Value 'Dixi Portable Mode' -Encoding UTF8
 New-Item -ItemType Directory -Force -Path (Join-Path $InstanceDir 'Data') | Out-Null
 
+# Los recursos (iconos de la bandeja, sonidos) se resuelven con respecto al
+# ejecutable cuando la app no esta empaquetada: sin ellos, la app entra en
+# panic al crear el icono de la bandeja.
+$resourcesSource = Join-Path $repoRoot 'src-tauri\resources'
+if (Test-Path $resourcesSource) {
+    Copy-Item $resourcesSource (Join-Path $InstanceDir 'resources') -Recurse -Force
+    Write-Host "[setup] recursos copiados desde $resourcesSource"
+} else {
+    Write-Warning "No se encuentran los recursos en $resourcesSource; la app podria no arrancar."
+}
+
 # Los modelos se comparten por junction: no se duplican los cientos de
 # megabytes, y la instalacion real no se modifica.
 $instanceModels = Join-Path $InstanceDir 'Data\models'
@@ -72,7 +88,7 @@ if (Test-Path $ModelsDir) {
 $settings = @{
     settings = @{
         selected_model        = 'handy-computer/whisper-base-gguf/whisper-base-Q8_0.gguf'
-        model_unload_timeout  = 'sec15'
+        model_unload_timeout  = $ModelUnloadTimeout
         debug_mode            = $true
         start_hidden          = $false
         show_tray_icon        = $true
@@ -83,9 +99,27 @@ $settings | ConvertTo-Json -Depth 5 | Set-Content -Path (Join-Path $InstanceDir 
 
 $instanceBinary = Join-Path $InstanceDir 'dixi.exe'
 
+# Condiciones a medir en esta pasada.
+$script:Filter = @()
+if ($Conditions) {
+    $script:Filter = @($Conditions -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    Write-Host "[setup] filtro de condiciones: $($script:Filter -join ', ')"
+}
+
 # ---------------------------------------------------------------------------
 # Utilidades
 # ---------------------------------------------------------------------------
+
+# Un dictado completo son dos pulsaciones: la primera empieza a grabar y la
+# segunda la termina, que es lo que dispara la transcripcion y carga el
+# motor. Con una sola pulsacion el microfono se queda abierto y el modelo
+# nunca llega a cargarse.
+function Invoke-Dictation {
+    & $instanceBinary --toggle-transcription | Out-Null
+    Start-Sleep -Seconds 2
+    & $instanceBinary --toggle-transcription | Out-Null
+}
+
 $results = @()
 
 function Stop-Instance {
@@ -116,6 +150,11 @@ function Measure-Condition {
         [scriptblock]$During = $null
     )
 
+    if ($script:Filter.Count -gt 0 -and ($script:Filter -notcontains $Label)) {
+        Write-Host "[medir] $Label (omitida por el filtro)" -ForegroundColor DarkGray
+        return
+    }
+
     Write-Host "[medir] $Label" -ForegroundColor Cyan
     $out = Join-Path $OutDir "$Label.txt"
 
@@ -135,19 +174,25 @@ function Measure-Condition {
     }
 
     if (-not (Test-Path $out)) { $out = '' }
-    $text = if ($out -ne '') { Get-Content $out -Raw } else { '' }
 
-    # Se extraen los agregados que imprime el script de medicion.
+    # El script de medicion escribe un JSON con las muestras y los maximos.
+    # Las medias se calculan desde las muestras, porque el resumen no
+    # incluye la media del working set.
     $private = 0.0; $working = 0.0; $cpu = 0.0; $procs = 0
-    $m = [regex]::Match($text, 'TOTAL.*?privado=\s*([\d\.]+)\s*MB.*?ws=\s*([\d\.]+)\s*MB')
-    if ($m.Success) {
-        $private = [double]$m.Groups[1].Value
-        $working = [double]$m.Groups[2].Value
+    if ($out -ne '') {
+        try {
+            $data = Get-Content $out -Raw | ConvertFrom-Json
+            $samples = @($data.samples)
+            if ($samples.Count -gt 0) {
+                $private = ($samples | Measure-Object -Property privateMB -Average).Average
+                $working = ($samples | Measure-Object -Property workingMB -Average).Average
+                $cpu = ($samples | Measure-Object -Property cpuPct -Average).Average
+            }
+            $procs = [int]$data.processes_max
+        } catch {
+            Write-Warning "No se pudo leer la medicion de '$Label': $_"
+        }
     }
-    $m2 = [regex]::Match($text, 'CPU\s*=?\s*([\d\.]+)')
-    if ($m2.Success) { $cpu = [double]$m2.Groups[1].Value }
-    $m3 = [regex]::Match($text, 'procesos\s*=?\s*(\d+)')
-    if ($m3.Success) { $procs = [int]$m3.Groups[1].Value }
 
     $script:results += [pscustomobject]@{
         Condicion = $Title
@@ -172,22 +217,24 @@ try {
     Start-Instance -Hidden
     Measure-Condition -Label '2-solo-bandeja' -Title 'Aplicacion unicamente en bandeja'
 
-    # 3. Modelo descargado de memoria: se dicta, se espera a que el motor
-    #    descargue el modelo (15 s en modo debug) y se mide en reposo.
+    # 3. Modelo descargado de memoria: se dicta (dos pulsaciones: empezar y
+    #    terminar, que es lo que dispara la transcripcion y carga el motor),
+    #    se espera a que el motor descargue el modelo (15 s en modo debug) y
+    #    se mide en reposo.
     Write-Host '[medir] 3-modelo-descargado (se dicta y se espera la descarga)' -ForegroundColor Cyan
-    & $instanceBinary --toggle-transcription | Out-Null
-    Start-Sleep -Seconds 20
+    Invoke-Dictation
+    Start-Sleep -Seconds 22
     Measure-Condition -Label '3-modelo-descargado' -Title 'Modelo ASR descargado de memoria'
 
-    # 4. Modelo cargado: se dicta y se mide nada mas terminar, con el modelo
-    #    todavia en memoria.
-    & $instanceBinary --toggle-transcription | Out-Null
-    Start-Sleep -Seconds 4
+    # 4. Modelo cargado: se dicta y se mide nada mas terminar la
+    #    transcripcion, con el modelo todavia en memoria.
+    Invoke-Dictation
+    Start-Sleep -Seconds 3
     Measure-Condition -Label '4-modelo-cargado' -Title 'Modelo cargado'
 
     # 5. Transcripcion activa: se mide mientras se dicta.
     Measure-Condition -Label '5-transcripcion-activa' -Title 'Transcripcion activa' -During {
-        & $instanceBinary --toggle-transcription | Out-Null
+        Invoke-Dictation
     }
 } finally {
     Stop-Instance
