@@ -1196,6 +1196,14 @@ pub fn get_settings(app: &AppHandle) -> AppSettings {
         default_settings
     };
 
+    // A store written before the keys were protected still holds them in
+    // clear. The migration only happens when the settings are written, so it
+    // has to be forced here: otherwise the plain key would sit on the disk
+    // until the user happened to change some unrelated setting.
+    if has_unprotected_keys(&settings) {
+        store.set("settings", settings_to_store_value(&settings));
+    }
+
     if ensure_post_process_defaults(&mut settings) {
         store.set("settings", settings_to_store_value(&settings));
     }
@@ -1206,6 +1214,14 @@ pub fn get_settings(app: &AppHandle) -> AppSettings {
     unprotect_api_keys(&mut settings);
 
     settings
+}
+
+/// Whether any provider key is still stored in plain text.
+fn has_unprotected_keys(settings: &AppSettings) -> bool {
+    settings
+        .post_process_api_keys
+        .values()
+        .any(|key| !key.is_empty() && !crate::secrets::is_protected(key))
 }
 
 /// Serializes the settings for storage, protecting the API keys.
