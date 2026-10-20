@@ -1,0 +1,144 @@
+﻿{
+    "label":  "x",
+    "samples":  [
+                    {
+                        "t":  0.37,
+                        "privateMB":  248.7,
+                        "workingMB":  430.3,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  0.82,
+                        "privateMB":  248.7,
+                        "workingMB":  430.3,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  1.22,
+                        "privateMB":  248.7,
+                        "workingMB":  430.3,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  1.62,
+                        "privateMB":  248.7,
+                        "workingMB":  430.3,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  2.04,
+                        "privateMB":  248.7,
+                        "workingMB":  430.3,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  2.45,
+                        "privateMB":  248.7,
+                        "workingMB":  430.3,
+                        "cpuPct":  0,
+                        "processes":  8
+                    },
+                    {
+                        "t":  2.87,
+                        "privateMB":  250.3,
+                        "workingMB":  439.9,
+                        "cpuPct":  0,
+                        "processes":  9
+                    },
+                    {
+                        "t":  3.29,
+                        "privateMB":  251.9,
+                        "workingMB":  449.5,
+                        "cpuPct":  0,
+                        "processes":  10
+                    },
+                    {
+                        "t":  3.74,
+                        "privateMB":  252.6,
+                        "workingMB":  452.2,
+                        "cpuPct":  28.31,
+                        "processes":  10
+                    },
+                    {
+                        "t":  4.2,
+                        "privateMB":  255.9,
+                        "workingMB":  461.3,
+                        "cpuPct":  118.62,
+                        "processes":  10
+                    },
+                    {
+                        "t":  4.73,
+                        "privateMB":  259.3,
+                        "workingMB":  474.4,
+                        "cpuPct":  46.8,
+                        "processes":  11
+                    },
+                    {
+                        "t":  8.46,
+                        "privateMB":  262.2,
+                        "workingMB":  483.8,
+                        "cpuPct":  5.02,
+                        "processes":  12
+                    },
+                    {
+                        "t":  9.13,
+                        "privateMB":  267,
+                        "workingMB":  489.3,
+                        "cpuPct":  49.14,
+                        "processes":  12
+                    },
+                    {
+                        "t":  9.68,
+                        "privateMB":  267,
+                        "workingMB":  489.4,
+                        "cpuPct":  5.68,
+                        "processes":  12
+                    },
+                    {
+                        "t":  10.48,
+                        "privateMB":  268,
+                        "workingMB":  494.7,
+                        "cpuPct":  42.94,
+                        "processes":  12
+                    },
+                    {
+                        "t":  11.13,
+                        "privateMB":  269.9,
+                        "workingMB":  504.6,
+                        "cpuPct":  43.13,
+                        "processes":  12
+                    },
+                    {
+                        "t":  12.18,
+                        "privateMB":  276.1,
+                        "workingMB":  525.4,
+                        "cpuPct":  167.31,
+                        "processes":  12
+                    },
+                    {
+                        "t":  14.25,
+                        "privateMB":  281.2,
+                        "workingMB":  544.1,
+                        "cpuPct":  3.02,
+                        "processes":  14
+                    },
+                    {
+                        "t":  14.88,
+                        "privateMB":  293.2,
+                        "workingMB":  562,
+                        "cpuPct":  133.86,
+                        "processes":  14
+                    }
+                ],
+    "private_max_mb":  293.2,
+    "private_avg_mb":  260.4,
+    "working_max_mb":  562,
+    "cpu_max_pct":  167.31,
+    "cpu_avg_pct":  33.89,
+    "processes_max":  14
+}
