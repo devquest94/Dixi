@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { listen } from "@tauri-apps/api/event";
 import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { useOsType } from "@/hooks/useOsType";
+import { describeFailure } from "../selectionErrors";
 import {
   commands,
   type SelectionContext,
@@ -29,31 +30,6 @@ const NONE = "";
 // La cuenta atras le da al usuario tiempo para volver a la aplicacion de
 // origen y seleccionar el texto antes de que Dixi lo capture.
 const CAPTURE_COUNTDOWN_SECONDS = 4;
-
-// El backend manda el motivo de un fallo con un codigo estable en
-// snake_case ("nothing_selected") y la interfaz lo traduce con una clave en
-// camelCase ("nothingSelected"). Un codigo que no esta en la lista cae en el
-// error generico de escritura.
-const SELECTION_ERROR_KEYS = [
-  "nothingSelected",
-  "passwordField",
-  "unsupportedControl",
-  "clipboardNotPreservable",
-  "clipboard",
-  "selectionChanged",
-  "destinationUnavailable",
-  "destinationGone",
-  "write",
-] as const;
-
-const selectionErrorKey = (code: string): string => {
-  const camel = code.replace(/_([a-z])/g, (_match, letter: string) =>
-    letter.toUpperCase(),
-  );
-  return (SELECTION_ERROR_KEYS as readonly string[]).includes(camel)
-    ? camel
-    : "write";
-};
 
 interface TransformFormState {
   name: string;
@@ -100,6 +76,12 @@ export const TransformsSettings: React.FC = () => {
   const [captured, setCaptured] = useState<SelectionContext | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [selectionChanged, setSelectionChanged] = useState(false);
+  // Una captura deja de valer en cuanto se escribe en el texto: la
+  // identidad de la seleccion original ya no esta, y no se puede aceptar.
+  const [captureInvalid, setCaptureInvalid] = useState(false);
+  // Si el atajo global no se pudo registrar, el usuario tiene que saberlo:
+  // si no, el atajo simplemente nunca se dispara.
+  const [shortcutRegistered, setShortcutRegistered] = useState(true);
 
   // El atajo global de captura: es la via principal, porque no le quita el
   // foco a la aplicacion de origen.
@@ -276,6 +258,7 @@ export const TransformsSettings: React.FC = () => {
    */
   const applyCapture = useCallback((context: SelectionContext) => {
     setCaptured(context);
+    setCaptureInvalid(false);
     setSelectionChanged(false);
     setRunnerText(context.text);
     setRunnerResult(null);
@@ -297,9 +280,7 @@ export const TransformsSettings: React.FC = () => {
         }
         applyCapture(result.data);
       } else {
-        toast.error(
-          t(`settings.selection.errors.${selectionErrorKey(result.error.code)}`),
-        );
+        toast.error(describeFailure(t, result.error));
       }
     } catch (error) {
       console.error("Failed to capture the selection:", error);
@@ -312,6 +293,21 @@ export const TransformsSettings: React.FC = () => {
   useEffect(() => {
     let mounted = true;
 
+    // Si el atajo global no se pudo registrar —porque otra aplicacion ya
+    // tiene esa combinacion— el usuario tiene que saberlo: si no, el atajo
+    // simplemente nunca se dispara y no hay explicacion.
+    void commands.getCaptureShortcutState().then((result) => {
+      if (!mounted) return;
+      if (result.status === "ok") {
+        setShortcutRegistered(result.data.registered);
+        return;
+      }
+      console.error(
+        "Failed to read the state of the capture shortcut:",
+        result.error,
+      );
+    });
+
     void commands.getCapturedSelection().then((result) => {
       if (!mounted) return;
       if (result.status === "ok") {
@@ -322,9 +318,7 @@ export const TransformsSettings: React.FC = () => {
         "Failed to read the captured selection:",
         result.error.message,
       );
-      toast.error(
-        t(`settings.selection.errors.${selectionErrorKey(result.error.code)}`),
-      );
+      toast.error(describeFailure(t, result.error));
     });
 
     return () => {
@@ -345,9 +339,7 @@ export const TransformsSettings: React.FC = () => {
     const unlistenFailed = listen<SelectionFailure>(
       "selection-capture-failed",
       (event) => {
-        toast.error(
-          t(`settings.selection.errors.${selectionErrorKey(event.payload.code)}`),
-        );
+        toast.error(describeFailure(t, event.payload));
       },
     );
 
@@ -460,13 +452,11 @@ export const TransformsSettings: React.FC = () => {
         // No se escribio nada en ninguna parte: el texto se ofrece para
         // copiar, no se escribe en otro sitio.
         setSelectionChanged(true);
-        toast.error(t("settings.selection.errors.selectionChanged"));
-        return;
       }
 
-      toast.error(
-        t(`settings.selection.errors.${selectionErrorKey(failure.code)}`),
-      );
+      // Con la aplicacion que tenia el foco: sin eso el aviso no dice nada
+      // de por que no se pudo escribir.
+      toast.error(describeFailure(t, failure));
     } catch (error) {
       console.error(
         "Failed to apply the result to the captured selection:",
@@ -647,7 +637,12 @@ export const TransformsSettings: React.FC = () => {
           <div className="flex flex-col items-end gap-2">
             <Textarea
               value={runnerText}
-              onChange={(e) => setRunnerText(e.target.value)}
+              onChange={(e) => {
+                setRunnerText(e.target.value);
+                // Escribir en el texto invalida la captura: la seleccion
+                // original ya no es la que se va a escribir.
+                if (captured) setCaptureInvalid(true);
+              }}
               placeholder={t("settings.transforms.runner.inputPlaceholder")}
               variant="compact"
               className="min-w-[320px]"
@@ -691,12 +686,27 @@ export const TransformsSettings: React.FC = () => {
                     })}
                   </p>
                 )}
+                {captureInvalid && (
+                  <p className="text-xs text-error">
+                    {t("settings.transforms.runner.captureInvalidated")}
+                  </p>
+                )}
               </>
             ) : (
               <p className="text-sm text-mid-gray">
                 {t("settings.transforms.runner.nothingCaptured")}
               </p>
             )}
+          </div>
+        )}
+
+        {canCaptureSelection && !shortcutRegistered && (
+          <div className="px-4 py-3">
+            <p className="text-sm text-error">
+              {t("settings.transforms.runner.shortcutNotRegistered", {
+                shortcut: captureShortcut ?? "",
+              })}
+            </p>
           </div>
         )}
 
@@ -741,11 +751,13 @@ export const TransformsSettings: React.FC = () => {
                 variant="secondary"
                 size="md"
                 onClick={() => void handleAccept()}
-                disabled={isRunning || !captured}
+                disabled={isRunning || !captured || captureInvalid}
                 title={
-                  captured
-                    ? undefined
-                    : t("settings.transforms.runner.acceptNeedsCapture")
+                  !captured
+                    ? t("settings.transforms.runner.acceptNeedsCapture")
+                    : captureInvalid
+                      ? t("settings.transforms.runner.captureInvalidated")
+                      : undefined
                 }
               >
                 {t("settings.transforms.runner.accept")}

@@ -8,6 +8,7 @@ import {
   type HistoryKind,
   type TextHistoryEntry,
 } from "@/bindings";
+import { describeFailure } from "../selectionErrors";
 import { SettingContainer, SettingsGroup } from "@/components/ui";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -15,31 +16,6 @@ import Badge from "@/components/ui/Badge";
 
 const HISTORY_LIMIT = 200;
 const PREVIEW_LENGTH = 120;
-
-// El backend manda el motivo de un fallo con un codigo estable en
-// snake_case ("nothing_selected") y la interfaz lo traduce con una clave en
-// camelCase ("nothingSelected"). Un codigo que no esta en la lista cae en el
-// error generico de escritura.
-const SELECTION_ERROR_KEYS = [
-  "nothingSelected",
-  "passwordField",
-  "unsupportedControl",
-  "clipboardNotPreservable",
-  "clipboard",
-  "selectionChanged",
-  "destinationUnavailable",
-  "destinationGone",
-  "write",
-] as const;
-
-const selectionErrorKey = (code: string): string => {
-  const camel = code.replace(/_([a-z])/g, (_match, letter: string) =>
-    letter.toUpperCase(),
-  );
-  return (SELECTION_ERROR_KEYS as readonly string[]).includes(camel)
-    ? camel
-    : "write";
-};
 
 const truncate = (text: string, max: number = PREVIEW_LENGTH): string =>
   text.length > max ? `${text.slice(0, max)}…` : text;
@@ -127,14 +103,9 @@ export const TextHistorySettings: React.FC = () => {
     try {
       const result = await commands.revertTextHistoryEntry(entry.id);
       if (result.status !== "ok") {
-        const failure = result.error;
-        if (failure.code === "selection_changed") {
-          toast.error(t("settings.selection.errors.selectionChanged"));
-        } else {
-          toast.error(
-            t(`settings.selection.errors.${selectionErrorKey(failure.code)}`),
-          );
-        }
+        // Con la aplicacion que tenia el foco: sin eso el aviso no dice
+        // nada de por que no se pudo deshacer.
+        toast.error(describeFailure(t, result.error));
         return;
       }
 
