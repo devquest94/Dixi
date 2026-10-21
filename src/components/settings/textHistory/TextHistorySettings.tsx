@@ -301,6 +301,11 @@ export const TextHistorySettings: React.FC = () => {
                   {entry.app_name ??
                     t("settings.textHistory.list.unknownApplication")}
                 </div>
+                {isUndoable && entry.window_handle !== null && (
+                  <div className="text-xs text-mid-gray">
+                    {t("settings.textHistory.revert.selectionEmpty")}
+                  </div>
+                )}
                 <div className="text-xs text-mid-gray space-y-0.5">
                   <div className="break-words">
                     <span className="text-error line-through">
