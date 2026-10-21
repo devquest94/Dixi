@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { listen } from "@tauri-apps/api/event";
 import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
+import { useOsType } from "@/hooks/useOsType";
 import {
   commands,
   type SelectionContext,
@@ -77,6 +78,9 @@ const EMPTY_TRANSFORM_FORM: TransformFormState = {
 export const TransformsSettings: React.FC = () => {
   const { t } = useTranslation();
   const { settings, getSetting } = useSettings();
+  const osType = useOsType();
+  // La captura de la seleccion de otra aplicacion solo existe en Windows.
+  const canCaptureSelection = osType === "windows";
 
   const [transforms, setTransforms] = useState<Transform[]>([]);
   const [providerLabels, setProviderLabels] = useState<Record<string, string>>(
@@ -624,7 +628,7 @@ export const TransformsSettings: React.FC = () => {
         title={t("settings.transforms.runner.title")}
         description={t("settings.transforms.runner.description")}
       >
-        {captureShortcut && (
+        {canCaptureSelection && captureShortcut && (
           <div className="px-4 py-3">
             <p className="text-sm text-mid-gray">
               {t("settings.transforms.runner.hotkeyHint", {
@@ -648,49 +652,53 @@ export const TransformsSettings: React.FC = () => {
               variant="compact"
               className="min-w-[320px]"
             />
-            <div className="flex items-center gap-3">
-              <Button
-                variant="secondary"
-                size="md"
-                onClick={() => setCountdown(CAPTURE_COUNTDOWN_SECONDS)}
-                disabled={isRunning || countdown !== null}
-              >
-                {t("settings.transforms.runner.captureSelection")}
-              </Button>
-              {countdown !== null && (
-                <span className="text-sm text-mid-gray">
-                  {t("settings.transforms.runner.captureCountdown", {
-                    seconds: countdown,
-                  })}
-                </span>
-              )}
-            </div>
+            {canCaptureSelection && (
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={() => setCountdown(CAPTURE_COUNTDOWN_SECONDS)}
+                  disabled={isRunning || countdown !== null}
+                >
+                  {t("settings.transforms.runner.captureSelection")}
+                </Button>
+                {countdown !== null && (
+                  <span className="text-sm text-mid-gray">
+                    {t("settings.transforms.runner.captureCountdown", {
+                      seconds: countdown,
+                    })}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </SettingContainer>
 
-        <div className="px-4 py-3 space-y-1">
-          {captured ? (
-            <>
-              <p className="text-xs text-mid-gray">
-                {t("settings.transforms.runner.captured")}
-              </p>
-              <pre className="text-sm text-text whitespace-pre-wrap break-words bg-mid-gray/5 border border-mid-gray/20 rounded-lg p-3">
-                {captured.text}
-              </pre>
-              {captured.app_name && (
+        {canCaptureSelection && (
+          <div className="px-4 py-3 space-y-1">
+            {captured ? (
+              <>
                 <p className="text-xs text-mid-gray">
-                  {t("settings.transforms.runner.capturedFrom", {
-                    app: captured.app_name,
-                  })}
+                  {t("settings.transforms.runner.captured")}
                 </p>
-              )}
-            </>
-          ) : (
-            <p className="text-sm text-mid-gray">
-              {t("settings.transforms.runner.nothingCaptured")}
-            </p>
-          )}
-        </div>
+                <pre className="text-sm text-text whitespace-pre-wrap break-words bg-mid-gray/5 border border-mid-gray/20 rounded-lg p-3">
+                  {captured.text}
+                </pre>
+                {captured.app_name && (
+                  <p className="text-xs text-mid-gray">
+                    {t("settings.transforms.runner.capturedFrom", {
+                      app: captured.app_name,
+                    })}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-mid-gray">
+                {t("settings.transforms.runner.nothingCaptured")}
+              </p>
+            )}
+          </div>
+        )}
 
         <SettingContainer
           title={t("settings.transforms.runner.selectTransform")}

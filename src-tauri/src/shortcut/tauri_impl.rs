@@ -25,6 +25,12 @@ pub fn init_shortcuts(app: &AppHandle) {
         if id == "transcribe_with_post_process" && !user_settings.post_process_enabled {
             continue;
         }
+        // The capture of a selection in another application only exists on
+        // Windows: on the other platforms there is nothing to capture, so
+        // the shortcut is not registered and does not swallow the keys.
+        if id == "capture_selection" && cfg!(not(target_os = "windows")) {
+            continue;
+        }
         let binding = user_settings
             .bindings
             .get(&id)
