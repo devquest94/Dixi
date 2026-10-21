@@ -52,7 +52,7 @@ use windows as platform;
 /// Only Windows exposes it: the remote-desktop integration it exists for is
 /// a Windows client (mRemoteNG).
 #[cfg(target_os = "windows")]
-pub(crate) use windows::{publish_for_manual_paste, ExternalPaste};
+pub(crate) use windows::{clipboard_sequence, publish_for_manual_paste, ExternalPaste};
 
 /// How long after the *last* observed read the transcript stays on the
 /// clipboard before restoring. Covers applications that read the clipboard

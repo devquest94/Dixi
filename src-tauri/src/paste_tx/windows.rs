@@ -451,19 +451,25 @@ fn on_timer(_hwnd: HWND, shared: &WinTxShared) {
         return;
     }
 
-    let (receipt, ownership_lost, injection_failed) = {
+    let (receipt, ownership_lost, injection_failed, settle_requested) = {
         let st = match shared.state.lock() {
             Ok(st) => st,
             Err(_) => return,
         };
         (
-            st.any_receipt_after_injection(),
+            st.any_receipt_after_trigger(),
             st.ownership_lost,
             st.injection_failed,
+            st.settle_requested,
         )
     };
     if ownership_lost {
         info!("[reliable-paste] settling: clipboard ownership lost");
+    } else if settle_requested {
+        // The caller asked for it: the user confirmed the paste, or
+        // cancelled it. This is not a timeout, and saying otherwise sends
+        // the reader looking for a problem that is not there.
+        info!("[reliable-paste] settling: the transfer was settled by the caller");
     } else if receipt {
         info!("[reliable-paste] settling: reads went quiet");
     } else if injection_failed {
@@ -647,6 +653,12 @@ pub(super) fn run(
     }
 
     Ok(())
+}
+
+/// The current clipboard sequence number, which changes on every
+/// modification of the clipboard.
+pub(crate) fn clipboard_sequence() -> u32 {
+    unsafe { GetClipboardSequenceNumber() }
 }
 
 /// A transcript published for a paste the user performs *by hand*.

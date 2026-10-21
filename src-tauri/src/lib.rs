@@ -1259,6 +1259,14 @@ pub fn run(cli_args: CliArgs) {
             }
             show_main_window(app);
         }
+        // A pending transfer to the remote desktop owns the clipboard: the
+        // transcript is published with delayed rendering, so it lives in this
+        // process. Settling it here puts the previous content back before
+        // the process goes away; otherwise Windows discards the delayed
+        // content and the user's clipboard ends up empty.
+        tauri::RunEvent::Exit => {
+            remote_desktop::settle_on_exit(app);
+        }
         // No transcription teardown on exit: transcribe.cpp runs only in the
         // worker process, which exits by itself as soon as this process's end
         // of its stdin closes, even if it is hung. Waiting on an unload here

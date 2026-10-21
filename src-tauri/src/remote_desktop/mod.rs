@@ -495,6 +495,42 @@ pub fn cancel(app: &AppHandle) -> RemoteTransferStatus {
     status
 }
 
+/// Settles a pending transfer when the app is about to exit.
+///
+/// The transcript is published with delayed rendering, so the text lives in
+/// this process. If the process dies with a transfer pending, Windows
+/// discards the delayed content and the user's clipboard ends up **empty**,
+/// instead of holding what it held before. Settling here puts the previous
+/// content back before the process goes away.
+pub fn settle_on_exit(app: &AppHandle) {
+    let state = app.state::<RemoteDesktopState>();
+    let Some(pending) = state.take_current() else {
+        return;
+    };
+
+    #[cfg(target_os = "windows")]
+    {
+        let before = crate::paste_tx::clipboard_sequence();
+        pending.settle();
+        // Give the worker the moment it needs to put the previous content
+        // back. The wait is short: blocking the exit for long is worse than
+        // a clipboard that was not restored.
+        let deadline = Instant::now() + Duration::from_millis(1500);
+        while Instant::now() < deadline {
+            if crate::paste_tx::clipboard_sequence() != before {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(25));
+        }
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        pending.settle();
+    }
+
+    log::info!("[remote-desktop] the pending transfer was settled on exit");
+}
+
 /// The state of the transfer.
 pub fn status(app: &AppHandle) -> RemoteTransferStatus {
     app.state::<RemoteDesktopState>().status()

@@ -17,7 +17,7 @@ la política de seguridad de la empresa.
 | Portapapeles seguro con estados | **DESARROLLADO** | Texto preparado → pendiente de pegado → confirmación manual → restauración segura del contenido anterior. |
 | Interfaz de configuración | **DESARROLLADO** | Sección propia en Ajustes, con el atajo, el estado de la transferencia y lo que se detectó del entorno. |
 | Atajo global y bandeja | **DESARROLLADO** | `Ctrl+Alt+Espacio` prepara la última transcripción sin robar el foco; la bandeja ofrece la misma acción. |
-| Modo automático | **PARCIAL** | Implementado con todas las guardas y desactivado por defecto. **No está validado contra una sesión real**: es lo que falta. |
+| Modo automático | **PARCIAL** | Las guardas están implementadas y **validadas contra una sesión real**. Bloqueado por la misma causa que el modo manual, y desactivado por defecto. |
 | Pruebas | **EJECUTADAS** | Pruebas unitarias del Rust más typecheck, lint y paridad de traducciones del frontend. |
 
 ### Flags de estado
@@ -26,8 +26,10 @@ la política de seguridad de la empresa.
 |---|---|---|
 | `MREMOTENG_DETECTED` | `PASS` | mRemoteNG 1.76.20.24615 instalado en `C:\Program Files (x86)\mRemoteNG\`, con `Interop.MSTSCLib.dll` y `AxInterop.MSTSCLib.dll` (el ActiveX RDP de Microsoft embebido). |
 | `CONNECTION_PROTOCOL` | `RDP` | La única conexión configurada en `confCons.xml` tiene `Protocol="RDP"`, y el log del propio cliente registra `Connexión ... via "RDP"`. |
-| `REMOTE_MANUAL_MODE` | `PASS` | Publicación sin和弦, sin tecla enviada, con estados explícitos y restauración diferida. |
-| `REMOTE_AUTO_MODE` | `PARTIAL` | Las **guardas** están implementadas y **validadas contra una sesión RDP real** (el cliente se detecta, hay exactamente una sesión, y el foco dentro de ella se reconoce). Lo que falta es comprobar que el `Ctrl+V` aterriza en el campo correcto del equipo remoto. Desactivado por defecto. |
+| `REMOTE_DETECTION` | `PASS` | Validado contra la sesión real: el cliente se detecta, hay exactamente una sesión RDP abierta, y el foco dentro de ella se reconoce (`focused: RdpSession`). |
+| `REMOTE_MANUAL_MODE` | `PARTIAL` | La mecánica de Dixi está verificada con evidencia real (publicación, lectura a los ~4 s, restauración al confirmar). **El texto no llega al equipo remoto**: el canal de portapapeles de la sesión no lo transporta (ver 2.6). |
+| `REMOTE_CLIPBOARD_BRIDGE` | `FAIL` | El texto preparado **no aparece** en el equipo remoto. La causa está del lado del cliente o del servidor del canal RDP, no en Dixi (ver 2.6). |
+| `REMOTE_AUTO_MODE` | `PARTIAL` | Las **guardas** están implementadas y **validadas contra una sesión real** (el cliente se detecta, hay una sesión, y el foco dentro de ella se reconoce). Bloqueado por la misma causa que el modo manual, y desactivado por defecto. |
 | `CLIPBOARD_STATES` | `PASS` | Los cuatro estados pedidos existen, y el de "restauración segura" distingue los formatos que no se pueden recuperar sin pérdida. |
 | `REMOTE_UI` | `PASS` | Sección de Ajustes, atajo, bandeja y traducciones en los 26 idiomas. |
 | `REMOTE_TESTS` | `PASS` | Pruebas unitarias del Rust y verificaciones del frontend ejecutadas, con resultado real registrado abajo. |
@@ -155,6 +157,75 @@ Los cuatro hechos que necesita la integración quedan comprobados contra la
 máquina real: **el cliente se detecta, hay exactamente una sesión RDP
 abierta, y el foco dentro de esa sesión se reconoce**.
 
+### 2.6 Lo que la prueba real reveló: el texto no cruza al equipo remoto
+
+La mecánica de Dixi funciona y está verificada; **la transferencia no**. El
+ciclo completo, tomado del log de la app durante la prueba:
+
+```text
+[14:02:16] [manual-paste]  transcript published for a paste by hand
+[14:02:16] [remote-desktop] transcript prepared for a manual paste (99 characters)
+[14:02:16] [actions]        the transcript is ready to paste in the remote session
+[14:03:25] [reliable-paste] clipboard read 4158ms after the trigger
+[14:04:12] [remote-desktop] the user confirmed the paste after 51s
+[14:04:12] [reliable-paste] restored previous clipboard
+```
+
+Y el resultado observado por el usuario: **el texto no apareció en el equipo
+remoto** al hacer Ctrl+V dentro de la sesión.
+
+Es decir: la publicación funciona, alguien lee el portapapeles local a los
+~4 segundos, y la restauración funciona. Lo que no ocurre es que ese texto
+llegue al portapapeles del equipo remoto.
+
+**La causa está del lado del canal RDP, no de Dixi.** Tres datos lo
+sostienen:
+
+1. **mRemoteNG no expone ninguna opción de portapapeles para la
+   conexión.** Su perfil de RDP tiene `RedirectDiskDrives`, `RedirectKeys`,
+   `RedirectPorts`, `RedirectPrinters`, `RedirectSmartCards` y
+   `RedirectSound`… y **nada de portapapeles**: la cadena "clip" no aparece
+   en ningún punto de `confCons.xml`.
+2. **La sesión se ejecutó sobre la implementación .NET del cliente**, no
+   sobre el ActiveX de Microsoft. La ventana de la sesión es de clase
+   `IHWindowClass` (2048×1152), que es el *host* de Indigo. El cliente de
+   Microsoft habría creado una ventana de `mstscax.dll`.
+3. **El ActiveX de Microsoft está instalado y registrado en esta máquina**
+   (`CLSID {0B87E651-52FD-3B66-AC4B-730A10D7CAFA}` →
+   `AxInterop.MSTSCLib.dll`), y mRemoteNG lo embebe con toda su interfaz
+   `IMsRdpClientAdvancedSettings`, que es donde vive `fDisableClip`, la
+   propiedad que gobierna la redirección del portapapeles.
+
+En RDP, la redirección del portapapeles la decide el **servidor** (la
+política del Session Host), y el cliente sólo puede desactivarla. Con la
+implementación .NET y sin una opción de cliente para activarla a mano, el
+resultado es que el texto no cruza.
+
+**Ninguna de las dos vías disponibles desde Dixi arregla esto**, y ninguna
+debe intentar hacerlo: cambiar la política del servidor sería tocar la
+infraestructura corporativa, que el encargo excluye de forma expresa.
+
+**Lo que sí queda a mano del usuario**, en su propio equipo y sin tocar la
+infraestructura:
+
+- **Probar el cliente ActiveX de Microsoft en mRemoteNG**, si la interfaz
+  ofrece esa variante. Está instalado y registrado. Es el camino con más
+  probabilidades: el cliente de Microsoft implementa el canal de portapapeles
+  completo.
+- **Consultar con el área de sistemas** si el Session Host de la sesión
+  permite la redirección del portapapeles (política del Session Host,
+  "Permitir redirección del portapapeles"). Si la política la prohíbe, no
+  hay alternativa del lado del cliente.
+
+Mientras tanto, el modo manual **sí es útil aunque el texto no cruce**: la
+transcripción queda en el portapapeles local, que es justamente lo que el
+modo manual garantiza. Lo que no puede es llevar el texto al equipo remoto
+por sí sola.
+
+**Efecto sobre el modo automático:** el modo automático se apoya en el mismo
+canal de portapapeles, así que hereda el mismo bloqueo. Sigue
+desactivado por defecto, y sus guardas ya están validadas.
+
 
 
 ---
@@ -217,6 +288,16 @@ Cambios concretos en `paste_tx`:
 - **La propiedad se respeta.** Si entre la preparación y la confirmación el
   usuario copió otra cosa, ese contenido gana: la restauración se omite y
   queda registrado en el log.
+- **La app al cerrarse no deja el portapapeles vacío.** El texto se publica
+  con *renderizado diferido*, así que vive en el proceso de Dixi. Si el
+  proceso muere con una transferencia pendiente, Windows descarta ese
+  contenido diferido y **el portapapeles del usuario queda vacío** en vez de
+  contener lo que tenía antes. Eso lo destapó la prueba real (al reiniciar
+  la aplicación a mitad de una transferencia, el portapapeles quedó vacío).
+  El arreglo es liquidar la transferencia pendiente en `RunEvent::Exit`,
+  antes de que el proceso se vaya, y esperar a que la restauración se
+  complete. Con eso, cerrar Dixi con una transferencia abierta devuelve el
+  portapapeles a su contenido anterior en vez de vaciarlo.
 
 ### 3.3 Modo automático: evaluación y guardas
 
@@ -423,9 +504,10 @@ vez**, porque cada rama tiene su propio conjunto de comandos.
 | Riesgo | Estado | Mitigación |
 |---|---|---|
 | El texto queda en el portapapeles local si el usuario nunca confirma | Aceptado | Vence solo (3 minutos por defecto, configurable) y la restauración es segura. |
+| La app se cierra con una transferencia pendiente | **Corregido** | El texto se publica con renderizado diferido, así que al morir el proceso Windows lo descarta y el portapapeles quedaba vacío. Ahora la transferencia se liquida en `RunEvent::Exit` y se espera a que la restauración se complete. |
 | Formatos del portapapeles que no se pueden restaurar | Parcial | Se conservan los que sí se pueden; los demás se nombran en el aviso. |
-| La redirección del portapapeles puede estar deshabilitada por política del servidor | Fuera del control de Dixi | En ese caso el modo manual no pega nada en el remoto: el texto sigue en el portapapeles local, que es exactamente lo que el usuario puede ver. |
-| El modo automático pega en el campo equivocado | Mitigado, no eliminado | Requiere foco verificado dos veces y una sola sesión; desactivado por defecto hasta que se valide. |
+| **La redirección del portapapeles de la sesión RDP no transporta el texto** | **Confirmado, fuera del alcance de Dixi** | El texto queda en el portapapeles local, que es lo que el modo manual garantiza, pero no llega al equipo remoto. La causa está en el cliente o en la política del servidor (ver 2.6). |
+| El modo automático pega en el campo equivocado | Mitigado, no eliminado | Requiere foco verificado dos veces y una sola sesión; desactivado por defecto. Además hereda el bloqueo del canal de portapapeles. |
 | Un gestor de portapapeles que lee al publicar | Mitigado | Se registra como recibo, pero no cierra la transferencia ni restaura el portapapeles. |
 
 ---
@@ -460,10 +542,28 @@ vez**, porque cada rama tiene su propio conjunto de comandos.
 
 ---
 
-## 9. Lo que falta: la prueba real
+## 9. La prueba real: qué se comprobó y qué falta
 
-La única verificación que no se puede hacer sin el equipo del usuario es la
-transferencia real. El procedimiento propuesto, para cuando lo autorice:
+La prueba se hizo contra la sesión RDP real del usuario, con la
+autorización de él. Esto es lo que quedó verificado:
+
+| Paso | Resultado | Evidencia |
+|---|---|---|
+| La detección del cliente y de la sesión | **PASS** | `client_running: true`, `rdp_sessions: 1` |
+| La detección del foco dentro de la sesión | **PASS** | `focused: RdpSession` con la ventana enfocada en `IHWindowClass` |
+| El atajo global prepara la transcripción | **PASS** | `[manual-paste] transcript published` + `[remote-desktop] transcript prepared for a manual paste (99 characters)` |
+| El portapapeles local recibe el texto | **PASS** | hash `EC9B4F21…` contra la línea base `B0972068…` |
+| El cliente remoto lee el portapapeles | **PASS** | `clipboard read 4158ms after the trigger` |
+| El usuario confirma el pegado | **PASS** | `[remote-desktop] the user confirmed the paste after 51s` |
+| La restauración del portapapeles | **PASS** | `[reliable-paste] restored previous clipboard` |
+| La guarda de propiedad | **PASS** | `[reliable-paste] clipboard changed externally; leaving it untouched` |
+| **El texto llega al equipo remoto** | **FAIL** | El usuario confirmó que el texto no apareció en la sesión RDP. |
+
+Lo que falta para que la función cumpla su objetivo final **no está en el
+código**: está en el canal de portapapeles de la sesión RDP, y su causa está
+documentada en 2.6.
+
+### Procedimiento para reintentarlo cuando el canal esté resuelto
 
 1. Con una sesión RDP abierta en mRemoteNG y el foco en la sesión remota.
 2. Dictar en el equipo personal.
@@ -471,7 +571,7 @@ transferencia real. El procedimiento propuesto, para cuando lo autorice:
 4. Comprobar en la sesión remota que el texto llegó.
 5. Confirmar con "Ya lo pegué" y comprobar que el portapapeles local volvió a
    su contenido anterior.
-6. Anotar cuánto tardó la sincronización, que es el dato que falta para
-   decidir el valor por defecto del tiempo de espera.
+6. Anotar cuánto tardó la sincronización. **La medición que sí se tiene es
+   de ~4,1 s** entre la publicación y la lectura del portapapeles, con lo
+   que el valor por defecto de 3 minutos es holgado.
 
-Sin ese paso, `REMOTE_AUTO_MODE` sigue en `PARTIAL` y así debe quedar.

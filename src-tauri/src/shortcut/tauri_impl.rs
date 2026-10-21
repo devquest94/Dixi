@@ -25,6 +25,11 @@ pub fn init_shortcuts(app: &AppHandle) {
         if id == "transcribe_with_post_process" && !user_settings.post_process_enabled {
             continue;
         }
+        // The shortcut for the remote desktop only exists while the
+        // integration is on.
+        if id == "prepare_remote_paste" && !user_settings.remote_desktop_enabled {
+            continue;
+        }
         let binding = user_settings
             .bindings
             .get(&id)
