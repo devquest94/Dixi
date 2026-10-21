@@ -249,10 +249,10 @@ export const RemoteDesktopSettings: React.FC = () => {
           </div>{" "}
           <div>
             {t("settings.remoteDesktop.detection.sessions")}:{" "}
-            {detection?.rdp_session_count ?? 0}
+            {detection?.rdp_sessions ?? 0}
           </div>
           <div>
-            {detection?.remote_window_focused
+            {detection?.remote_session_focused
               ? t("settings.remoteDesktop.detection.focused")
               : t("settings.remoteDesktop.detection.notFocused")}
           </div>

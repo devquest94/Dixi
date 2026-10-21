@@ -1,42 +1,58 @@
 //! Detecting the remote desktop host.
 //!
 //! The facts the integration needs are narrow, and all of them come from the
-//! window system and the installer registry:
+//! window system, the process table and the installer registry:
 //!
 //! * Is the remote client installed, and which version?
 //! * Is it running?
-//! * Does it have an RDP session open, and how many?
-//! * Does that session hold the focus?
+//! * Does it have the RDP client loaded?
+//! * Does it have the focus?
 //!
 //! What is deliberately *not* read: the saved connections, the server
 //! addresses, the user names and the credentials. The uninstall key carries
 //! only the display name, the version and the folder, and that is the
 //! entirety of what is read from the registry.
 //!
-//! The RDP surface is recognized by the module that registered the window
-//! class, not by a hard-coded class name: the Microsoft Terminal Services
-//! ActiveX (`mstscax.dll`) is what mRemoteNG embeds to speak RDP, so a
-//! window whose class belongs to that module is an RDP client surface and
-//! nothing else is.
+//! How the RDP client is recognized
+//! -------------------------------
+//! The first version of this module looked for a window whose class had been
+//! registered by `mstscax.dll` (the Microsoft Terminal Services ActiveX).
+//! Measured against a real session, that assumption is wrong on both
+//! counts:
+//!
+//! * The remote client does not use the Microsoft ActiveX. It speaks RDP
+//!   through **Indigo**, a pure .NET implementation, so `mstscax.dll` is
+//!   never loaded in its process. The `AxInterop.MSTSCLib.dll` that sits in
+//!   the installation folder is only the interop assembly for the optional
+//!   ActiveX mode.
+//! * The RDP session renders inside a window of the client whose class is
+//!   `IHWindowClass` (the Indigo Host), not inside a child of a
+//!   WinForms-hosted control.
+//!
+//! What the live machine shows is the class `IHWindowClass` (Indigo Host),
+//! `OPWindowClass` and `OPContainerClass` (the Indigo output pane), and
+//! `UIMainClass` / `UIContainerClass` (the window of the client itself).
+//! The session is the Indigo Host window, and counting those windows counts
+//! the open sessions.
 
 /// The remote client this integration targets.
 #[cfg(target_os = "windows")]
 pub const REMOTE_CLIENT_IMAGE: &str = "mremoteng.exe";
 
-/// The Microsoft Terminal Services ActiveX: the RDP client mRemoteNG
-/// embeds.
+/// The class of the window where the remote client renders an RDP session:
+/// the Indigo Host.
 #[cfg(target_os = "windows")]
-pub const RDP_CLIENT_MODULE: &str = "mstscax.dll";
+pub const RDP_SESSION_CLASS: &str = "IHWindowClass";
 
 /// What holds the focus.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum FocusedSurface {
     /// Nothing has the focus.
     Nothing,
-    /// The focused window belongs to the remote client but is not an RDP
-    /// session: its main window, a dialog, the connection list...
+    /// The focus is inside the remote client, but not inside a session: the
+    /// connection list, a dialog, the menu.
     ClientWindow,
-    /// The focused window is an RDP session of the remote client.
+    /// The focus is inside an open RDP session of the remote client.
     RdpSession,
     /// The focused window belongs to another application.
     #[default]
@@ -44,7 +60,13 @@ pub enum FocusedSurface {
 }
 
 impl FocusedSurface {
-    /// Whether the focus is inside an RDP session.
+    /// Whether the focus is inside the remote client.
+    #[allow(dead_code, reason = "parte del contrato de la deteccion")]
+    pub fn is_client(self) -> bool {
+        matches!(self, FocusedSurface::ClientWindow | FocusedSurface::RdpSession)
+    }
+
+    /// Whether the focus is inside an open RDP session.
     pub fn is_rdp_session(self) -> bool {
         matches!(self, FocusedSurface::RdpSession)
     }
@@ -56,12 +78,20 @@ pub struct Detection {
     /// The remote client is running.
     pub client_running: bool,
     /// How many RDP sessions the remote client has open.
-    pub rdp_session_count: u32,
+    pub rdp_sessions: u32,
     /// What holds the focus.
     pub focused: FocusedSurface,
     /// The image name of the process that owns the focused window, e.g.
     /// "explorer.exe". No path, no window title, no session data.
     pub foreground_process: Option<String>,
+}
+
+impl Detection {
+    /// Whether there is an RDP session open.
+    #[allow(dead_code, reason = "parte del contrato de la deteccion")]
+    pub fn has_rdp_session(&self) -> bool {
+        self.rdp_sessions > 0
+    }
 }
 
 /// The installation information of the remote client.
@@ -79,17 +109,21 @@ pub struct ClientInstall {
 
 #[cfg(target_os = "windows")]
 mod platform {
-    use super::{ClientInstall, Detection, FocusedSurface, RDP_CLIENT_MODULE, REMOTE_CLIENT_IMAGE};
+    use super::{
+        ClientInstall, Detection, FocusedSurface, RDP_SESSION_CLASS, REMOTE_CLIENT_IMAGE,
+    };
     use std::collections::HashMap;
-    use windows::core::{BOOL, PWSTR};
-    use windows::Win32::Foundation::{CloseHandle, HMODULE, HWND, LPARAM};
+    use windows::core::BOOL;
+    use windows::Win32::Foundation::{CloseHandle, HMODULE, HWND, LPARAM, RECT};
     use windows::Win32::System::LibraryLoader::GetModuleFileNameW;
     use windows::Win32::System::Threading::{
-        OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
+        OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32,
+        PROCESS_QUERY_LIMITED_INFORMATION,
     };
     use windows::Win32::UI::WindowsAndMessaging::{
-        EnumChildWindows, EnumWindows, GetClassLongPtrW, GetForegroundWindow, GetParent,
-        GetWindowThreadProcessId, GCLP_HMODULE,
+        EnumChildWindows, EnumWindows, GetClassLongPtrW, GetClassNameW, GetForegroundWindow,
+        GetGUIThreadInfo, GetParent, GetWindowRect, GetWindowTextW, GetWindowThreadProcessId,
+        IsWindowVisible, GCLP_HMODULE, GUITHREADINFO,
     };
     use winreg::enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE};
     use winreg::RegKey;
@@ -113,7 +147,7 @@ mod platform {
             let result = QueryFullProcessImageNameW(
                 handle,
                 PROCESS_NAME_WIN32,
-                PWSTR(buffer.as_mut_ptr()),
+                windows::core::PWSTR(buffer.as_mut_ptr()),
                 &mut size,
             );
             let _ = CloseHandle(handle);
@@ -132,7 +166,49 @@ mod platform {
         }
     }
 
+    /// The class of a window.
+    fn window_class_name(hwnd: HWND) -> String {
+        unsafe {
+            let mut buffer = [0u16; 256];
+            let length = GetClassNameW(hwnd, &mut buffer);
+            if length == 0 {
+                return String::new();
+            }
+            String::from_utf16_lossy(&buffer[..length as usize])
+        }
+    }
+
+    /// The title of a window.
+    #[allow(dead_code, reason = "diagnóstico: el volcado de ventanas lo usa")]
+    fn window_title(hwnd: HWND) -> String {
+        unsafe {
+            let mut buffer = [0u16; 512];
+            let length = GetWindowTextW(hwnd, &mut buffer);
+            if length == 0 {
+                return String::new();
+            }
+            String::from_utf16_lossy(&buffer[..length as usize])
+        }
+    }
+
+    /// The size of a window.
+    #[allow(dead_code, reason = "diagnóstico: el volcado de ventanas lo usa")]
+    fn window_size(hwnd: HWND) -> Option<(i32, i32)> {
+        unsafe {
+            let mut rect = RECT::default();
+            if GetWindowRect(hwnd, &mut rect).is_err() {
+                return None;
+            }
+            Some((rect.right - rect.left, rect.bottom - rect.top))
+        }
+    }
+
     /// The module that registered the window class.
+    ///
+    /// It is `None` for the classes of WinForms, which are registered
+    /// without a module handle. That is why the RDP session is recognized by
+    /// the class of its window and not by the module.
+    #[allow(dead_code, reason = "diagnóstico: el volcado de ventanas lo usa")]
     fn class_module_name(hwnd: HWND) -> Option<String> {
         unsafe {
             let module = GetClassLongPtrW(hwnd, GCLP_HMODULE);
@@ -140,10 +216,7 @@ mod platform {
                 return None;
             }
             let mut buffer = [0u16; 260];
-            let length = GetModuleFileNameW(
-                Some(HMODULE(module as *mut core::ffi::c_void)),
-                &mut buffer,
-            );
+            let length = GetModuleFileNameW(Some(HMODULE(module as *mut core::ffi::c_void)), &mut buffer);
             if length == 0 {
                 return None;
             }
@@ -187,6 +260,50 @@ mod platform {
         found
     }
 
+    /// The instances of the remote client that are running.
+    fn client_pids() -> Vec<u32> {
+        // One lookup per process, not one per window.
+        let mut names: HashMap<u32, Option<String>> = HashMap::new();
+        for window in top_level_windows() {
+            let pid = window_process_id(window);
+            names
+                .entry(pid)
+                .or_insert_with(|| process_image_name(pid));
+        }
+        names
+            .iter()
+            .filter(|(_, name)| {
+                name.as_deref()
+                    .map(|name| name.eq_ignore_ascii_case(REMOTE_CLIENT_IMAGE))
+                    .unwrap_or(false)
+            })
+            .map(|(pid, _)| *pid)
+            .collect()
+    }
+
+    /// The visible windows of the client that can hold a remote session.
+    ///
+    /// The remote client speaks RDP through Indigo, and the window where the
+    /// session renders is the Indigo Host, whose class is `IHWindowClass`.
+    /// Counting those windows counts the open sessions.
+    fn rdp_view_candidates(pid: u32) -> Vec<HWND> {
+        let mut found = Vec::new();
+        for top in top_level_windows() {
+            if window_process_id(top) != pid {
+                continue;
+            }
+            for window in std::iter::once(top).chain(child_windows(top)) {
+                if !unsafe { IsWindowVisible(window) }.as_bool() {
+                    continue;
+                }
+                if window_class_name(window) == RDP_SESSION_CLASS {
+                    found.push(window);
+                }
+            }
+        }
+        found
+    }
+
     /// Whether the window is the surface or lives inside it.
     fn is_inside(window: HWND, surface: HWND) -> bool {
         if window == surface {
@@ -211,53 +328,33 @@ mod platform {
         false
     }
 
-    /// The RDP sessions open inside the remote client.
-    fn rdp_surfaces(client_pid: u32) -> Vec<HWND> {
-        let mut surfaces = Vec::new();
-        for top in top_level_windows() {
-            if window_process_id(top) != client_pid {
-                continue;
+    /// The window that holds the keyboard focus inside the foreground
+    /// application.
+    fn focused_child(foreground: HWND) -> Option<HWND> {
+        unsafe {
+            let thread = GetWindowThreadProcessId(foreground, None);
+            let mut info = GUITHREADINFO {
+                cbSize: std::mem::size_of::<GUITHREADINFO>() as u32,
+                ..Default::default()
+            };
+            if GetGUIThreadInfo(thread, &mut info).is_err() {
+                return None;
             }
-            let candidates = std::iter::once(top).chain(child_windows(top));
-            for window in candidates {
-                let is_rdp = class_module_name(window)
-                    .map(|name| name.eq_ignore_ascii_case(RDP_CLIENT_MODULE))
-                    .unwrap_or(false);
-                if is_rdp {
-                    surfaces.push(window);
-                }
+            if info.hwndFocus.0.is_null() {
+                return None;
             }
+            Some(info.hwndFocus)
         }
-        surfaces
     }
 
     /// Reads the state of the environment.
     pub fn detect() -> Detection {
-        let windows = top_level_windows();
-
-        // One lookup per process, not one per window.
-        let mut names: HashMap<u32, Option<String>> = HashMap::new();
-        for window in &windows {
-            let pid = window_process_id(*window);
-            names
-                .entry(pid)
-                .or_insert_with(|| process_image_name(pid));
-        }
-
-        let client_pids: Vec<u32> = names
-            .iter()
-            .filter(|(_, name)| {
-                name.as_deref()
-                    .map(|name| name.eq_ignore_ascii_case(REMOTE_CLIENT_IMAGE))
-                    .unwrap_or(false)
-            })
-            .map(|(pid, _)| *pid)
-            .collect();
-
-        let mut surfaces = Vec::new();
+        let client_pids = client_pids();
+        let mut sessions: Vec<HWND> = Vec::new();
         for pid in &client_pids {
-            surfaces.extend(rdp_surfaces(*pid));
+            sessions.extend(rdp_view_candidates(*pid));
         }
+        let rdp_sessions = sessions.len() as u32;
 
         let foreground = unsafe { GetForegroundWindow() };
         let foreground_pid = if foreground.0.is_null() {
@@ -268,11 +365,7 @@ mod platform {
         let foreground_process = if foreground_pid == 0 {
             None
         } else {
-            names
-                .get(&foreground_pid)
-                .cloned()
-                .flatten()
-                .or_else(|| process_image_name(foreground_pid))
+            process_image_name(foreground_pid)
         };
         let is_client = foreground_process
             .as_deref()
@@ -281,22 +374,102 @@ mod platform {
 
         let focused = if foreground.0.is_null() {
             FocusedSurface::Nothing
-        } else if is_client {
-            if surfaces.iter().any(|surface| is_inside(foreground, *surface)) {
+        } else if !is_client {
+            FocusedSurface::OtherApplication
+        } else {
+            // The focus has to be inside one of the session windows for the
+            // session to be the destination.
+            let in_session = focused_child(foreground)
+                .map(|child| {
+                    sessions
+                        .iter()
+                        .any(|session| is_inside(child, *session) || is_inside(foreground, *session))
+                })
+                .unwrap_or(false);
+            if in_session {
                 FocusedSurface::RdpSession
             } else {
                 FocusedSurface::ClientWindow
             }
-        } else {
-            FocusedSurface::OtherApplication
         };
 
         Detection {
             client_running: !client_pids.is_empty(),
-            rdp_session_count: surfaces.len() as u32,
+            rdp_sessions,
             focused,
             foreground_process,
         }
+    }
+
+    /// The window that holds the keyboard focus inside the foreground
+    /// application, with its class and its size.
+    ///
+    /// The RDP client renders inside the main window of the remote client,
+    /// so the window that really tells "the user is in the session" is the
+    /// focused one, not the top-level one.
+    #[allow(dead_code, reason = "diagnóstico: lo usa la prueba en vivo")]
+    pub fn focused_window_info() -> Option<String> {
+        unsafe {
+            let foreground = GetForegroundWindow();
+            if foreground.0.is_null() {
+                return None;
+            }
+            let mut pid = 0u32;
+            let thread = GetWindowThreadProcessId(foreground, Some(&mut pid));
+            let mut info = GUITHREADINFO {
+                cbSize: std::mem::size_of::<GUITHREADINFO>() as u32,
+                ..Default::default()
+            };
+            if GetGUIThreadInfo(thread, &mut info).is_err() {
+                return None;
+            }
+            Some(format!(
+                "foreground pid={pid} class={:?} titulo={:?} | focus class={:?} tam={:?} | active class={:?}",
+                window_class_name(foreground),
+                window_title(foreground),
+                window_class_name(info.hwndFocus),
+                window_size(info.hwndFocus),
+                window_class_name(info.hwndActive),
+            ))
+        }
+    }
+
+    /// Vuelca las ventanas de un proceso: su clase, su tamaño y si están
+    /// visibles.
+    ///
+    /// Es una herramienta de diagnóstico, no parte del flujo: sirve para
+    /// comprobar contra la máquina real cómo se llaman las ventanas del
+    /// cliente remoto.
+    #[allow(dead_code, reason = "diagnóstico: lo usa la prueba en vivo")]
+    pub fn describe_windows(image_name: &str) -> Vec<String> {
+        let mut rows = Vec::new();
+        for window in top_level_windows() {
+            let pid = window_process_id(window);
+            let Some(name) = process_image_name(pid) else {
+                continue;
+            };
+            if !name.eq_ignore_ascii_case(image_name) {
+                continue;
+            }
+            let visible = unsafe { IsWindowVisible(window) }.as_bool();
+            rows.push(format!(
+                "top-level pid={pid} visible={visible} class={:?} tam={:?} titulo={:?}",
+                window_class_name(window),
+                window_size(window),
+                window_title(window)
+            ));
+            for child in child_windows(window) {
+                let child_visible = unsafe { IsWindowVisible(child) }.as_bool();
+                let child_pid = window_process_id(child);
+                rows.push(format!(
+                    "   child pid={child_pid} visible={child_visible} class={:?} tam={:?} module={:?}",
+                    window_class_name(child),
+                    window_size(child),
+                    class_module_name(child)
+                ));
+            }
+        }
+        rows
     }
 
     /// Reads the installation information of the remote client.
@@ -352,10 +525,18 @@ mod platform {
     pub fn detect() -> Detection {
         Detection {
             client_running: false,
-            rdp_session_count: 0,
+            rdp_clients: 0,
             focused: FocusedSurface::OtherApplication,
             foreground_process: None,
         }
+    }
+
+    pub fn focused_window_info() -> Option<String> {
+        None
+    }
+
+    pub fn describe_windows(_image_name: &str) -> Vec<String> {
+        Vec::new()
     }
 
     pub fn client_install() -> Option<ClientInstall> {
@@ -366,6 +547,18 @@ mod platform {
 /// Reads the state of the environment.
 pub fn detect() -> Detection {
     platform::detect()
+}
+
+/// The window that holds the keyboard focus, for diagnostics.
+#[allow(dead_code, reason = "diagnóstico: lo usa la prueba en vivo")]
+pub fn focused_window_info() -> Option<String> {
+    platform::focused_window_info()
+}
+
+/// Vuelca las ventanas de un proceso, con su clase y su tamaño.
+#[allow(dead_code, reason = "diagnóstico: lo usa la prueba en vivo")]
+pub fn describe_windows(image_name: &str) -> Vec<String> {
+    platform::describe_windows(image_name)
 }
 
 /// Reads the installation information of the remote client.

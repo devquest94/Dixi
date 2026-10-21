@@ -1914,6 +1914,35 @@ long_form_chunking?: boolean;
  */
 overlay_style?: OverlayStyle }
 export type AudioDevice = { index: string; name: string; is_default: boolean }
+/**
+ * Why the automatic insertion is not allowed.
+ */
+export type AutoBlock = 
+/**
+ * The integration is disabled.
+ */
+"integration_disabled" | 
+/**
+ * The automatic mode is off.
+ */
+"automatic_mode_off" | 
+/**
+ * The remote client is not running.
+ */
+"client_not_running" | 
+/**
+ * The remote client has no RDP client loaded.
+ */
+"no_rdp_client" | 
+/**
+ * More than one remote client has an RDP client: the destination is
+ * ambiguous.
+ */
+"ambiguous_destination" | 
+/**
+ * The remote client does not have the focus.
+ */
+"session_not_focused"
 export type AutoSubmitKey = "enter" | "ctrl_enter" | "cmd_enter"
 export type AvailableAccelerators = { transcribe: string[]; gpu_devices: GpuDeviceOption[] }
 export type BindingResponse = { success: boolean; binding: ShortcutBinding | null; error: string | null }
@@ -2207,13 +2236,13 @@ client_location: string | null;
  */
 client_running: boolean; 
 /**
- * How many RDP sessions it has open.
+ * How many RDP sessions the remote client has open.
  */
-rdp_session_count: number; 
+rdp_sessions: number; 
 /**
- * The focused window is an RDP session of the remote client.
+ * The focus is inside an open RDP session of the remote client.
  */
-remote_window_focused: boolean; 
+remote_session_focused: boolean; 
 /**
  * The process that owns the focused window.
  */
@@ -2224,8 +2253,12 @@ foreground_process: string | null;
 can_insert_automatically: boolean; 
 /**
  * Why it could not, when it could not.
+ * 
+ * It is a technical code, not a sentence: the panel shows it next to
+ * a translated label, and a sentence in one language inside a
+ * translated interface would be a lie.
  */
-blocked_reason: string | null }
+blocked_reason: AutoBlock | null }
 /**
  * The phase of a transfer to the remote desktop.
  */

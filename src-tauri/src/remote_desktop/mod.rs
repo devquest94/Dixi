@@ -121,47 +121,51 @@ pub struct RemoteDesktopDetection {
     pub client_location: Option<String>,
     /// The remote client is running right now.
     pub client_running: bool,
-    /// How many RDP sessions it has open.
-    pub rdp_session_count: u32,
-    /// The focused window is an RDP session of the remote client.
-    pub remote_window_focused: bool,
+    /// How many RDP sessions the remote client has open.
+    pub rdp_sessions: u32,
+    /// The focus is inside an open RDP session of the remote client.
+    pub remote_session_focused: bool,
     /// The process that owns the focused window.
     pub foreground_process: Option<String>,
     /// Whether the transcript could be inserted automatically right now.
     pub can_insert_automatically: bool,
     /// Why it could not, when it could not.
-    pub blocked_reason: Option<String>,
+    ///
+    /// It is a technical code, not a sentence: the panel shows it next to
+    /// a translated label, and a sentence in one language inside a
+    /// translated interface would be a lie.
+    pub blocked_reason: Option<AutoBlock>,
 }
 
 /// Why the automatic insertion is not allowed.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Type)]
+#[serde(rename_all = "snake_case")]
 pub enum AutoBlock {
     /// The integration is disabled.
-    Disabled,
+    IntegrationDisabled,
     /// The automatic mode is off.
-    ModeOff,
+    AutomaticModeOff,
     /// The remote client is not running.
     ClientNotRunning,
-    /// The remote client has no RDP session open.
-    NoRdpSession,
-    /// More than one RDP session is open: the destination is ambiguous.
-    AmbiguousSession,
-    /// The RDP session does not have the focus.
-    NotFocused,
+    /// The remote client has no RDP client loaded.
+    NoRdpClient,
+    /// More than one remote client has an RDP client: the destination is
+    /// ambiguous.
+    AmbiguousDestination,
+    /// The remote client does not have the focus.
+    SessionNotFocused,
 }
 
 impl AutoBlock {
-    /// A non-sensitive explanation, safe for the UI and for the logs.
-    pub fn reason(self) -> &'static str {
+    /// A stable technical code for the reason.
+    pub fn code(self) -> &'static str {
         match self {
-            AutoBlock::Disabled => "the remote desktop integration is disabled",
-            AutoBlock::ModeOff => "the automatic mode is off",
-            AutoBlock::ClientNotRunning => "the remote client is not running",
-            AutoBlock::NoRdpSession => "the remote client has no RDP session open",
-            AutoBlock::AmbiguousSession => {
-                "more than one RDP session is open, so the destination is ambiguous"
-            }
-            AutoBlock::NotFocused => "the RDP session does not have the focus",
+            AutoBlock::IntegrationDisabled => "integration_disabled",
+            AutoBlock::AutomaticModeOff => "automatic_mode_off",
+            AutoBlock::ClientNotRunning => "client_not_running",
+            AutoBlock::NoRdpClient => "no_rdp_client",
+            AutoBlock::AmbiguousDestination => "ambiguous_destination",
+            AutoBlock::SessionNotFocused => "session_not_focused",
         }
     }
 }
@@ -176,22 +180,22 @@ pub fn decide_auto_insert(
     detection: &detect::Detection,
 ) -> Result<(), AutoBlock> {
     if !settings.remote_desktop_enabled {
-        return Err(AutoBlock::Disabled);
+        return Err(AutoBlock::IntegrationDisabled);
     }
     if !settings.remote_desktop_auto_mode {
-        return Err(AutoBlock::ModeOff);
+        return Err(AutoBlock::AutomaticModeOff);
     }
     if !detection.client_running {
         return Err(AutoBlock::ClientNotRunning);
     }
-    if detection.rdp_session_count == 0 {
-        return Err(AutoBlock::NoRdpSession);
+    if detection.rdp_sessions == 0 {
+        return Err(AutoBlock::NoRdpClient);
     }
-    if detection.rdp_session_count > 1 {
-        return Err(AutoBlock::AmbiguousSession);
+    if detection.rdp_sessions > 1 {
+        return Err(AutoBlock::AmbiguousDestination);
     }
     if !detection.focused.is_rdp_session() {
-        return Err(AutoBlock::NotFocused);
+        return Err(AutoBlock::SessionNotFocused);
     }
     Ok(())
 }
@@ -342,11 +346,11 @@ pub fn detect(app: &AppHandle) -> RemoteDesktopDetection {
         client_version: install.as_ref().and_then(|i| i.version.clone()),
         client_location: install.as_ref().and_then(|i| i.location.clone()),
         client_running: detection.client_running,
-        rdp_session_count: detection.rdp_session_count,
-        remote_window_focused: detection.focused.is_rdp_session(),
+        rdp_sessions: detection.rdp_sessions,
+        remote_session_focused: detection.focused.is_rdp_session(),
         foreground_process: detection.foreground_process.clone(),
         can_insert_automatically: block.is_ok(),
-        blocked_reason: block.err().map(|reason| reason.reason().to_string()),
+        blocked_reason: block.err(),
     }
 }
 
@@ -507,8 +511,12 @@ pub fn insert_automatically(app: &AppHandle) -> Result<RemoteTransferStatus, Str
     let settings = crate::settings::get_settings(app);
     let detection = detect::detect();
 
-    decide_auto_insert(&settings, &detection)
-        .map_err(|block| format!("The automatic insertion is not allowed: {}", block.reason()))?;
+    decide_auto_insert(&settings, &detection).map_err(|block| {
+        format!(
+            "The automatic insertion is not allowed: {}",
+            block.code()
+        )
+    })?;
 
     // The focus is checked once more immediately before the action: it may
     // have changed since the decision.
@@ -598,12 +606,12 @@ mod tests {
 
     fn detection(
         running: bool,
-        sessions: u32,
+        rdp_sessions: u32,
         focused: detect::FocusedSurface,
     ) -> detect::Detection {
         detect::Detection {
             client_running: running,
-            rdp_session_count: sessions,
+            rdp_sessions,
             focused,
             foreground_process: Some("mremoteng.exe".to_string()),
         }
@@ -615,7 +623,7 @@ mod tests {
         let detection = detection(true, 1, detect::FocusedSurface::RdpSession);
         assert_eq!(
             decide_auto_insert(&settings, &detection),
-            Err(AutoBlock::Disabled)
+            Err(AutoBlock::IntegrationDisabled)
         );
     }
 
@@ -623,7 +631,10 @@ mod tests {
     fn the_automatic_mode_is_off_by_default() {
         let settings = settings(true, false);
         let detection = detection(true, 1, detect::FocusedSurface::RdpSession);
-        assert_eq!(decide_auto_insert(&settings, &detection), Err(AutoBlock::ModeOff));
+        assert_eq!(
+            decide_auto_insert(&settings, &detection),
+            Err(AutoBlock::AutomaticModeOff)
+        );
     }
 
     #[test]
@@ -642,7 +653,7 @@ mod tests {
         let detection = detection(true, 0, detect::FocusedSurface::ClientWindow);
         assert_eq!(
             decide_auto_insert(&settings, &detection),
-            Err(AutoBlock::NoRdpSession)
+            Err(AutoBlock::NoRdpClient)
         );
     }
 
@@ -652,7 +663,7 @@ mod tests {
         let detection = detection(true, 1, detect::FocusedSurface::ClientWindow);
         assert_eq!(
             decide_auto_insert(&settings, &detection),
-            Err(AutoBlock::NotFocused)
+            Err(AutoBlock::SessionNotFocused)
         );
     }
 
@@ -662,7 +673,7 @@ mod tests {
         let detection = detection(true, 2, detect::FocusedSurface::RdpSession);
         assert_eq!(
             decide_auto_insert(&settings, &detection),
-            Err(AutoBlock::AmbiguousSession)
+            Err(AutoBlock::AmbiguousDestination)
         );
     }
 
@@ -679,7 +690,7 @@ mod tests {
         let detection = detection(true, 1, detect::FocusedSurface::OtherApplication);
         assert_eq!(
             decide_auto_insert(&settings, &detection),
-            Err(AutoBlock::NotFocused)
+            Err(AutoBlock::SessionNotFocused)
         );
     }
 
@@ -692,5 +703,45 @@ mod tests {
         assert_eq!(transfer_timeout(&settings), Duration::from_millis(MAX_TIMEOUT_MS));
         settings.remote_desktop_timeout_ms = 60_000;
         assert_eq!(transfer_timeout(&settings), Duration::from_millis(60_000));
+    }
+
+    /// Diagnóstico contra la máquina real.
+    ///
+    /// Se ignora por defecto porque su resultado depende del estado del
+    /// equipo: qué aplicación tiene el foco y si el cliente remoto está
+    /// corriendo. Es la forma de verificar la detección contra una sesión
+    /// RDP de verdad:
+    ///
+    /// ```text
+    /// cargo test --lib live_detection -- --ignored --nocapture
+    /// ```
+    ///
+    /// Con la sesión RDP enfocada dentro de mRemoteNG tiene que informar
+    /// `client_running: true`, `rdp_session_count: 1` y
+    /// `focused: RdpSession`.
+    #[test]
+    #[ignore = "depende del estado del equipo; se ejecuta a mano"]
+    fn live_detection() {
+        let detection = detect::detect();
+        println!("deteccion en vivo: {detection:#?}");
+    }
+
+    /// Diagnóstico: vuelca las ventanas del cliente remoto.
+    ///
+    /// ```text
+    /// cargo test --lib live_windows -- --ignored --nocapture
+    /// ```
+    ///
+    /// Sirve para ver, contra la máquina real, cómo se llaman las ventanas
+    /// del cliente y cuál tiene el foco.
+    #[test]
+    #[ignore = "depende del estado del equipo; se ejecuta a mano"]
+    fn live_windows() {
+        for row in detect::describe_windows("mremoteng.exe") {
+            println!("{row}");
+        }
+        if let Some(info) = detect::focused_window_info() {
+            println!("foco: {info}");
+        }
     }
 }
