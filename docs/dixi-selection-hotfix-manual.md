@@ -34,7 +34,8 @@ Lo que hay que tener abierto a la vez: **el Bloc de notas** (el destino) y
 
    > Ese es el atajo global de captura. Si no hace nada, mirá
    > Ajustes → General → Atajos: puede que otra aplicación lo tenga
-   > cogido. Cambiálo ahí.
+   > cogido. Cambialo ahí. El panel de Transforms avisa cuando el atajo
+   > **no** se pudo registrar.
 
 3. Abrí Dixi → **Ajustes → Transforms**. El texto capturado tiene que
    estar, con el nombre de la aplicación de donde salió.
@@ -42,6 +43,16 @@ Lo que hay que tener abierto a la vez: **el Bloc de notas** (el destino) y
 **Lo que hay que ver:** el texto capturado es el del Bloc de notas, **no**
 el de la ventana de Dixi. Si saliera el texto de Dixi o un error, el
 problema es que el atajo no se registró.
+
+**Si el aviso dice «no hay texto seleccionado»**, ahora el aviso dice también
+**qué aplicación tenía el foco**:
+
+> No hay texto seleccionado en la aplicación que tiene el foco. La
+> aplicación que tenía el foco era notepad.exe.
+
+Eso es la prueba de que el atajo va a la aplicación correcta. Si en cambio
+dice «*la aplicación que tenía el foco era el propio Dixi*», el atajo se
+pulsó con Dixi delante: volvé al Bloc de notas y pulsalo otra vez.
 
 ## 2. La cuenta atrás (la alternativa)
 
@@ -62,9 +73,14 @@ problema es que el atajo no se registró.
 
 - el Bloc de notas **cambia solo**, con el texto transformado;
 - el **portapapeles sigue igual** que antes (si habías copiado la línea,
-   `Ctrl+V` en un lugar vacío tiene que pegar la línea, no otra cosa);
+  `Ctrl+V` en un lugar vacío tiene que pegar la línea, no otra cosa);
 - en **Ajustes → Historial de texto** aparece el cambio, con el texto
-   anterior y el nuevo.
+  anterior y el nuevo.
+
+**Un caso a proposito:** escribí algo a mano en el área de texto de
+Transforms, después de capturar. «Aceptar» tiene que quedar **deshabilitado**
+y salir un aviso de que la captura ya no vale: la selección original ya no
+está, y aceptar escribiría sobre otra cosa. «Copiar» sí que sigue valiendo.
 
 ---
 
@@ -107,12 +123,34 @@ entrada del historial queda marcada como revertida.
 selección». Se cambia ahí como cualquier otro atajo, y el cambio se aplica
 enseguida.
 
+Si el atajo **no** se pudo registrar —porque otra aplicación ya tiene esa
+combinación—, el panel de Transforms lo dice arriba del todo, con la
+combinación concreta. Un atajo global que no se registra **no da error
+visible**: sencillamente nunca se dispara.
+
 ---
 
 ## 7. Si algo falla
 
 Anota **el texto exacto del aviso** y en qué punto de esta lista estabas.
+El aviso ahora dice **qué aplicación tenía el foco**, así que esa parte ya
+no hay que adivinarla.
+
 Si el fallo es en «Aceptar» o en «Revertir», eso es el camino que estaba
 roto: cuéntalo con esas palabras.
 
-Los logs están en **Ajustes → Depuración → Registros en vivo**.
+Los logs están en **Ajustes → Depuración → Registros en vivo**. La línea
+técnica de la captura tiene esta forma, y **no lleva el texto** que
+seleccionaste:
+
+```
+CaptureSelectionAction: app=chrome.exe class=Chrome_WidgetWin_1 step=copy
+    result=error code=nothing_selected
+```
+
+| Parte | Qué es |
+|---|---|
+| `app` | El proceso que tenía el foco. |
+| `class` | La clase del control enfocado. |
+| `step` | En qué paso falló: `focus`, `control` o `copy`. |
+| `code` | El motivo, con el código estable que la interfaz traduce. |

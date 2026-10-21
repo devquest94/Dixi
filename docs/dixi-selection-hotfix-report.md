@@ -5,6 +5,12 @@
 escritorio real la hace el usuario con el procedimiento manual.
 **No fusionado a `develop`.**
 
+Este hotfix tiene **dos vueltas**. La primera arregló el mecanismo: el
+botón no podía funcionar por diseño, porque pulsarlo le quita el foco a la
+aplicación de origen. La segunda recogió el reporte del usuario sobre la
+primera y hizo que, **cuando falla**, el aviso diga qué aplicación tenía el
+foco y si el atajo llegó a registrarse. Las dos están en la misma rama.
+
 ---
 
 ## 1. El diagnóstico
@@ -30,6 +36,59 @@ documento.
 Es decir: **el botón no podía funcionar por diseño**, no por un fallo
 puntual. La única forma de capturarlo sin perder el foco es hacerlo desde
 algo que no lo robe.
+
+### 1.1 Lo que pasó en la sesión real (la primera vuelta del arreglo)
+
+El atajo global resuelto no fue suficiente: el usuario siguo sin poder
+capturar. El log de su sesion (`%LOCALAPPDATA%\com.dixi.app\logs\dixi.log`,
+21-10-2026 02:09-02:12) dice exactamente que paso:
+
+```
+[02:09:07][dixi_app_lib::shortcut::handy_keys][DEBUG] Registered handy-keys
+    shortcut: capture_selection -> Hotkey { modifiers: Modifiers(CTRL_LEFT |
+    OPT_LEFT | CTRL_RIGHT | OPT_RIGHT), key: Some(C) }
+[02:09:48][dixi_app_lib::shortcut::handy_keys][DEBUG] handy-keys event:
+    binding=capture_selection, hotkey=ctrl+alt+c, state=Pressed
+[02:09:49][dixi_app_lib::actions][WARN] CaptureSelectionAction: the selection
+    could not be captured: there is no selected text
+```
+
+El atajo **si se registro** y **si se despacho**: seis pulsaciones, entre las
+02:09:48 y la 02:12:50. Cuatro fallaron con «there is no selected text» y dos
+con «the focused control is not a text control that Dixi knows».
+
+O sea: el mecanismo funciona, pero **el aviso no decia nada util**. No decia
+que aplicacion tenia el foco, ni en que paso fallo, ni si el atajo estaba
+registrado. Y hay una segunda averia, que solo se ve mirando el escritorio:
+
+**En Chrome, el control con el foco no es el que se creia.** Una sonda Win32
+propia (`GetGUIThreadInfo`) dio esto:
+
+| | Clase | |
+|---|---|---|
+| Ventana de primer plano | `Chrome_WidgetWin_1` | la ventana de nivel superior |
+| Control con el foco | `Chrome_WidgetWin_1` | **es la misma ventana** |
+| Su hijo | `Chrome_RenderWidgetHostHWND` | el que hospeda la pagina, pero **no** tiene el foco |
+
+El informe de la primera vuelta daba por hecho que el enfocado era
+`Chrome_RenderWidgetHostHWND`. **No lo es**: el foco de teclado lo tiene la
+ventana de nivel superior. La lista blanca lo aceptaba por prefijo (`chrome_`),
+asi que por eso la captura no se rechazaba, pero la afirmacion del informe era
+falsa y hay que corregirla.
+
+Y una tercera averia, esta en la sonda del camino de captura: en el momento de
+la prueba el primer plano era `WixBurnMessageWindow`, la ventana del
+instalador del SDK de .NET. El error «control desconocido» era **correcto**;
+lo que faltaba era decir **cual** aplicacion.
+
+Tres cosas que se corrigen en la segunda vuelta:
+
+1. **El aviso dice que aplicacion tenia el foco** y en que paso fallo.
+2. **El panel avisa si el atajo no se pudo registrar**, en vez de dejar un
+   atajo que no hace nada sin explicación.
+3. **La captura se invalida en cuanto se escribe en el texto**, y «Aceptar»
+   se deshabilita: escribir a mano ya destruyó la identidad de la seleccion
+   original, y aceptarla escribiria sobre otra cosa.
 
 ## 2. La solución
 
@@ -167,14 +226,21 @@ Además, y esto es nuevo, **solo se leen los controles que Dixi conoce**:
 |---|---|
 | `Edit`, `TEdit` | Controles de edición nativos. |
 | `RichEdit`, `RichEdit20W`, `RichEdit50W`, `RichEditD2DPT` | Controles enriquecidos. |
-| `Chrome_RenderWidgetHostHWND` | El control enfocado de los navegadores Chromium: el que hospeda la página pintada. |
-| `Chrome_WidgetWin_1` | La ventana de nivel superior de Chromium. |
+| `Chrome_WidgetWin_1` | La ventana de nivel superior de Chromium: **es la que tiene el foco de teclado**. |
+| `Chrome_RenderWidgetHostHWND` | El hijo que hospeda la página pintada. No tiene el foco, pero es de la misma familia. |
 | `MozillaWindowClass` | Firefox. |
 
-Las clases de los navegadores se comparan **por prefijo** (`chrome_`),
-porque el control enfocado cambia de nombre entre versiones y comparar
-por familia es lo que no se rompe. La clase `Chrome_RenderWidgetHostHWND` se
-ha confirmado en el binario de Chromium de esta máquina.
+Las clases de los navegadores se comparan **por prefijo** (`chrome_`,
+`mozillawindowclass`, `webkit`), porque el control enfocado cambia de nombre
+entre versiones y comparar por familia es lo que no se rompe.
+
+Lo que se comprobó en el escritorio, con una sonda Win32 propia
+(`GetGUIThreadInfo`): en Chrome, **el control con el foco es
+`Chrome_WidgetWin_1`**, la ventana de nivel superior; el
+`Chrome_RenderWidgetHostHWND` es su hijo y no tiene el foco. La lista blanca
+lo acepta por prefijo, y por eso la captura no se rechaza en un navegador.
+La primera vuelta de este informe daba por hecho lo contrario, y queda
+corregido.
 
 Cualquier otra clase se rechaza con `unsupported_control`. La razón es
 que Windows no permite saber de forma fiable si un control cualquiera
@@ -194,7 +260,7 @@ abajo.
 | Aplicación | Control | Lectura | Escritura |
 |---|---|---|---|
 | Bloc de notas (Windows 10/11) | `RichEditD2DPT` / `Edit` | Sí | Sí |
-| Navegadores con Chromium (Chrome, Edge, Brave, Opera, VS Code) | `Chrome_RenderWidgetHostHWND` | Sí | Sí |
+| Navegadores con Chromium (Chrome, Edge, Brave, Opera, VS Code) | `Chrome_WidgetWin_1` | Sí | Sí |
 | Firefox | `MozillaWindowClass` | Sí | Sí |
 | WordPad, editores nativos | `RichEdit20W` | Sí | Sí |
 | Campos de contraseña | cualquiera | **No** | **No** |
@@ -238,11 +304,14 @@ todos estan corregidos.
    del control, y solo los controles nativos se consultan.
 
 2. **La captura se rechazaba siempre en los navegadores Chromium.** La
-   lista de controles verificados included `Chrome_WidgetWin_1`, que es la
-   ventana de nivel superior: el control con el foco en Chromium se llama
-   `Chrome_RenderWidgetHostHWND`, y ese es justamente el que hay que
-   comprobar. La clase se ha confirmado en el binario de Chromium de esta
-   maquina. Chrome, Edge, Brave, Opera y VS Code quedaban fuera.
+   lista de controles verificados no incluia ninguna clase de navegador, y
+   el control con el foco en Chromium es `Chrome_WidgetWin_1` —la ventana de
+   nivel superior, comprobada con una sonda Win32 sobre el escritorio—, de
+   modo que Chrome, Edge, Brave, Opera y VS Code quedaban fuera. La
+   correccion es comparar **por familia** (`chrome_`, `mozillawindowclass`,
+   `webkit`) en vez de por un nombre exacto, que cambia entre versiones.
+   (La primera vuelta de este informe decia que el enfocado era
+   `Chrome_RenderWidgetHostHWND`: no lo es, y queda corregido en 1.1.)
 
 3. **El portapapeles hacia la captura inservible con cualquier copia
    enriquecida.** La regla era «solo texto», asi que copiar un parrafo de
@@ -280,13 +349,13 @@ lista manual, y **no se declara comprobado hasta que esa lista pasa**.
 
 ### 6.1 Automáticas (Rust)
 
-**545 PASS, 0 FAIL, 18 ignoradas** (eran 524 antes de este arreglo). Las 21
+**549 PASS, 0 FAIL, 18 ignoradas** (eran 524 antes de este arreglo). Las 25
 nuevas cubren lo que se puede decidir sin escritorio:
 
 | Prueba | Qué fija |
 |---|---|
 | `only_the_verified_text_controls_are_read` | La lista de controles que se leen. |
-| `the_focused_child_of_a_chromium_window_is_read` | La clase real del control enfocado de Chromium. |
+| `the_focused_control_of_a_chromium_window_is_read` | La clase real del control enfocado de Chromium. |
 | `the_browser_renderers_are_not_native_text_controls` | Que un renderizador no se consulta con `WM_GETTEXT`. |
 | `an_unknown_control_is_not_read` | Un control desconocido no se lee. |
 | `the_class_is_matched_without_case_and_without_spaces` | La comparación de clases. |
@@ -305,6 +374,10 @@ nuevas cubren lo que se puede decidir sin escritorio:
 | `a_window_that_is_not_alive_is_detected` | Una ventana cerrada no es un destino. |
 | `the_spaces_around_the_text_do_not_matter` | Los espacios que añade la aplicación. |
 | `every_failure_has_a_stable_code` | Los códigos que la interfaz traduce. |
+| `a_failure_carries_the_application_that_had_the_focus` | Que el fallo diga qué aplicación tenía el foco. |
+| `the_code_of_a_wrapped_failure_is_the_code_of_its_reason` | Que los diagnósticos no cambien el motivo. |
+| `the_diagnostics_never_carry_the_selected_text` | Que el texto seleccionado no viaje en los diagnósticos. |
+| `a_failure_without_diagnostics_still_has_its_code` | Que un fallo sin diagnóstico siga teniendo su código. |
 | `a_change_remembers_where_it_was_made` | El historial guarda el sitio. |
 | `a_change_without_a_place_cannot_be_reverted` | Un cambio sin sitio no se deshace. |
 | `a_change_that_never_happened_is_removed` | Un cambio que no ocurrió no queda en el historial. |
@@ -332,16 +405,15 @@ esa lista pasa.**
 
 | Comprobación | Resultado |
 |---|---|
-| `cargo test --features custom-protocol --lib` | **545 PASS**, 0 FAIL, 18 ignoradas |
+| `cargo test --features custom-protocol --lib` | **549 PASS**, 0 FAIL, 18 ignoradas |
 | `cargo test --features custom-protocol --doc` | PASS |
 | Avisos del compilador | **0** |
 | `npx.cmd tsc --noEmit` | 0 errores |
 | `npx.cmd eslint src` | 0 errores, 0 avisos |
-| `npx.cmd tsx src/lib/utils/keyboard.test.ts` | PASS |
 | `node scripts/check-translations.ts` | PASS, 25/25 idiomas |
-| `node scripts/check-translation-text.mjs` | 26 locales, 220 claves, 6858 cadenas, 0 problemas |
-| `cargo build --release --features custom-protocol` | OK |
-| `scripts/verify-release-protocol.ps1` | PASS (el frontend va incrustado) |
+| `node scripts/check-translation-text.mjs` | 26 locales, 0 problemas |
+| `cargo build --release --features custom-protocol` | OK (`lto = true`, `codegen-units = 1`) |
+| `scripts/verify-release-protocol.ps1 -SmokeTest` | PASS (el frontend va incrustado y el binario arranca) |
 
 Todo se ejecutó **sin abrir una ventana de consola**, con
 `scripts/run-hidden.ps1`, que deja la salida y el error en ficheros de log
@@ -352,22 +424,106 @@ bajo `.logs/`.
 **Rust**
 
 - `src-tauri/src/managers/selection.rs` — el contexto, la lista de
-  controles, el portapapeles fiel, la escritura verificada.
+  controles, el portapapeles fiel, la escritura verificada, y los
+  diagnósticos de la captura.
 - `src-tauri/src/managers/selection/tests.rs` — las pruebas.
 - `src-tauri/src/managers/text_history.rs` — el contexto en el historial.
 - `src-tauri/src/managers/personal_store.rs` — las columnas nuevas.
-- `src-tauri/src/commands/selection.rs` — los comandos.
+- `src-tauri/src/commands/selection.rs` — los comandos, y el del estado del
+  atajo.
 - `src-tauri/src/commands/text_history.rs` — el comando de reversión.
-- `src-tauri/src/actions.rs` — la acción del atajo.
+- `src-tauri/src/actions.rs` — la acción del atajo, y su log técnico.
 - `src-tauri/src/settings.rs` — el atajo por defecto.
-- `src-tauri/src/shortcut/{mod,tauri_impl,handy_keys}.rs` — el registro, y la
-  decisión de dónde se puede registrar.
+- `src-tauri/src/shortcut/{mod,tauri_impl,handy_keys}.rs` — el registro, la
+  decisión de dónde se puede registrar y el estado del registro.
 - `src-tauri/src/lib.rs` — el registro.
 
 **Frontend**
 
+- `src/components/settings/selectionErrors.ts` — el módulo compartido de los
+  avisos de la captura.
 - `src/components/settings/transforms/TransformsSettings.tsx`
 - `src/components/settings/textHistory/TextHistorySettings.tsx`
 - `src/components/settings/general/GeneralSettings.tsx`
-- `src/i18n/locales/*/translation.json` — 17 claves nuevas en 26 idiomas.
+- `src/i18n/locales/*/translation.json` — 21 claves nuevas en 26 idiomas.
 - `src/bindings.ts` — regenerado.
+
+## 8. La segunda vuelta: qué se cambió con el reporte del usuario
+
+La primera vuelta arregló el mecanismo (el botón no podía funcionar por
+diseño) pero no dijo nada útil cuando fallaba. Con el log de la sesión real
+y dos sondas Win32 propias, la segunda vuelta corrige tres cosas.
+
+### 8.1 El aviso dice qué aplicación tenía el foco
+
+El backend ahora sabe, en cada fallo, **qué aplicación tenía el foco**, **qué
+clase de control era** y **en qué paso falló** (`focus`, `control` o `copy`).
+Eso viaja como `CaptureDiagnostics` y llega a la interfaz junto al código
+estable del motivo.
+
+El texto seleccionado **no** viaja nunca: los diagnósticos solo llevan datos
+técnicos, y hay una prueba que lo fija
+(`the_diagnostics_never_carry_the_selected_text`).
+
+En la interfaz, `src/components/settings/selectionErrors.ts` compone el aviso:
+
+```
+"There is no selected text in the app that has the focus."
+"La aplicación que tenía el foco era chrome.exe."
+```
+
+Y cuando el foco estaba en Dixi mismo —la causa más habitual, porque el
+atajo se pulsó con Dixi delante—, el aviso es otro: volver a la aplicación de
+origen y pulsar el atajo otra vez.
+
+El log técnico, sin texto:
+
+```
+CaptureSelectionAction: app=chrome.exe class=Chrome_WidgetWin_1 step=copy
+    result=error code=nothing_selected
+```
+
+**El camino de escritura lleva los mismos diagnósticos.** Cuando «Aceptar» o
+«Revertir» fallan, el aviso dice también qué aplicación tenía el foco y en
+qué paso falló: `clipboard`, `focus`, `control`, `copy`, `verify`, `paste` o
+`write`. Antes, un fallo al escribir y un fallo al capturar eran el mismo
+mensillo.
+
+### 8.2 El panel avisa si el atajo no se pudo registrar
+
+Un atajo global que otra aplicación ya tiene **no da error visible**: el
+atajo sencillamente nunca se dispara. Ahora el registro guarda si pudo
+registrarse (`CAPTURE_SHORTCUT_REGISTERED` en `shortcut/mod.rs`), el comando
+`get_capture_shortcut_state` lo expone, y el panel de Transforms avisa:
+
+> El atajo Ctrl+Alt+C no se pudo registrar: otra aplicación ya lo tiene.
+> Cambialo en los atajos de teclado.
+
+Si el registro falla, además queda escrito en el log con un `error!`.
+
+### 8.3 La captura se invalida en cuanto se escribe
+
+El contexto capturado dice «este texto estaba seleccionado en este control».
+En cuanto el usuario escribe en el área de texto, esa identidad ya no es
+cierta: aceptar escribiría sobre otra cosa. Así que:
+
+- al escribir en el textarea, la captura se marca como **inválida**;
+- **«Aceptar» se deshabilita**, con el motivo en el propio botón;
+- y sale un aviso debajo del texto.
+
+Esto no toca la captura en sí: la captura sigue siendo válida para
+**copiar** el resultado, que es lo que se puede hacer sin escribir.
+
+### 8.4 Las cuatro claves nuevas
+
+| Clave | Para qué |
+|---|---|
+| `settings.selection.errors.focusedApp` | Decir qué aplicación tenía el foco (`{{app}}`). |
+| `settings.selection.errors.focusedAppIsDixi` | El caso de que el foco estuviera en Dixi. |
+| `settings.transforms.runner.captureInvalidated` | Que la captura ya no vale. |
+| `settings.transforms.runner.shortcutNotRegistered` | Que el atajo no se registró (`{{shortcut}}`). |
+
+En **26 idiomas**, con el tono de cada uno (voseo en español, *Sie* en
+alemán, imperativo plural en hebreo, *vous* en francés). Los 26 ficheros
+siguen en CRLF, con BOM ninguno y sin reformatear nada: el diff de cada uno
+son cuatro lineas nuevas.
