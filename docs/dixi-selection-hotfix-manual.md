@@ -123,10 +123,20 @@ entrada del historial queda marcada como revertida.
 selección». Se cambia ahí como cualquier otro atajo, y el cambio se aplica
 enseguida.
 
-Si el atajo **no** se pudo registrar —porque otra aplicación ya tiene esa
-combinación—, el panel de Transforms lo dice arriba del todo, con la
-combinación concreta. Un atajo global que no se registra **no da error
-visible**: sencillamente nunca se dispara.
+Si el atajo **no** se pudo registrar, el panel de Transforms lo dice arriba
+del todo, con la combinacion concreta. Un atajo global que no se registra
+**no da error visible**: sencillamente nunca se dispara.
+
+El aviso dice **por que** fallo, y no culpa a otra aplicacion a ciegas:
+
+| Que dice | Que quiere decir |
+|---|---|
+| «otra aplicación ya tiene esa combinación» | El sistema se negó a reservarla. Solo con el backend Tauri. |
+| «Dixi ya tenía esa combinación registrada» | Un duplicado interno: reiniciá Dixi o cambiá la combinación. |
+| «el motor de atajos no estaba listo» | Fallo de arranque: reiniciá Dixi. |
+| «no es una combinación válida» | La combinación no existe: cambiá la anterior. |
+
+Y si el atajo **sí** está registrado, no sale ningún aviso.
 
 ---
 

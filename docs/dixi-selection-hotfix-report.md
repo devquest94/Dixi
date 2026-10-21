@@ -493,13 +493,24 @@ mensillo.
 
 Un atajo global que otra aplicación ya tiene **no da error visible**: el
 atajo sencillamente nunca se dispara. Ahora el registro guarda si pudo
-registrarse (`CAPTURE_SHORTCUT_REGISTERED` en `shortcut/mod.rs`), el comando
-`get_capture_shortcut_state` lo expone, y el panel de Transforms avisa:
+registrarse, y el comando `get_capture_shortcut_state` lo expone, y el panel
+de Transforms avisa:
 
 > El atajo Ctrl+Alt+C no se pudo registrar: otra aplicación ya lo tiene.
 > Cambialo en los atajos de teclado.
 
 Si el registro falla, además queda escrito en el log con un `error!`.
+
+> **Esta sección se corrigió en una tercera vuelta del hotfix.** El aviso
+> que se describe arriba mentía: el estado que lo alimentaba se escribía en
+> un solo sitio, y el arranque del atajo no pasaba por ahí, así que la
+> interfaz decía «no se pudo registrar» mientras el atajo estaba
+> registrado y funcionando. Además culpaba a otra aplicación de cualquier
+> fallo, y con el backend que Dixi usa en Windows eso **no puede ser**:
+> handy-keys vigila el teclado con un hook y nunca pide al sistema reservar
+> la combinación, así que ninguna otra aplicación puede entrar en conflicto.
+> El diagnóstico completo está en
+> `docs/dixi-shortcut-registration-diagnosis.md`.
 
 ### 8.3 La captura se invalida en cuanto se escribe
 
