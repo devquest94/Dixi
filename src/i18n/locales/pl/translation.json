@@ -956,7 +956,9 @@
         "hotkeyHint": "Naciśnij {{shortcut}} w aplikacji, w której zaznaczono tekst, a następnie wróć tutaj.",
         "captureCountdown": "Wróć do aplikacji i zaznacz tekst. Przechwytywanie za {{seconds}}…",
         "nothingCaptured": "Nie przechwycono jeszcze żadnego tekstu.",
-        "acceptNeedsCapture": "Przechwyć zaznaczenie przed zaakceptowaniem."
+        "acceptNeedsCapture": "Przechwyć zaznaczenie przed zaakceptowaniem.",
+        "captureInvalidated": "Tekst się zmienił, więc przechwycone zaznaczenie już nie pasuje. Przechwyć zaznaczenie ponownie.",
+        "shortcutNotRegistered": "Nie udało się zarejestrować skrótu {{shortcut}}: jest już zajęty przez inną aplikację. Zmień go w skrótach klawiaturowych."
       },
       "diff": {
         "title": "Zmiany",
@@ -1036,7 +1038,9 @@
         "selectionChanged": "Zaznaczenie się zmieniło, więc nic nie zostało zapisane.",
         "destinationUnavailable": "Dixi nie mógł przywrócić aplikacji na wierzch, więc nic nie zostało zapisane.",
         "destinationGone": "Aplikacja, w której zaznaczono tekst, została zamknięta, więc nic nie zostało zapisane.",
-        "write": "Nie udało się zapisać tekstu."
+        "write": "Nie udało się zapisać tekstu.",
+        "focusedApp": "Aplikacja, która miała fokus, to {{app}}.",
+        "focusedAppIsDixi": "Aplikacja, która miała fokus, to sam Dixi: wróć do aplikacji, w której zaznaczono tekst, i naciśnij skrót ponownie."
       }
     }
   },

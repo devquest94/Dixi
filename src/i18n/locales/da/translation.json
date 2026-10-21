@@ -956,7 +956,9 @@
         "hotkeyHint": "Tryk på {{shortcut}} i den app, hvor teksten er valgt, og kom så tilbage hertil.",
         "captureCountdown": "Gå tilbage til appen og vælg teksten. Opsamling om {{seconds}}…",
         "nothingCaptured": "Der er endnu ikke opslaget tekst.",
-        "acceptNeedsCapture": "Opsaml en markering, før du accepterer."
+        "acceptNeedsCapture": "Opsaml en markering, før du accepterer.",
+        "captureInvalidated": "Teksten blev ændret, så den optagede markering gælder ikke længere. Opsaml markeringen igen.",
+        "shortcutNotRegistered": "Genvejstasten {{shortcut}} kunne ikke registreres: en anden app har den allerede. Skift den under tastaturgenveje."
       },
       "diff": {
         "title": "Ændringer",
@@ -1036,7 +1038,9 @@
         "selectionChanged": "Markeringen ændrede sig, så der blev ikke skrevet noget.",
         "destinationUnavailable": "Dixi kunne ikke bringe appen frem forrest, så der blev ikke skrevet noget.",
         "destinationGone": "Appen, hvor teksten blev valgt, er lukket, så der blev ikke skrevet noget.",
-        "write": "Teksten kunne ikke skrives."
+        "write": "Teksten kunne ikke skrives.",
+        "focusedApp": "Den app, der havde fokus, var {{app}}.",
+        "focusedAppIsDixi": "Den app, der havde fokus, var Dixi selv: gå tilbage til den app, hvor teksten er valgt, og tryk gen på genvejstasten."
       }
     }
   },

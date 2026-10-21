@@ -956,7 +956,9 @@
         "hotkeyHint": "在选中文本的应用中按 {{shortcut}}，然后返回这里。",
         "captureCountdown": "返回应用并选中文本。将在 {{seconds}} 秒后捕获…",
         "nothingCaptured": "尚未捕获任何文本。",
-        "acceptNeedsCapture": "请先捕获选区，再接受。"
+        "acceptNeedsCapture": "请先捕获选区，再接受。",
+        "captureInvalidated": "文本已更改，因此捕获的选区不再适用。请重新捕获选区。",
+        "shortcutNotRegistered": "快捷键 {{shortcut}} 无法注册：另一个应用已经占用该快捷键。请在键盘快捷键中更改。"
       },
       "diff": {
         "title": "更改",
@@ -1036,7 +1038,9 @@
         "selectionChanged": "选区发生了变化，因此没有写入任何内容。",
         "destinationUnavailable": "Dixi 无法将应用切回前台，因此没有写入任何内容。",
         "destinationGone": "选中文本的应用已关闭，因此没有写入任何内容。",
-        "write": "无法写入文本。"
+        "write": "无法写入文本。",
+        "focusedApp": "拥有焦点的应用是 {{app}}。",
+        "focusedAppIsDixi": "拥有焦点的应用就是 Dixi 本身：请回到选中文本的应用，再次按快捷键。"
       }
     }
   },

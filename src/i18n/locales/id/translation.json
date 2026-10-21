@@ -956,7 +956,9 @@
         "hotkeyHint": "Tekan {{shortcut}} di aplikasi tempat teks dipilih, lalu kembali ke sini.",
         "captureCountdown": "Kembali ke aplikasi dan pilih teks. Tangkapan dalam {{seconds}}…",
         "nothingCaptured": "Belum ada teks yang ditangkap.",
-        "acceptNeedsCapture": "Tangkap pilihan sebelum menerima."
+        "acceptNeedsCapture": "Tangkap pilihan sebelum menerima.",
+        "captureInvalidated": "Teksnya berubah, jadi pilihan yang ditangkap tidak lagi berlaku. Tangkap pilihannya lagi.",
+        "shortcutNotRegistered": "Pintasan {{shortcut}} tidak bisa didaftarkan: aplikasi lain sudah memakainya. Ubah di pintasan papan ketik."
       },
       "diff": {
         "title": "Perubahan",
@@ -1036,7 +1038,9 @@
         "selectionChanged": "Pilihan berubah, jadi tidak ada yang ditulis.",
         "destinationUnavailable": "Dixi tidak dapat membawa aplikasi ke depan, jadi tidak ada yang ditulis.",
         "destinationGone": "Aplikasi tempat teks dipilih sudah ditutup, jadi tidak ada yang ditulis.",
-        "write": "Teks tidak dapat ditulis."
+        "write": "Teks tidak dapat ditulis.",
+        "focusedApp": "Aplikasi yang memiliki fokus adalah {{app}}.",
+        "focusedAppIsDixi": "Aplikasi yang memiliki fokus adalah Dixi itu sendiri: kembali ke aplikasi tempat teks dipilih, lalu tekan pintasan itu lagi."
       }
     }
   },

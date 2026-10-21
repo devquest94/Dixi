@@ -956,7 +956,9 @@
         "hotkeyHint": "Nhấn {{shortcut}} trong ứng dụng đang chọn văn bản, rồi quay lại đây.",
         "captureCountdown": "Quay lại ứng dụng và chọn văn bản. Chụp sau {{seconds}}…",
         "nothingCaptured": "Chưa chụp văn bản nào.",
-        "acceptNeedsCapture": "Chụp vùng chọn trước khi chấp nhận."
+        "acceptNeedsCapture": "Chụp vùng chọn trước khi chấp nhận.",
+        "captureInvalidated": "Văn bản đã thay đổi nên vùng chọn đã chụp không còn đúng. Hãy chụp lại vùng chọn.",
+        "shortcutNotRegistered": "Không thể đăng ký phím tắt {{shortcut}}: ứng dụng khác đã dùng nó. Hãy đổi trong phím tắt bàn phím."
       },
       "diff": {
         "title": "Thay đổi",
@@ -1036,7 +1038,9 @@
         "selectionChanged": "Vùng chọn đã thay đổi, nên không có gì được ghi.",
         "destinationUnavailable": "Dixi không thể đưa ứng dụng trở lại phía trước, nên không có gì được ghi.",
         "destinationGone": "Ứng dụng đang chọn văn bản đã đóng, nên không có gì được ghi.",
-        "write": "Không thể ghi văn bản."
+        "write": "Không thể ghi văn bản.",
+        "focusedApp": "Ứng dụng đang có tiêu điểm là {{app}}.",
+        "focusedAppIsDixi": "Ứng dụng đang có tiêu điểm chính là Dixi: quay lại ứng dụng đang chọn văn bản rồi nhấn phím tắt lần nữa."
       }
     }
   },

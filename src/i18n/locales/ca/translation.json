@@ -956,7 +956,9 @@
         "hotkeyHint": "Premeu {{shortcut}} a l'aplicació on està seleccionat el text i torneu aquí.",
         "captureCountdown": "Torneu a l'aplicació i seleccioneu el text. Capturant en {{seconds}}…",
         "nothingCaptured": "Encara no s'ha capturat cap text.",
-        "acceptNeedsCapture": "Captureu una selecció abans d'acceptar."
+        "acceptNeedsCapture": "Captureu una selecció abans d'acceptar.",
+        "captureInvalidated": "El text ha canviat, de manera que la selecció capturada ja no serveix. Captureu la selecció de nou.",
+        "shortcutNotRegistered": "No s'ha pogut registrar l'atall {{shortcut}}: una altra aplicació ja el té. Canvieu-lo a les dreceres de teclat."
       },
       "diff": {
         "title": "Canvis",
@@ -1036,7 +1038,9 @@
         "selectionChanged": "La selecció ha canviat, així que no s'ha escrit res.",
         "destinationUnavailable": "Dixi no va poder portar l'aplicació al davant, així que no s'ha escrit res.",
         "destinationGone": "L'aplicació on estava seleccionat el text està tancada, així que no s'ha escrit res.",
-        "write": "No es va poder escriure el text."
+        "write": "No es va poder escriure el text.",
+        "focusedApp": "L'aplicació que tenia el focus era {{app}}.",
+        "focusedAppIsDixi": "L'aplicació que tenia el focus era el mateix Dixi: torneu a l'aplicació on està seleccionat el text i premeu de nou l'atall."
       }
     }
   },

@@ -956,7 +956,9 @@
         "hotkeyHint": "Press {{shortcut}} in the app where the text is selected, then come back here.",
         "captureCountdown": "Go back to the app and select the text. Capturing in {{seconds}}…",
         "nothingCaptured": "No text captured yet.",
-        "acceptNeedsCapture": "Capture a selection before accepting."
+        "acceptNeedsCapture": "Capture a selection before accepting.",
+        "captureInvalidated": "The text was changed, so the captured selection no longer applies. Capture the selection again.",
+        "shortcutNotRegistered": "The shortcut {{shortcut}} could not be registered: another application already has it. Change it in the keyboard shortcuts."
       },
       "diff": {
         "title": "Changes",
@@ -1036,7 +1038,9 @@
         "selectionChanged": "The selection changed, so nothing was written.",
         "destinationUnavailable": "Dixi could not bring the app back to the front, so nothing was written.",
         "destinationGone": "The app where the text was selected is closed, so nothing was written.",
-        "write": "The text could not be written."
+        "write": "The text could not be written.",
+        "focusedApp": "The application that had the focus was {{app}}.",
+        "focusedAppIsDixi": "The application that had the focus was Dixi itself: go back to the application where the text is selected and press the shortcut again."
       }
     }
   },

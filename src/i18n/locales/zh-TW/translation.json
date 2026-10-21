@@ -956,7 +956,9 @@
         "hotkeyHint": "在選取文字的應用程式中按 {{shortcut}}，然後返回這裡。",
         "captureCountdown": "回到應用程式並選取文字。將在 {{seconds}} 秒後擷取…",
         "nothingCaptured": "尚未擷取任何文字。",
-        "acceptNeedsCapture": "請先擷取選取範圍，再接受。"
+        "acceptNeedsCapture": "請先擷取選取範圍，再接受。",
+        "captureInvalidated": "文字已變更，因此擷取的選取範圍不再適用。請重新擷取選取範圍。",
+        "shortcutNotRegistered": "快捷鍵 {{shortcut}} 無法登錄：另一個應用程式已占用該快捷鍵。請在鍵盤快捷鍵中變更。"
       },
       "diff": {
         "title": "變更",
@@ -1036,7 +1038,9 @@
         "selectionChanged": "選取範圍發生變更，因此沒有寫入任何內容。",
         "destinationUnavailable": "Dixi 無法將應用程式切回前景，因此沒有寫入任何內容。",
         "destinationGone": "選取文字的應用程式已關閉，因此沒有寫入任何內容。",
-        "write": "無法寫入文字。"
+        "write": "無法寫入文字。",
+        "focusedApp": "取得焦點的應用程式是 {{app}}。",
+        "focusedAppIsDixi": "取得焦點的應用程式就是 Dixi 本身：請回到選取文字的應用程式，再次按快捷鍵。"
       }
     }
   },

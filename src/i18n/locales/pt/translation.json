@@ -956,7 +956,9 @@
         "hotkeyHint": "Pressione {{shortcut}} no aplicativo em que o texto está selecionado e volte aqui.",
         "captureCountdown": "Volte ao aplicativo e selecione o texto. Capturando em {{seconds}}…",
         "nothingCaptured": "Nenhum texto capturado ainda.",
-        "acceptNeedsCapture": "Capture uma seleção antes de aceitar."
+        "acceptNeedsCapture": "Capture uma seleção antes de aceitar.",
+        "captureInvalidated": "O texto mudou, então a seleção capturada não vale mais. Capture a seleção de novo.",
+        "shortcutNotRegistered": "Não foi possível registrar o atalho {{shortcut}}: outro aplicativo já o usa. Altere-o nos atalhos de teclado."
       },
       "diff": {
         "title": "Alterações",
@@ -1036,7 +1038,9 @@
         "selectionChanged": "A seleção mudou, então nada foi escrito.",
         "destinationUnavailable": "O Dixi não conseguiu trazer o aplicativo para o primeiro plano, então nada foi escrito.",
         "destinationGone": "O aplicativo em que o texto estava selecionado foi fechado, então nada foi escrito.",
-        "write": "Não foi possível escrever o texto."
+        "write": "Não foi possível escrever o texto.",
+        "focusedApp": "O aplicativo em foco era {{app}}.",
+        "focusedAppIsDixi": "O aplicativo em foco era o próprio Dixi: volte ao aplicativo em que o texto está selecionado e pressione o atalho de novo."
       }
     }
   },

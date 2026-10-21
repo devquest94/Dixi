@@ -956,7 +956,9 @@
         "hotkeyHint": "Druk op {{shortcut}} in de app waarin de tekst is geselecteerd en kom daarna terug naar hier.",
         "captureCountdown": "Ga terug naar de app en selecteer de tekst. De tekst wordt over {{seconds}}… vastgelegd.",
         "nothingCaptured": "Nog geen tekst vastgelegd.",
-        "acceptNeedsCapture": "Leg een selectie vast voordat u accepteert."
+        "acceptNeedsCapture": "Leg een selectie vast voordat u accepteert.",
+        "captureInvalidated": "De tekst is gewijzigd, dus de vastgelegde selectie klopt niet meer. Leg de selectie opnieuw vast.",
+        "shortcutNotRegistered": "De sneltoets {{shortcut}} kon niet worden geregistreerd: een andere app heeft hem al. Wijzig hem bij de sneltoetsen."
       },
       "diff": {
         "title": "Wijzigingen",
@@ -1036,7 +1038,9 @@
         "selectionChanged": "De selectie is gewijzigd, dus er is niets geschreven.",
         "destinationUnavailable": "Dixi kon de app niet naar de voorgrond brengen, dus er is niets geschreven.",
         "destinationGone": "De app waarin de tekst was geselecteerd is gesloten, dus er is niets geschreven.",
-        "write": "De tekst kon niet worden geschreven."
+        "write": "De tekst kon niet worden geschreven.",
+        "focusedApp": "De app die de focus had, was {{app}}.",
+        "focusedAppIsDixi": "De app die de focus had, was Dixi zelf: ga terug naar de app waarin de tekst is geselecteerd en druk nogmaals op de sneltoets."
       }
     }
   },

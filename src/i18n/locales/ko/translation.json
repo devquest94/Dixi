@@ -956,7 +956,9 @@
         "hotkeyHint": "텍스트가 선택된 앱에서 {{shortcut}} 키를 누른 뒤 여기로 돌아오세요.",
         "captureCountdown": "앱으로 돌아가 텍스트를 선택하세요. {{seconds}}초 후 캡처합니다…",
         "nothingCaptured": "아직 캡처된 텍스트가 없습니다.",
-        "acceptNeedsCapture": "수락하기 전에 선택 영역을 캡처하세요."
+        "acceptNeedsCapture": "수락하기 전에 선택 영역을 캡처하세요.",
+        "captureInvalidated": "텍스트가 바뀌어 캡처한 선택 영역이 더 이상 맞지 않습니다. 선택 영역을 다시 캡처하세요.",
+        "shortcutNotRegistered": "단축키 {{shortcut}}을(를) 등록할 수 없습니다. 다른 앱이 이미 사용 중입니다. 키보드 단축키에서 변경하세요."
       },
       "diff": {
         "title": "변경 사항",
@@ -1036,7 +1038,9 @@
         "selectionChanged": "선택 영역이 변경되어 아무것도 기록되지 않았습니다.",
         "destinationUnavailable": "Dixi가 앱을 다시 앞으로 가져오지 못해 아무것도 기록되지 않았습니다.",
         "destinationGone": "텍스트를 선택했던 앱이 닫혀서 아무것도 기록되지 않았습니다.",
-        "write": "텍스트를 작성할 수 없습니다."
+        "write": "텍스트를 작성할 수 없습니다.",
+        "focusedApp": "포커스가 있던 앱은 {{app}}입니다.",
+        "focusedAppIsDixi": "포커스가 있던 앱은 Dixi 자신이었습니다. 텍스트가 선택된 앱으로 돌아가서 단축키를 다시 누르세요."
       }
     }
   },

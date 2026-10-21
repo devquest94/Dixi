@@ -956,7 +956,9 @@
         "hotkeyHint": "Premi {{shortcut}} nell'app in cui il testo è selezionato, poi torna qui.",
         "captureCountdown": "Torna nell'app e seleziona il testo. Acquisizione tra {{seconds}}…",
         "nothingCaptured": "Nessun testo acquisito finora.",
-        "acceptNeedsCapture": "Acquisisci una selezione prima di accettare."
+        "acceptNeedsCapture": "Acquisisci una selezione prima di accettare.",
+        "captureInvalidated": "Il testo è cambiato, quindi la selezione acquisita non vale più. Acquisisci di nuovo la selezione.",
+        "shortcutNotRegistered": "Non è stato possibile registrare la scorciatoia {{shortcut}}: un'altra app ce l'ha già. Cambiala nelle scorciatoie da tastiera."
       },
       "diff": {
         "title": "Modifiche",
@@ -1036,7 +1038,9 @@
         "selectionChanged": "La selezione è cambiata, quindi non è stato scritto nulla.",
         "destinationUnavailable": "Dixi non è riuscito a portare in primo piano l'app, quindi non è stato scritto nulla.",
         "destinationGone": "L'app in cui era selezionato il testo è chiusa, quindi non è stato scritto nulla.",
-        "write": "Non è stato possibile scrivere il testo."
+        "write": "Non è stato possibile scrivere il testo.",
+        "focusedApp": "L'applicazione che aveva il focus era {{app}}.",
+        "focusedAppIsDixi": "L'applicazione che aveva il focus era Dixi stesso: torna nell'app in cui il testo è selezionato e premi di nuovo la scorciatoia."
       }
     }
   },

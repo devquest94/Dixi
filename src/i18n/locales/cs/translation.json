@@ -956,7 +956,9 @@
         "hotkeyHint": "Stiskněte {{shortcut}} v aplikaci, kde je text vybraný, a pak se vraťte sem.",
         "captureCountdown": "Vraťte se do aplikace a vyberte text. Zachytávání za {{seconds}}…",
         "nothingCaptured": "Zatím nebyl zachycen žádný text.",
-        "acceptNeedsCapture": "Nejprve zachytněte výběr, teprve poté přijměte."
+        "acceptNeedsCapture": "Nejprve zachytněte výběr, teprve poté přijměte.",
+        "captureInvalidated": "Text se změnil, takže zachycený výběr už neplatí. Zachyťte výběr znovu.",
+        "shortcutNotRegistered": "Zkratku {{shortcut}} se nepodařilo zaregistrovat: už ji má jiná aplikace. Změňte ji v klávesových zkratkách."
       },
       "diff": {
         "title": "Změny",
@@ -1036,7 +1038,9 @@
         "selectionChanged": "Výběr se změnil, takže se nic nezapsalo.",
         "destinationUnavailable": "Dixi nepřevedl aplikaci do popředí, takže se nic nezapsalo.",
         "destinationGone": "Aplikace, ve které byl vybraný text, je zavřená, takže se nic nezapsalo.",
-        "write": "Text se nepodařilo zapsat."
+        "write": "Text se nepodařilo zapsat.",
+        "focusedApp": "Aplikace, která měla fokus, byla {{app}}.",
+        "focusedAppIsDixi": "Aplikace, která měla fokus, byla samotný Dixi: vraťte se do aplikace, kde je vybraný text, a znovu stiskněte zkratku."
       }
     }
   },

@@ -956,7 +956,9 @@
         "hotkeyHint": "Metnin seçili olduğu uygulamada {{shortcut}} tuşuna basın, sonra buraya geri dönün.",
         "captureCountdown": "Uygulamaya dönün ve metni seçin. {{seconds}} sonra yakalanıyor…",
         "nothingCaptured": "Henüz metin yakalanmadı.",
-        "acceptNeedsCapture": "Kabul etmeden önce bir seçimi yakalayın."
+        "acceptNeedsCapture": "Kabul etmeden önce bir seçimi yakalayın.",
+        "captureInvalidated": "Metin değiştiği için yakalanan seçim artık geçerli değil. Seçimi yeniden yakalayın.",
+        "shortcutNotRegistered": "{{shortcut}} kısayolu kaydedilemedi: başka bir uygulama zaten kullanıyor. Onu klavye kısayollarından değiştirin."
       },
       "diff": {
         "title": "Değişiklikler",
@@ -1036,7 +1038,9 @@
         "selectionChanged": "Seçim değişti, bu yüzden hiçbir şey yazılmadı.",
         "destinationUnavailable": "Dixi uygulamayı öne getiremedi, bu yüzden hiçbir şey yazılmadı.",
         "destinationGone": "Metnin seçildiği uygulama kapandı, bu yüzden hiçbir şey yazılmadı.",
-        "write": "Metin yazılamadı."
+        "write": "Metin yazılamadı.",
+        "focusedApp": "Odakta olan uygulama {{app}} idi.",
+        "focusedAppIsDixi": "Odakta olan uygulama Dixi'nin kendisiydi: metnin seçili olduğu uygulamaya geri dönün ve kısayola ikinci kez basın."
       }
     }
   },

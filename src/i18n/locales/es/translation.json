@@ -956,7 +956,9 @@
         "hotkeyHint": "Pulsá {{shortcut}} en la aplicación donde esté seleccionado el texto y volvé acá.",
         "captureCountdown": "Volvé a la aplicación y seleccioná el texto. Capturando en {{seconds}}…",
         "nothingCaptured": "Todavía no hay texto capturado.",
-        "acceptNeedsCapture": "Capturá una selección antes de aceptar."
+        "acceptNeedsCapture": "Capturá una selección antes de aceptar.",
+        "captureInvalidated": "El texto cambió, así que la selección capturada ya no corresponde. Capturá la selección otra vez.",
+        "shortcutNotRegistered": "El atajo {{shortcut}} no se pudo registrar: otra aplicación ya lo tiene. Cambialo en los atajos de teclado."
       },
       "diff": {
         "title": "Cambios",
@@ -1036,7 +1038,9 @@
         "selectionChanged": "La selección cambió, así que no se escribió nada.",
         "destinationUnavailable": "Dixi no pudo traer la aplicación al frente, así que no se escribió nada.",
         "destinationGone": "La aplicación donde estaba seleccionado el texto está cerrada, así que no se escribió nada.",
-        "write": "No se pudo escribir el texto."
+        "write": "No se pudo escribir el texto.",
+        "focusedApp": "La aplicación que tenía el foco era {{app}}.",
+        "focusedAppIsDixi": "La aplicación que tenía el foco era el propio Dixi: volvé a la aplicación donde está seleccionado el texto y presioná el atajo otra vez."
       }
     }
   },
