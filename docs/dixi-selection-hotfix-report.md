@@ -122,25 +122,33 @@ imagen, unos archivos copiados, HTML o RTF **se perdían sin avisar**.
 
 Ahora:
 
-- Se enumeran los formatos que tiene el portapapeles.
-- Solo se toca si tiene texto: `CF_TEXT`, `CF_UNICODETEXT` y `CF_LOCALE`.
-  Los tres se guardan (el texto Unicode, los bytes ANSI y el identificador
-  de locale) y se **vuelven a poner tal cual**, con el mismo formato.
-- **Si tiene cualquier otra cosa** —una imagen, archivos, HTML, RTF—, la
-  operación **se rechaza antes de modificar nada**, con el aviso
-  `clipboard_not_preservable`. El portapapeles del usuario no se toca.
+- Se enumera los formatos que tiene el portapapeles y **se guardan los
+  bytes exactos de cada uno**: el texto Unicode, el ANSI, el locale, el
+  HTML, el RTF, la lista de archivos copiados. Todo eso vive en memoria
+  movible, y se vuelve a poner **exactamente igual**.
+- **Si tiene un formato que solo Windows sabe interpretar** —un bitmap, un
+  metafile, una paleta—, la operación **se rechaza antes de modificar
+  nada**, con el aviso `clipboard_not_preservable`. Esos no se pueden
+  copiar como bytes.
+- Las secuencias que tocan el portapapeles están **serializadas con un
+  cerrojo de proceso**: el atajo global y los comandos de la interfaz no
+  pueden solaparse. Sin eso, dos lecturas simultáneas podían guardar un
+  portapapeles ya vaciado y dejar al usuario sin el suyo, sin aviso.
+- Si la restauración falla, **queda escrito en el log**: perder el
+  portapapeles del usuario es justo lo que este módulo promete no hacer.
 
 La consecuencia, dicha sin rodeos: **Dixi necesita que el portapapeles
-tenga texto (o esté vacío) para trabajar con una selección externa**. Si
-el usuario tiene una imagen copiada, la captura se rechaza y se le pide que
-vacíe el portapapeles. Es la única forma de prometer que el portapapeles no
-se daña: restaurar formatos arbitrarios con exactitud exigiría el objeto
-OLE del portapapeles, que queda fuera del alcance de este arreglo.
+pueda devolverse tal cual**. Con una imagen copiada, la captura se rechaza
+y se le pide que la vacíe. Con un HTML o un RTF —lo que deja cualquier
+copia de un párrafo de una página web— no hay problema: se guardan y se
+devuelven.
 
-Sobre el pegado: después de la pulsación se espera 400 ms antes de
-restaurar el portapapeles, y **la escritura se comprueba después de
-restaurarlo**. Si la aplicación no llegó a tomar el texto, la operación lo
-dice, en lugar de darlo por bueno.
+Sobre el pegado: la espera no es un tiempo a ciegas cuando el control
+puede responder. Se observa **el texto del control** hasta que cambia, que
+es el momento en que la aplicación ha tomado lo que se le pegó; y solo
+después se restaura el portapapeles. Si el control no responde —los
+renderizadores de navegador—, se usa una espera acotada, y la escritura
+se comprueba igualmente después.
 
 ### 2.5 Los campos protegidos
 
@@ -159,8 +167,14 @@ Además, y esto es nuevo, **solo se leen los controles que Dixi conoce**:
 |---|---|
 | `Edit`, `TEdit` | Controles de edición nativos. |
 | `RichEdit`, `RichEdit20W`, `RichEdit50W`, `RichEditD2DPT` | Controles enriquecidos. |
-| `Chrome_WidgetWin_1` | El renderizador de los navegadores basados en Chromium. |
+| `Chrome_RenderWidgetHostHWND` | El control enfocado de los navegadores Chromium: el que hospeda la página pintada. |
+| `Chrome_WidgetWin_1` | La ventana de nivel superior de Chromium. |
 | `MozillaWindowClass` | Firefox. |
+
+Las clases de los navegadores se comparan **por prefijo** (`chrome_`),
+porque el control enfocado cambia de nombre entre versiones y comparar
+por familia es lo que no se rompe. La clase `Chrome_RenderWidgetHostHWND` se
+ha confirmado en el binario de Chromium de esta máquina.
 
 Cualquier otra clase se rechaza con `unsupported_control`. La razón es
 que Windows no permite saber de forma fiable si un control cualquiera
@@ -180,7 +194,7 @@ abajo.
 | Aplicación | Control | Lectura | Escritura |
 |---|---|---|---|
 | Bloc de notas (Windows 10/11) | `RichEditD2DPT` / `Edit` | Sí | Sí |
-| Navegadores con Chromium (Chrome, Edge, Opera, VS Code) | `Chrome_WidgetWin_1` | Sí | Sí |
+| Navegadores con Chromium (Chrome, Edge, Brave, Opera, VS Code) | `Chrome_RenderWidgetHostHWND` | Sí | Sí |
 | Firefox | `MozillaWindowClass` | Sí | Sí |
 | WordPad, editores nativos | `RichEdit20W` | Sí | Sí |
 | Campos de contraseña | cualquiera | **No** | **No** |
@@ -188,9 +202,10 @@ abajo.
 
 ## 4. Limitaciones, dichas sin adornos
 
-1. **El portapapeles tiene que tener texto.** Con una imagen copiada, la
-   captura se rechaza. Es el precio de no destruir el contenido del
-   usuario.
+1. **El portapapeles tiene que poder devolverse tal cual.** Con una imagen
+   copiada, la captura se rechaza, porque un bitmap no se puede copiar como
+   bytes. Con texto, HTML, RTF o archivos copiados no hay problema: se
+   guardan y se devuelven igual.
 2. **Un campo de contraseña dentro de un navegador no se puede detectar**
    por Win32: el renderizador no lo expone. La lectura sigue siendo segura
    porque los navegadores no entregan el contenido de un campo enmascarado
@@ -206,40 +221,101 @@ abajo.
    otra aplicación ya lo usa, hay que moverlo. No se ha tocado ninguna
    configuración de Wispr Flow.
 
-## 5. Pruebas
+## 5. La revisión independiente
 
-### 5.1 Automáticas (Rust)
+El arreglo se reviso contra este brief, contrato a contrato y linea a linea,
+sin ejecutar nada. Salieron **ocho defectos, cuatro de ellos graves**, y
+todos estan corregidos.
 
-**539 PASS, 0 FAIL, 18 ignoradas** (eran 524 antes de este arreglo). Las 15
+### 5.1 Los graves
+
+1. **La comprobación posterior a la escritura fallaba siempre en los
+   navegadores.** `WM_GETTEXTLENGTH` devuelve 0 en un control que no
+   atiende el mensaje, y ese 0 se confundia con «el control esta vacio».
+   La escritura **si habia ocurrido**, pero Dixi decia que no, y el cambio
+   no se guardaba en el historial: el usuario perdia el deshacer de una
+   escritura que si habia pasado. Ahora la decision se toma por la clase
+   del control, y solo los controles nativos se consultan.
+
+2. **La captura se rechazaba siempre en los navegadores Chromium.** La
+   lista de controles verificados included `Chrome_WidgetWin_1`, que es la
+   ventana de nivel superior: el control con el foco en Chromium se llama
+   `Chrome_RenderWidgetHostHWND`, y ese es justamente el que hay que
+   comprobar. La clase se ha confirmado en el binario de Chromium de esta
+   maquina. Chrome, Edge, Brave, Opera y VS Code quedaban fuera.
+
+3. **El portapapeles hacia la captura inservible con cualquier copia
+   enriquecida.** La regla era «solo texto», asi que copiar un parrafo de
+   una pagina web (que deja tambien HTML) ya bloqueaba la captura. Ahora
+   se guardan los bytes exactos de cada formato que vive en memoria y se
+   devuelven tal cual; solo se rechaza lo que no se puede reproducir.
+
+4. **No habia exclusion mutua entre el atajo y los comandos.** Dos
+   manipulaciones del portapapeles a la vez podian dejar vacio el
+   portapapeles del usuario, sin aviso. Ahora hay un cerrojo de proceso
+   alrededor de toda secuencia que lo toque.
+
+### 5.2 Los demas
+
+| Defecto | Correccion |
+|---|---|
+| El historial se grababa despues de escribir: si la comprobacion posterior fallaba, se perdia el deshacer de una escritura correcta. | Se graba **antes** de escribir, y se borra si la escritura falla. |
+| El atajo de captura solo se filtraba en una de las cuatro rutas de registro: en macOS se registraba y se tragaba la combinacion. | La decision esta en un sitio unico y se aplica en las cuatro. |
+| «Revertir» exige seleccionar antes el texto que Dixi escribio, y el panel no lo decia. | El panel lo dice, y el error es el que corresponde. |
+| Si la restauracion del portapapeles fallaba, se perdia en silencio. | Ahora queda en el log. |
+| La comprobacion posterior buscaba el texto nuevo dentro del control: si ya estaba en otra parte, daba un «si» falso. | Se compara el estado del control antes y despues. |
+| La espera del pegado era un tiempo fijo sin ninguna prueba. | Cuando el control puede responder, se observa su texto hasta que cambia. |
+| Faltaban pruebas de foco perdido, ventana cerrada, la regresion de `expected_control = 0` y la restauracion con varios formatos. | Anadidas. |
+
+### 5.3 Lo que la revision no puede cubrir
+
+Una revision estatica no ejecuta la aplicacion. Lo que de verdad necesita
+otra ventana delante —leer el texto de una seleccion real, escribirlo,
+deshacer un cambio, el portapapeles con una imagen dentro— sigue en la
+lista manual, y **no se declara comprobado hasta que esa lista pasa**.
+
+---
+
+## 6. Pruebas
+
+### 6.1 Automáticas (Rust)
+
+**545 PASS, 0 FAIL, 18 ignoradas** (eran 524 antes de este arreglo). Las 21
 nuevas cubren lo que se puede decidir sin escritorio:
 
 | Prueba | Qué fija |
 |---|---|
 | `only_the_verified_text_controls_are_read` | La lista de controles que se leen. |
+| `the_focused_child_of_a_chromium_window_is_read` | La clase real del control enfocado de Chromium. |
+| `the_browser_renderers_are_not_native_text_controls` | Que un renderizador no se consulta con `WM_GETTEXT`. |
 | `an_unknown_control_is_not_read` | Un control desconocido no se lee. |
 | `the_class_is_matched_without_case_and_without_spaces` | La comparación de clases. |
 | `the_password_style_bit_is_detected` | El bit `ES_PASSWORD`. |
 | `the_password_class_is_detected` | Las clases de contraseña. |
 | `an_edit_control_with_the_password_style_is_refused` | El campo enmascarado se rechaza. |
 | `the_style_bit_alone_does_not_refuse_other_controls` | El bit no se malinterpreta. |
-| `a_clipboard_with_only_text_can_be_restored` | Los formatos que se pueden restaurar. |
-| `a_clipboard_with_something_else_is_refused` | Una imagen o archivos rechazan la operación. |
+| `a_format_in_memory_can_be_restored` | Los formatos que se pueden devolver igual. |
+| `a_format_with_a_handle_cannot_be_restored` | Un bitmap o un metafile rechazan la operación. |
+| `a_format_that_is_not_in_memory_cannot_be_restored` | Lo que no está en memoria no se devuelve. |
 | `a_destination_that_matches_is_accepted` | El destino válido se acepta. |
 | `a_destination_in_another_window_is_refused` | Otra ventana no se escribe. |
 | `a_destination_in_another_control_is_refused` | Otro control no se escribe. |
 | `a_destination_with_another_text_is_refused` | Un texto distinto no se pisa. |
+| `a_control_of_zero_is_never_the_control_that_was_read` | La regresión de `expected_control = 0`, con caso explícito. |
+| `a_window_that_is_not_alive_is_detected` | Una ventana cerrada no es un destino. |
 | `the_spaces_around_the_text_do_not_matter` | Los espacios que añade la aplicación. |
 | `every_failure_has_a_stable_code` | Los códigos que la interfaz traduce. |
 | `a_change_remembers_where_it_was_made` | El historial guarda el sitio. |
 | `a_change_without_a_place_cannot_be_reverted` | Un cambio sin sitio no se deshace. |
+| `a_change_that_never_happened_is_removed` | Un cambio que no ocurrió no queda en el historial. |
 | `the_place_of_a_change_survives_a_restart` | El sitio sobrevive al cierre. |
 | `the_store_remembers_the_last_capture` | El contexto capturado se guarda. |
 
 La regresión de `expected_control = 0` sigue cubierta: el destino se
-comprueba contra la ventana **y** el control, y hay un caso que falla
-cuando el control no es el esperado.
+comprueba contra la ventana **y** el control, y hay un caso explícito que
+falla cuando el control no es el esperado.
 
-### 5.2 Lo que necesita el escritorio
+### 6.2 Lo que necesita el escritorio
 
 Lo que de verdad no se puede comprobar sin otra ventana delante —leer el
 texto de una selección real, escribirlo, deshacer un cambio, el
@@ -252,11 +328,11 @@ hotfix.
 **No se declara «Revertir» como comprobado sobre el escritorio hasta que
 esa lista pasa.**
 
-### 5.3 La suite completa
+### 6.3 La suite completa
 
 | Comprobación | Resultado |
 |---|---|
-| `cargo test --features custom-protocol --lib` | **539 PASS**, 0 FAIL, 18 ignoradas |
+| `cargo test --features custom-protocol --lib` | **545 PASS**, 0 FAIL, 18 ignoradas |
 | `cargo test --features custom-protocol --doc` | PASS |
 | Avisos del compilador | **0** |
 | `npx.cmd tsc --noEmit` | 0 errores |
@@ -271,7 +347,7 @@ Todo se ejecutó **sin abrir una ventana de consola**, con
 `scripts/run-hidden.ps1`, que deja la salida y el error en ficheros de log
 bajo `.logs/`.
 
-## 6. Los archivos
+## 7. Los archivos
 
 **Rust**
 
@@ -284,6 +360,8 @@ bajo `.logs/`.
 - `src-tauri/src/commands/text_history.rs` — el comando de reversión.
 - `src-tauri/src/actions.rs` — la acción del atajo.
 - `src-tauri/src/settings.rs` — el atajo por defecto.
+- `src-tauri/src/shortcut/{mod,tauri_impl,handy_keys}.rs` — el registro, y la
+  decisión de dónde se puede registrar.
 - `src-tauri/src/lib.rs` — el registro.
 
 **Frontend**
