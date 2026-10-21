@@ -102,6 +102,19 @@ falla, **no se escribe nada**:
 El cambio se registra después en el historial **con su contexto**, para que
 se pueda deshacer.
 
+**Por qué se trae la aplicación al frente en vez de cancelar.** Hay dos
+caminos posibles cuando la aplicación de origen ya no está en primer plano:
+que el usuario vuelva a ella y confirme, o que Dixi la traiga. Se ha
+elegido el segundo, y solo porque **«Aceptar» es una acción explícita del
+usuario**: nadie escribe en otra aplicación sin haberlo pedido, y volver a
+enfocar a mano el texto que se quiere cambiar es un paso que se puede
+olvidar. La traer al frente no es un atajo: viene después de comprobar que
+la ventana existe, y la escritura solo ocurre si la ventana, el control y el
+texto siguen siendo los que se capturaron. Si Windows no permite traerla
+—por ejemplo porque otra aplicación acaba de quitarle el foco—, la
+operación se cancela y se ofrece copiar. Nunca se escribe en una ventana
+distinta de la que se capturó.
+
 ### 2.4 El portapapeles: la garantía real
 
 Antes, el portapapeles se vaciaba y se rellenaba solo con texto: una
@@ -238,6 +251,25 @@ hotfix.
 
 **No se declara «Revertir» como comprobado sobre el escritorio hasta que
 esa lista pasa.**
+
+### 5.3 La suite completa
+
+| Comprobación | Resultado |
+|---|---|
+| `cargo test --features custom-protocol --lib` | **539 PASS**, 0 FAIL, 18 ignoradas |
+| `cargo test --features custom-protocol --doc` | PASS |
+| Avisos del compilador | **0** |
+| `npx.cmd tsc --noEmit` | 0 errores |
+| `npx.cmd eslint src` | 0 errores, 0 avisos |
+| `npx.cmd tsx src/lib/utils/keyboard.test.ts` | PASS |
+| `node scripts/check-translations.ts` | PASS, 25/25 idiomas |
+| `node scripts/check-translation-text.mjs` | 26 locales, 220 claves, 6858 cadenas, 0 problemas |
+| `cargo build --release --features custom-protocol` | OK |
+| `scripts/verify-release-protocol.ps1` | PASS (el frontend va incrustado) |
+
+Todo se ejecutó **sin abrir una ventana de consola**, con
+`scripts/run-hidden.ps1`, que deja la salida y el error en ficheros de log
+bajo `.logs/`.
 
 ## 6. Los archivos
 
