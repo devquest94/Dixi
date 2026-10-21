@@ -7,7 +7,8 @@
     "model": "Model",
     "quit": "Çıkış",
     "cancel": "İptal",
-    "secureInputWarning": "⚠ Kısayollar Secure Input tarafından engelleniyor"
+    "secureInputWarning": "⚠ Kısayollar Secure Input tarafından engelleniyor",
+    "prepareRemotePaste": "Transkripsiyonu uzak masaüstü için hazırla"
   },
   "sidebar": {
     "general": "Genel",
@@ -21,7 +22,8 @@
     "profiles": "Yazma profilleri",
     "snippets": "Paragrafçıklar",
     "transforms": "Dönüşümler",
-    "textHistory": "Metin geçmişi"
+    "textHistory": "Metin geçmişi",
+    "remoteDesktop": "Uzak Masaüstü"
   },
   "onboarding": {
     "subtitle": "Başlamak için bir transkripsiyon modeli seçin",
@@ -946,7 +948,9 @@
         "copied": "Sonuç kopyalandı.",
         "captureSelection": "Seçili metni kullan",
         "selectionEmpty": "Odakta olan uygulamada seçili metin yok.",
-        "selectionChanged": "Dönüşüm çalışırken seçili metin değişti, bu yüzden hiçbir şey yazılmadı. Bunun yerine sonucu kopyalayın."
+        "selectionChanged": "Dönüşüm çalışırken seçili metin değişti, bu yüzden hiçbir şey yazılmadı. Bunun yerine sonucu kopyalayın.",
+        "captureInvalidated": "Metni değiştirdiniz, bu yüzden yakalama artık geçerli değil ve kabul edilemez.",
+        "shortcutNotRegistered": "Kısayol {{shortcut}} kaydedilemedi: başka bir uygulama bu kısayolu zaten kullanıyor olabilir."
       },
       "diff": {
         "title": "Değişiklikler",
@@ -1014,6 +1018,63 @@
       "errors": {
         "load": "Metin geçmişi yüklenemedi.",
         "action": "Değişiklik geri alınamadı."
+      }
+    },
+    "selection": {
+      "errors": {
+        "focusedApp": "Odağı bulunan uygulama {{app}} idi.",
+        "focusedAppIsDixi": "Dixi odaktaydı: metnin seçili olduğu uygulamaya geri dönün ve orada kısayola basın."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Uzak Masaüstü Entegrasyonu",
+      "description": "Bu bilgisayarda söyleyin ve metni mRemoteNG ile açılan uzak bir oturuma yapıştırın. Uzak makineye hiçbir şey kurulmaz.",
+      "enable": {
+        "title": "mRemoteNG / RDP entegrasyonunu etkinleştirin",
+        "description": "Uzak bir oturum için transkripsiyon hazırlama seçeneğini ve ilgili kısayolu ekler."
+      },
+      "manualMode": {
+        "title": "Manuel yapıştırma",
+        "description": "Metin panoya gider ve uzak oturumda Ctrl+V tuşuna basarsınız."
+      },
+      "autoMode": {
+        "title": "Otomatik ekleme",
+        "description": "Dixi sizin yerinize Ctrl+V tuşuna basar; yalnızca uzak istemci, tek bir hedef oturum ve odak doğrulanabildiğinde."
+      },
+      "autoModeNotValidated": "Otomatik mod henüz canlı bir oturumda doğrulanmadı.",
+      "restoreClipboard": {
+        "title": "Bittiğinde panoyu geri yükle",
+        "description": "Metin hazırlanmadan önce panoda bulunan içeriği geri koyar."
+      },
+      "notify": {
+        "title": "Metin hazır olduğunda haber ver",
+        "description": "Transkripsiyon yapıştırmaya hazır olduğunda bir bildirim gösterir."
+      },
+      "actions": {
+        "title": "Eylemler",
+        "prepare": "Son transkripsiyonu hazırla",
+        "confirm": "Yapıştırdım",
+        "cancel": "Aktarımı iptal et"
+      },
+      "status": {
+        "idle": "Devam eden aktarım yok.",
+        "ready": "Metin uzak masaüstüne yapıştırmaya hazır.",
+        "remoteRead": "Uzak istemci metni okudu.",
+        "pasted": "Yapıştırma onaylandı.",
+        "cancelled": "Aktarım iptal edildi.",
+        "expired": "Aktarım onay olmadan sona erdi.",
+        "failed": "Aktarım başlatılamadı."
+      },
+      "detection": {
+        "title": "Algılanan ortam",
+        "installed": "Uzak istemci",
+        "notInstalled": "Kurulu değil",
+        "running": "Çalışıyor",
+        "stopped": "Çalışmıyor",
+        "sessions": "Açık RDP oturumları",
+        "focused": "RDP oturumunda odak var.",
+        "notFocused": "RDP oturumunda odak yok.",
+        "blocked": "Otomatik mod hareket edemiyor: {{reason}}"
       }
     }
   },

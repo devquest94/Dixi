@@ -7,7 +7,8 @@
     "model": "モデル",
     "quit": "終了",
     "cancel": "キャンセル",
-    "secureInputWarning": "⚠ Secure Input でショートカットがブロック中"
+    "secureInputWarning": "⚠ Secure Input でショートカットがブロック中",
+    "prepareRemotePaste": "文字起こしをリモートデスクトップ用に準備する"
   },
   "sidebar": {
     "general": "一般",
@@ -21,7 +22,8 @@
     "profiles": "書き込みプロファイル",
     "snippets": "スニペット",
     "transforms": "変換",
-    "textHistory": "テキスト履歴"
+    "textHistory": "テキスト履歴",
+    "remoteDesktop": "リモートデスクトップ"
   },
   "onboarding": {
     "subtitle": "開始するには、文字起こしのモデルを選択してください",
@@ -946,7 +948,9 @@
         "copied": "結果をコピーしました。",
         "captureSelection": "選択中のテキストを使う",
         "selectionEmpty": "フォーカスのあるアプリでテキストが選択されていません。",
-        "selectionChanged": "変換の実行中に選択中のテキストが変わったため、何も書き込まれませんでした。代わりに結果をコピーしてください。"
+        "selectionChanged": "変換の実行中に選択中のテキストが変わったため、何も書き込まれませんでした。代わりに結果をコピーしてください。",
+        "captureInvalidated": "テキストを変更したため、取得した内容は無効になり、受け入れることはできません。",
+        "shortcutNotRegistered": "ショートカット {{shortcut}} を登録できませんでした: 他のアプリが既に登録している可能性があります。"
       },
       "diff": {
         "title": "変更点",
@@ -1014,6 +1018,63 @@
       "errors": {
         "load": "テキスト履歴を読み込めませんでした。",
         "action": "変更を取り消せませんでした。"
+      }
+    },
+    "selection": {
+      "errors": {
+        "focusedApp": "フォーカスのあったアプリは {{app}} でした。",
+        "focusedAppIsDixi": "フォーカスは Dixi にありました。テキストを選択しているアプリに戻り、そこでショートカットを押してください。"
+      }
+    },
+    "remoteDesktop": {
+      "title": "リモートデスクトップとの統合",
+      "description": "このコンピューターで音声入力し、mRemoteNG で開いたリモートセッションにテキストを貼り付けます。リモート側には何もインストールされません。",
+      "enable": {
+        "title": "mRemoteNG / RDP 統合を有効にする",
+        "description": "リモートセッション用の文字起こしを準備するオプションと、それに対応するショートカットが追加されます。"
+      },
+      "manualMode": {
+        "title": "手動貼り付け",
+        "description": "テキストはクリップボードに送られ、リモートセッションで Ctrl+V を押します。"
+      },
+      "autoMode": {
+        "title": "自動挿入",
+        "description": "Dixi が Ctrl+V を代わりに押します。リモートクライアント、貼り付け先が 1 つのセッション、フォーカスのすべてを確認できた場合に限ります。"
+      },
+      "autoModeNotValidated": "自動モードは、まだ実際のセッションで検証されていません。",
+      "restoreClipboard": {
+        "title": "完了時にクリップボードを復元する",
+        "description": "テキストを準備する前のクリップボードの内容に戻します。"
+      },
+      "notify": {
+        "title": "テキストの準備ができたら知らせる",
+        "description": "文字起こしが貼り付け可能になったときに通知を表示します。"
+      },
+      "actions": {
+        "title": "アクション",
+        "prepare": "最新の文字起こしを準備する",
+        "confirm": "貼り付けました",
+        "cancel": "転送を取り消す"
+      },
+      "status": {
+        "idle": "転送は進行していません。",
+        "ready": "テキストはリモートデスクトップに貼り付けられる準備ができています。",
+        "remoteRead": "リモートクライアントがテキストを読み取りました。",
+        "pasted": "貼り付けが確認されました。",
+        "cancelled": "転送は取り消されました。",
+        "expired": "確認がなかったため、転送は期限切れになりました。",
+        "failed": "転送を開始できませんでした。"
+      },
+      "detection": {
+        "title": "検出された環境",
+        "installed": "リモートクライアント",
+        "notInstalled": "未インストール",
+        "running": "実行中",
+        "stopped": "停止中",
+        "sessions": "開いている RDP セッション",
+        "focused": "RDP セッションにフォーカスがあります。",
+        "notFocused": "RDP セッションにフォーカスがありません。",
+        "blocked": "自動モードは動作できません：{{reason}}"
       }
     }
   },

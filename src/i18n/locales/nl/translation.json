@@ -7,7 +7,8 @@
     "model": "Model",
     "quit": "Afsluiten",
     "cancel": "Annuleren",
-    "secureInputWarning": "⚠ Sneltoetsen geblokkeerd door Secure Input"
+    "secureInputWarning": "⚠ Sneltoetsen geblokkeerd door Secure Input",
+    "prepareRemotePaste": "Maak de transcriptie klaar voor het externe bureaublad"
   },
   "sidebar": {
     "general": "Algemeen",
@@ -21,7 +22,8 @@
     "profiles": "Schrijfprofielen",
     "snippets": "Fragmenten",
     "transforms": "Transformaties",
-    "textHistory": "Tekstgeschiedenis"
+    "textHistory": "Tekstgeschiedenis",
+    "remoteDesktop": "Extern bureaublad"
   },
   "onboarding": {
     "subtitle": "Kies een transcriptiemodel om aan de slag te gaan",
@@ -946,7 +948,9 @@
         "copied": "Het resultaat is gekopieerd.",
         "captureSelection": "Geselecteerde tekst gebruiken",
         "selectionEmpty": "Er is geen tekst geselecteerd in de app met focus.",
-        "selectionChanged": "De geselecteerde tekst is gewijzigd tijdens de transformatie, dus er is niets geschreven. Kopieer in plaats daarvan het resultaat."
+        "selectionChanged": "De geselecteerde tekst is gewijzigd tijdens de transformatie, dus er is niets geschreven. Kopieer in plaats daarvan het resultaat.",
+        "captureInvalidated": "Je hebt de tekst gewijzigd, dus de vastlegging is niet meer geldig en kan niet worden geaccepteerd.",
+        "shortcutNotRegistered": "Registreren van sneltoets {{shortcut}} mislukt: mogelijk heeft een andere app hem al."
       },
       "diff": {
         "title": "Wijzigingen",
@@ -1014,6 +1018,63 @@
       "errors": {
         "load": "De tekstgeschiedenis kon niet worden geladen.",
         "action": "De wijziging kon niet worden teruggedraaid."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Integratie met extern bureaublad",
+      "description": "Dicteer op deze computer en plak de tekst in een externe sessie die met mRemoteNG is geopend. Op de externe machine wordt niets geïnstalleerd.",
+      "enable": {
+        "title": "Schakel de integratie met mRemoteNG / RDP in",
+        "description": "Voegt de optie toe om een transcriptie voor een externe sessie voor te bereiden, met de bijbehorende sneltoets."
+      },
+      "manualMode": {
+        "title": "Handmatig plakken",
+        "description": "De tekst gaat naar het klembord en je drukt op Ctrl+V in de externe sessie."
+      },
+      "autoMode": {
+        "title": "Automatisch invoegen",
+        "description": "Dixi drukt op Ctrl+V voor je, en alleen wanneer de externe client, één doelsessie en de focus allemaal geverifieerd kunnen worden."
+      },
+      "autoModeNotValidated": "De automatische modus is nog niet getest tegen een live sessie.",
+      "restoreClipboard": {
+        "title": "Klembord herstellen wanneer de overdracht eindigt",
+        "description": "Zet de inhoud terug die het klembord had voordat de tekst werd voorbereid."
+      },
+      "notify": {
+        "title": "Laat het weten wanneer de tekst klaar is",
+        "description": "Toont een melding wanneer de transcriptie klaar is om te plakken."
+      },
+      "actions": {
+        "title": "Acties",
+        "prepare": "Laatste transcriptie voorbereiden",
+        "confirm": "Ik heb het geplakt",
+        "cancel": "Overdracht annuleren"
+      },
+      "status": {
+        "idle": "Er is geen overdracht bezig.",
+        "ready": "De tekst is klaar om te plakken op het externe bureaublad.",
+        "remoteRead": "De externe client heeft de tekst gelezen.",
+        "pasted": "Het plakken is bevestigd.",
+        "cancelled": "De overdracht is geannuleerd.",
+        "expired": "De overdracht is verlopen zonder bevestiging.",
+        "failed": "De overdracht kon niet worden gestart."
+      },
+      "detection": {
+        "title": "Herkende omgeving",
+        "installed": "Externe client",
+        "notInstalled": "Niet geïnstalleerd",
+        "running": "Actief",
+        "stopped": "Niet actief",
+        "sessions": "Open RDP-sessies",
+        "focused": "De RDP-sessie heeft de focus.",
+        "notFocused": "De RDP-sessie heeft geen focus.",
+        "blocked": "De automatische modus kan niet handelen: {{reason}}"
+      }
+    },
+    "selection": {
+      "errors": {
+        "focusedApp": "De app die de focus had was {{app}}.",
+        "focusedAppIsDixi": "Dixi had de focus: ga terug naar de app waar de tekst geselecteerd is en druk daar op de sneltoets."
       }
     }
   },

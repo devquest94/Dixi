@@ -7,7 +7,8 @@
     "model": "Model",
     "quit": "Quit",
     "cancel": "Cancel",
-    "secureInputWarning": "⚠ Shortcuts blocked by Secure Input"
+    "secureInputWarning": "⚠ Shortcuts blocked by Secure Input",
+    "prepareRemotePaste": "Prepare the transcription for the remote desktop"
   },
   "sidebar": {
     "general": "General",
@@ -21,7 +22,8 @@
     "profiles": "Writing profiles",
     "snippets": "Snippets",
     "transforms": "Transforms",
-    "textHistory": "Text history"
+    "textHistory": "Text history",
+    "remoteDesktop": "Remote desktop"
   },
   "onboarding": {
     "subtitle": "To get started, choose a transcription model",
@@ -946,7 +948,9 @@
         "copied": "The result was copied.",
         "captureSelection": "Use the selected text",
         "selectionEmpty": "There is no text selected in the focused application.",
-        "selectionChanged": "The selected text changed while the transform was running, so nothing was written. Copy the result instead."
+        "selectionChanged": "The selected text changed while the transform was running, so nothing was written. Copy the result instead.",
+        "captureInvalidated": "You changed the text, so the capture no longer holds and cannot be accepted.",
+        "shortcutNotRegistered": "The shortcut {{shortcut}} could not be registered: another application may already have it."
       },
       "diff": {
         "title": "Changes",
@@ -1014,6 +1018,63 @@
       "errors": {
         "load": "The text history could not be loaded.",
         "action": "The change could not be reverted."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Remote desktop integration",
+      "description": "Dictate on this computer and paste the text in a remote session opened with mRemoteNG. Nothing is installed on the remote machine.",
+      "enable": {
+        "title": "Enable the mRemoteNG / RDP integration",
+        "description": "Adds the option to prepare a transcription for a remote session, and the shortcut that goes with it."
+      },
+      "manualMode": {
+        "title": "Manual paste",
+        "description": "The text goes to the clipboard and you press Ctrl+V in the remote session."
+      },
+      "autoMode": {
+        "title": "Automatic insertion",
+        "description": "Dixi presses Ctrl+V for you, and only when the remote client, a single destination session and the focus can all be verified."
+      },
+      "autoModeNotValidated": "The automatic mode has not been validated against a live session yet.",
+      "restoreClipboard": {
+        "title": "Restore the clipboard when it finishes",
+        "description": "Puts back the content the clipboard had before the text was prepared."
+      },
+      "notify": {
+        "title": "Tell me when the text is ready",
+        "description": "Shows a notification when the transcription is ready to paste."
+      },
+      "actions": {
+        "title": "Actions",
+        "prepare": "Prepare the last transcription",
+        "confirm": "I pasted it",
+        "cancel": "Cancel the transfer"
+      },
+      "status": {
+        "idle": "No transfer in progress.",
+        "ready": "The text is ready to paste in the remote desktop.",
+        "remoteRead": "The remote client read the text.",
+        "pasted": "The paste was confirmed.",
+        "cancelled": "The transfer was cancelled.",
+        "expired": "The transfer expired without a confirmation.",
+        "failed": "The transfer could not be started."
+      },
+      "detection": {
+        "title": "Detected environment",
+        "installed": "Remote client",
+        "notInstalled": "Not installed",
+        "running": "Running",
+        "stopped": "Not running",
+        "sessions": "Open RDP sessions",
+        "focused": "The RDP session has the focus.",
+        "notFocused": "The RDP session does not have the focus.",
+        "blocked": "The automatic mode cannot act: {{reason}}"
+      }
+    },
+    "selection": {
+      "errors": {
+        "focusedApp": "The application that had the focus was {{app}}.",
+        "focusedAppIsDixi": "Dixi had the focus: go back to the application where the text is selected and press the shortcut there."
       }
     }
   },

@@ -7,7 +7,8 @@
     "model": "Model",
     "quit": "Surt",
     "cancel": "Cancel·la",
-    "secureInputWarning": "⚠ Dreceres blocades per l'entrada segura"
+    "secureInputWarning": "⚠ Dreceres blocades per l'entrada segura",
+    "prepareRemotePaste": "Prepara la transcripció per a l'escriptori remot"
   },
   "sidebar": {
     "general": "General",
@@ -21,7 +22,8 @@
     "profiles": "Perfils d'escriptura",
     "snippets": "Fragments",
     "transforms": "Transformacions",
-    "textHistory": "Historial de text"
+    "textHistory": "Historial de text",
+    "remoteDesktop": "Escriptori remot"
   },
   "onboarding": {
     "subtitle": "Per començar, trieu un model de transcripció",
@@ -946,7 +948,9 @@
         "copied": "El resultat es va copiar.",
         "captureSelection": "Utilitza el text seleccionat",
         "selectionEmpty": "No hi ha cap text seleccionat a l'aplicació amb el focus.",
-        "selectionChanged": "El text seleccionat va canviar mentre s'executava la transformació, així que no s'ha escrit res. Copieu el resultat en comptes d'això."
+        "selectionChanged": "El text seleccionat va canviar mentre s'executava la transformació, així que no s'ha escrit res. Copieu el resultat en comptes d'això.",
+        "captureInvalidated": "Heu canviat el text, de manera que la captura ja no és vàlida i no es pot acceptar.",
+        "shortcutNotRegistered": "No s'ha pogut registrar la drecera {{shortcut}}: pot ser que una altra aplicació ja la tingui."
       },
       "diff": {
         "title": "Canvis",
@@ -1014,6 +1018,63 @@
       "errors": {
         "load": "No s'ha pogut carregar l'historial de text.",
         "action": "No es pot desfer el canvi."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Integració amb l'escriptori remot",
+      "description": "Dicta en aquest ordinador i enganxa el text en una sessió remota oberta amb mRemoteNG. No s'instal·la res a la màquina remota.",
+      "enable": {
+        "title": "Activa la integració amb mRemoteNG / RDP",
+        "description": "Afegeix l'opció de preparar una transcripció per a una sessió remota i l'atall que l'acompanya."
+      },
+      "manualMode": {
+        "title": "Pegado manual",
+        "description": "El text arriba al porta-retalls i prems Ctrl+V a la sessió remota."
+      },
+      "autoMode": {
+        "title": "Inserció automàtica",
+        "description": "Dixi prem Ctrl+V en el teu lloc, i només quan es poden verificar el client remot, una única sessió de destinació i el focus."
+      },
+      "autoModeNotValidated": "El mode automàtic encara no s'ha validat amb una sessió en directe.",
+      "restoreClipboard": {
+        "title": "Restaura el porta-retalls quan acabi",
+        "description": "Torna a deixar el contingut que tenia el porta-retalls abans de preparar el text."
+      },
+      "notify": {
+        "title": "Avisa'm quan el text estigui a punt",
+        "description": "Mostra una notificació quan la transcripció estigui a punt per pegar."
+      },
+      "actions": {
+        "title": "Accions",
+        "prepare": "Prepara l'última transcripció",
+        "confirm": "Ja l'he pegat",
+        "cancel": "Cancel·la la transferència"
+      },
+      "status": {
+        "idle": "No hi ha cap transferència en curs.",
+        "ready": "El text està a punt per pegar a l'escriptori remot.",
+        "remoteRead": "El client remot ha llegit el text.",
+        "pasted": "S'ha confirmat el pegat.",
+        "cancelled": "S'ha cancel·lat la transferència.",
+        "expired": "La transferència ha caducat sense confirmació.",
+        "failed": "No s'ha pogut iniciar la transferència."
+      },
+      "detection": {
+        "title": "Entorn detectat",
+        "installed": "Client remot",
+        "notInstalled": "No instal·lat",
+        "running": "En execució",
+        "stopped": "Detingut",
+        "sessions": "Sessions RDP obertes",
+        "focused": "La sessió RDP té el focus.",
+        "notFocused": "La sessió RDP no té el focus.",
+        "blocked": "El mode automàtic no pot actuar: {{reason}}"
+      }
+    },
+    "selection": {
+      "errors": {
+        "focusedApp": "L'aplicació que tenia el focus era {{app}}.",
+        "focusedAppIsDixi": "El Dixi tenia el focus: torneu a l'aplicació on hi ha el text seleccionat i premeu la drecera allà."
       }
     }
   },

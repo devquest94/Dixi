@@ -7,7 +7,8 @@
     "model": "模型",
     "quit": "結束",
     "cancel": "取消",
-    "secureInputWarning": "⚠ 快捷鍵被 Secure Input 阻擋"
+    "secureInputWarning": "⚠ 快捷鍵被 Secure Input 阻擋",
+    "prepareRemotePaste": "準備要貼到遠端桌面的轉錄"
   },
   "sidebar": {
     "general": "一般",
@@ -21,7 +22,8 @@
     "profiles": "寫入設定檔",
     "snippets": "文字片段",
     "transforms": "轉換",
-    "textHistory": "文字歷程"
+    "textHistory": "文字歷程",
+    "remoteDesktop": "遠端桌面"
   },
   "onboarding": {
     "subtitle": "首先，請選擇一種模型",
@@ -946,7 +948,9 @@
         "copied": "已複製結果。",
         "captureSelection": "使用選取的文字",
         "selectionEmpty": "具有焦點的應用程式中沒有選取的文字。",
-        "selectionChanged": "轉換執行時選取的文字發生變化，因此沒有寫入任何內容。請改為複製結果。"
+        "selectionChanged": "轉換執行時選取的文字發生變化，因此沒有寫入任何內容。請改為複製結果。",
+        "captureInvalidated": "你修改了文字，因此擷取的內容已失效，無法接受。",
+        "shortcutNotRegistered": "無法註冊快捷鍵 {{shortcut}}: 可能已被其他應用程式佔用。"
       },
       "diff": {
         "title": "變更",
@@ -1014,6 +1018,63 @@
       "errors": {
         "load": "無法載入文字歷程。",
         "action": "無法復原該變更。"
+      }
+    },
+    "selection": {
+      "errors": {
+        "focusedApp": "具有焦點的應用程式是 {{app}}。",
+        "focusedAppIsDixi": "焦點在 Dixi 上：請返回已選取文字的應用程式，並在那裡按下快捷鍵。"
+      }
+    },
+    "remoteDesktop": {
+      "title": "遠端桌面整合",
+      "description": "在此電腦上進行語音輸入，並把文字貼到透過 mRemoteNG 開啟的遠端工作階段中。遠端電腦上不需要安裝任何東西。",
+      "enable": {
+        "title": "啟用 mRemoteNG / RDP 整合",
+        "description": "增加用於準備遠端工作階段轉錄的選項，以及對應的快捷鍵。"
+      },
+      "manualMode": {
+        "title": "手動貼上",
+        "description": "文字會進入剪貼簿，由您在遠端工作階段按 Ctrl+V。"
+      },
+      "autoMode": {
+        "title": "自動插入",
+        "description": "由 Dixi 代替您按 Ctrl+V，但只有在能確認遠端用戶端、只有一個目標工作階段且具備焦點時才會執行。"
+      },
+      "autoModeNotValidated": "自動模式尚未在實際工作階段中驗證。",
+      "restoreClipboard": {
+        "title": "完成後還原剪貼簿",
+        "description": "把剪貼簿還原為準備文字之前的內容。"
+      },
+      "notify": {
+        "title": "文字就緒時通知我",
+        "description": "當轉錄可以貼上時顯示通知。"
+      },
+      "actions": {
+        "title": "操作",
+        "prepare": "準備最新轉錄",
+        "confirm": "已貼上",
+        "cancel": "取消傳輸"
+      },
+      "status": {
+        "idle": "沒有進行中的傳輸。",
+        "ready": "文字已可在遠端桌面中貼上。",
+        "remoteRead": "遠端用戶端已讀取文字。",
+        "pasted": "貼上已確認。",
+        "cancelled": "傳輸已取消。",
+        "expired": "傳輸在未確認的情況下已逾時。",
+        "failed": "無法開始傳輸。"
+      },
+      "detection": {
+        "title": "偵測到的環境",
+        "installed": "遠端用戶端",
+        "notInstalled": "未安裝",
+        "running": "執行中",
+        "stopped": "未執行",
+        "sessions": "已開啟的 RDP 工作階段",
+        "focused": "RDP 工作階段具有焦點。",
+        "notFocused": "RDP 工作階段沒有焦點。",
+        "blocked": "自動模式無法執行：{{reason}}"
       }
     }
   },

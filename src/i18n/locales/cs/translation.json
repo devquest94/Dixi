@@ -7,7 +7,8 @@
     "model": "Model",
     "quit": "Ukončit",
     "cancel": "Zrušit",
-    "secureInputWarning": "⚠ Zkratky blokuje Secure Input"
+    "secureInputWarning": "⚠ Zkratky blokuje Secure Input",
+    "prepareRemotePaste": "Připravit přepis pro vzdálenou plochu"
   },
   "sidebar": {
     "general": "Obecné",
@@ -21,7 +22,8 @@
     "profiles": "Profily psaní",
     "snippets": "Úryvky",
     "transforms": "Transformace",
-    "textHistory": "Historie textu"
+    "textHistory": "Historie textu",
+    "remoteDesktop": "Vzdálená plocha"
   },
   "onboarding": {
     "subtitle": "Pro začátek vyberte model pro přepis",
@@ -946,7 +948,9 @@
         "copied": "Výsledek byl zkopírován.",
         "captureSelection": "Použít vybraný text",
         "selectionEmpty": "V aplikaci s fokusem není vybraný žádný text.",
-        "selectionChanged": "Vybraný text se mezitím během transformace změnil, takže se nic nezapsalo. Zkopírujte výsledek místo toho."
+        "selectionChanged": "Vybraný text se mezitím během transformace změnil, takže se nic nezapsalo. Zkopírujte výsledek místo toho.",
+        "captureInvalidated": "Změnili jste text, takže zachycení už neplatí a nelze je přijmout.",
+        "shortcutNotRegistered": "Nepodařilo se zaregistrovat zkratku {{shortcut}}: může ji mít už jiná aplikace."
       },
       "diff": {
         "title": "Změny",
@@ -1014,6 +1018,63 @@
       "errors": {
         "load": "Historii textu se nepodařilo načíst.",
         "action": "Změnu se nepodařilo vrátit zpět."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Integrace s vzdálenou plochou",
+      "description": "Diktujte na tomto počítači a vložte text do vzdálené relace otevřené pomocí mRemoteNG. Na vzdáleném počítači se nic neinstaluje.",
+      "enable": {
+        "title": "Povolit integraci mRemoteNG / RDP",
+        "description": "Přidá možnost připravit přepis pro vzdálenou relaci a příslušnou zkratku."
+      },
+      "manualMode": {
+        "title": "Ruční vložení",
+        "description": "Text se zkopíruje do schránky a v vzdálené relici stisknete Ctrl+V."
+      },
+      "autoMode": {
+        "title": "Automatické vložení",
+        "description": "Dixi stiskne Ctrl+V za vás, a to pouze tehdy, když lze ověřit vzdáleného klienta, jedinou cílovou relaci i fokus."
+      },
+      "autoModeNotValidated": "Automatický režim zatím nebyl ověřen na živé relaci.",
+      "restoreClipboard": {
+        "title": "Obnovit schránku po dokončení",
+        "description": "Vrátí obsah, který měla schránka před přípravou textu."
+      },
+      "notify": {
+        "title": "Upozornit mě, až bude text připraven",
+        "description": "Zobrazí oznámení, když bude přepis připraven ke vložení."
+      },
+      "actions": {
+        "title": "Akce",
+        "prepare": "Připravit poslední přepis",
+        "confirm": "Vložil jsem",
+        "cancel": "Zrušit přenos"
+      },
+      "status": {
+        "idle": "Žádný přenos neprobíhá.",
+        "ready": "Text je připraven ke vložení do vzdálené plochy.",
+        "remoteRead": "Vzdálený klient text přečetl.",
+        "pasted": "Vložení bylo potvrzeno.",
+        "cancelled": "Přenos byl zrušen.",
+        "expired": "Přenos vypršel bez potvrzení.",
+        "failed": "Přenos se nepodařilo spustit."
+      },
+      "detection": {
+        "title": "Zjištěné prostředí",
+        "installed": "Vzdálený klient",
+        "notInstalled": "Není nainstalován",
+        "running": "Běží",
+        "stopped": "Neběží",
+        "sessions": "Otevřené relace RDP",
+        "focused": "Relace RDP má fokus.",
+        "notFocused": "Relace RDP nemá fokus.",
+        "blocked": "Automatický režim nemůže jednat: {{reason}}"
+      }
+    },
+    "selection": {
+      "errors": {
+        "focusedApp": "Aplikace, která měla fokus, byla {{app}}.",
+        "focusedAppIsDixi": "Dixi mělo fokus: vraťte se do aplikace, kde je vybraný text, a stiskněte tam zkratku."
       }
     }
   },

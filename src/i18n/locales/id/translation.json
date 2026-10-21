@@ -7,7 +7,8 @@
     "model": "Model",
     "quit": "Keluar",
     "cancel": "Batal",
-    "secureInputWarning": "⚠ Pintasan diblokir oleh Secure Input"
+    "secureInputWarning": "⚠ Pintasan diblokir oleh Secure Input",
+    "prepareRemotePaste": "Siapkan transkripsi untuk desktop jarak jauh"
   },
   "sidebar": {
     "general": "Umum",
@@ -21,7 +22,8 @@
     "profiles": "Profil penulisan",
     "snippets": "Cuplikan",
     "transforms": "Transformasi",
-    "textHistory": "Riwayat teks"
+    "textHistory": "Riwayat teks",
+    "remoteDesktop": "Desktop jarak jauh"
   },
   "onboarding": {
     "subtitle": "Untuk memulai, pilih model transkripsi",
@@ -946,7 +948,9 @@
         "copied": "Hasil disalin.",
         "captureSelection": "Gunakan teks yang dipilih",
         "selectionEmpty": "Tidak ada teks yang dipilih di aplikasi yang memiliki fokus.",
-        "selectionChanged": "Teks yang dipilih berubah saat transformasi berjalan, jadi tidak ada yang ditulis. Salin hasilnya sebagai gantinya."
+        "selectionChanged": "Teks yang dipilih berubah saat transformasi berjalan, jadi tidak ada yang ditulis. Salin hasilnya sebagai gantinya.",
+        "captureInvalidated": "Anda mengubah teks, sehingga tangkapan itu sudah tidak berlaku dan tidak dapat diterima.",
+        "shortcutNotRegistered": "Pintasan {{shortcut}} tidak dapat didaftarkan: aplikasi lain mungkin sudah mengambilnya."
       },
       "diff": {
         "title": "Perubahan",
@@ -1014,6 +1018,63 @@
       "errors": {
         "load": "Riwayat teks tidak dapat dimuat.",
         "action": "Perubahan tidak dapat dibatalkan."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Integrasi desktop jarak jauh",
+      "description": "Dikte pada komputer ini dan tempel teksnya di sesi jarak jauh yang dibuka dengan mRemoteNG. Tidak ada apa pun yang diinstal pada mesin remote.",
+      "enable": {
+        "title": "Aktifkan integrasi mRemoteNG / RDP",
+        "description": "Menambahkan opsi untuk menyiapkan transkripsi bagi sesi jarak jauh, beserta pintasan yang menyertai."
+      },
+      "manualMode": {
+        "title": "Tempel manual",
+        "description": "Teks masuk ke papan klip dan Anda menekan Ctrl+V di sesi jarak jauh."
+      },
+      "autoMode": {
+        "title": "Penyisipan otomatis",
+        "description": "Dixi menekan Ctrl+V untuk Anda, dan hanya ketika klien remote, satu sesi tujuan, dan fokus dapat diverifikasi."
+      },
+      "autoModeNotValidated": "Mode otomatis belum divalidasi terhadap sesi langsung.",
+      "restoreClipboard": {
+        "title": "Pulihkan papan klip setelah selesai",
+        "description": "Mengembalikan isi papan klip seperti sebelum teks disiapkan."
+      },
+      "notify": {
+        "title": "Beri tahu saya saat teks siap",
+        "description": "Menampilkan notifikasi saat transkripsi siap ditempel."
+      },
+      "actions": {
+        "title": "Tindakan",
+        "prepare": "Siapkan transkripsi terakhir",
+        "confirm": "Sudah saya tempel",
+        "cancel": "Batalkan transfer"
+      },
+      "status": {
+        "idle": "Tidak ada transfer yang sedang berjalan.",
+        "ready": "Teks siap ditempel di desktop jarak jauh.",
+        "remoteRead": "Klien remote telah membaca teks.",
+        "pasted": "Penempelan dikonfirmasi.",
+        "cancelled": "Transfer dibatalkan.",
+        "expired": "Transfer kedaluwarsa tanpa konfirmasi.",
+        "failed": "Transfer tidak dapat dimulai."
+      },
+      "detection": {
+        "title": "Lingkungan yang terdeteksi",
+        "installed": "Klien remote",
+        "notInstalled": "Tidak terinstal",
+        "running": "Berjalan",
+        "stopped": "Tidak berjalan",
+        "sessions": "Sesi RDP terbuka",
+        "focused": "Sesi RDP memiliki fokus.",
+        "notFocused": "Sesi RDP tidak memiliki fokus.",
+        "blocked": "Mode otomatis tidak dapat bertindak: {{reason}}"
+      }
+    },
+    "selection": {
+      "errors": {
+        "focusedApp": "Aplikasi yang memiliki fokus adalah {{app}}.",
+        "focusedAppIsDixi": "Dixi yang memiliki fokus: kembali ke aplikasi tempat teksnya dipilih dan tekan pintasan di sana."
       }
     }
   },

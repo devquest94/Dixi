@@ -7,7 +7,8 @@
     "model": "Mô hình",
     "quit": "Thoát",
     "cancel": "Hủy",
-    "secureInputWarning": "⚠ Phím tắt bị Secure Input chặn"
+    "secureInputWarning": "⚠ Phím tắt bị Secure Input chặn",
+    "prepareRemotePaste": "Chuẩn bị bản chép lời cho desktop từ xa"
   },
   "sidebar": {
     "general": "Chung",
@@ -21,7 +22,8 @@
     "profiles": "Hồ sơ viết",
     "snippets": "Đoạn văn bản",
     "transforms": "Chuyển đổi",
-    "textHistory": "Lịch sử văn bản"
+    "textHistory": "Lịch sử văn bản",
+    "remoteDesktop": "Desktop từ xa"
   },
   "onboarding": {
     "subtitle": "Để bắt đầu, hãy chọn một mô hình chuyển đổi giọng nói",
@@ -946,7 +948,9 @@
         "copied": "Đã sao chép kết quả.",
         "captureSelection": "Dùng văn bản đã chọn",
         "selectionEmpty": "Không có văn bản nào được chọn trong ứng dụng đang được đưa vào tiêu điểm.",
-        "selectionChanged": "Văn bản đã chọn thay đổi trong khi chuyển đổi chạy, nên không có gì được ghi. Hãy sao chép kết quả thay thế."
+        "selectionChanged": "Văn bản đã chọn thay đổi trong khi chuyển đổi chạy, nên không có gì được ghi. Hãy sao chép kết quả thay thế.",
+        "captureInvalidated": "Bạn đã thay đổi văn bản, nên nội dung đã lấy không còn hợp lệ và không thể chấp nhận.",
+        "shortcutNotRegistered": "Không thể đăng ký phím tắt {{shortcut}}: ứng dụng khác có thể đã dùng phím tắt này."
       },
       "diff": {
         "title": "Thay đổi",
@@ -1014,6 +1018,63 @@
       "errors": {
         "load": "Không thể tải lịch sử văn bản.",
         "action": "Không thể hoàn tác thay đổi."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Tích hợp desktop từ xa",
+      "description": "Ghi âm trên máy tính này rồi dán văn bản vào một phiên từ xa được mở bằng mRemoteNG. Không cài đặt gì trên máy từ xa.",
+      "enable": {
+        "title": "Bật tích hợp mRemoteNG / RDP",
+        "description": "Thêm tùy chọn chuẩn bị bản chép lời cho một phiên từ xa, cùng phím tắt đi kèm."
+      },
+      "manualMode": {
+        "title": "Dán thủ công",
+        "description": "Văn bản được đưa vào bảng nhớ tạm và bạn nhấn Ctrl+V trong phiên từ xa."
+      },
+      "autoMode": {
+        "title": "Chèn tự động",
+        "description": "Dixi nhấn Ctrl+V giúp bạn, và chỉ khi có thể xác minh cả client từ xa, một phiên đích duy nhất và tiêu điểm."
+      },
+      "autoModeNotValidated": "Chế độ tự động chưa được kiểm chứng với một phiên thực tế.",
+      "restoreClipboard": {
+        "title": "Khôi phục bảng nhớ tạm khi hoàn tất",
+        "description": "Đưa lại nội dung mà bảng nhớ tạm đang có trước khi văn bản được chuẩn bị."
+      },
+      "notify": {
+        "title": "Báo tôi khi văn bản đã sẵn sàng",
+        "description": "Hiển thị thông báo khi bản chép lời đã sẵn sàng để dán."
+      },
+      "actions": {
+        "title": "Thao tác",
+        "prepare": "Chuẩn bị bản chép lời gần nhất",
+        "confirm": "Tôi đã dán",
+        "cancel": "Hủy truyền"
+      },
+      "status": {
+        "idle": "Không có quá trình truyền nào đang chạy.",
+        "ready": "Văn bản đã sẵn sàng để dán trong desktop từ xa.",
+        "remoteRead": "Client từ xa đã đọc văn bản.",
+        "pasted": "Đã xác nhận dán.",
+        "cancelled": "Đã hủy truyền.",
+        "expired": "Quá trình truyền hết hạn mà không được xác nhận.",
+        "failed": "Không thể bắt đầu truyền."
+      },
+      "detection": {
+        "title": "Môi trường được phát hiện",
+        "installed": "Client từ xa",
+        "notInstalled": "Chưa cài đặt",
+        "running": "Đang chạy",
+        "stopped": "Không chạy",
+        "sessions": "Phiên RDP đang mở",
+        "focused": "Phiên RDP đang có tiêu điểm.",
+        "notFocused": "Phiên RDP không có tiêu điểm.",
+        "blocked": "Chế độ tự động không thể thực hiện: {{reason}}"
+      }
+    },
+    "selection": {
+      "errors": {
+        "focusedApp": "Ứng dụng đang được đưa vào tiêu điểm là {{app}}.",
+        "focusedAppIsDixi": "Dixi đang được đưa vào tiêu điểm: hãy quay lại ứng dụng nơi văn bản được chọn và nhấn phím tắt ở đó."
       }
     }
   },

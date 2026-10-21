@@ -7,7 +7,8 @@
     "model": "Modelo",
     "quit": "Salir",
     "cancel": "Cancelar",
-    "secureInputWarning": "⚠ Atajos bloqueados por Secure Input"
+    "secureInputWarning": "⚠ Atajos bloqueados por Secure Input",
+    "prepareRemotePaste": "Preparar la transcripción para el escritorio remoto"
   },
   "sidebar": {
     "general": "General",
@@ -21,7 +22,8 @@
     "profiles": "Perfiles de escritura",
     "snippets": "Fragmentos",
     "transforms": "Transformaciones",
-    "textHistory": "Historial de texto"
+    "textHistory": "Historial de texto",
+    "remoteDesktop": "Escritorio remoto"
   },
   "onboarding": {
     "subtitle": "Para comenzar, elige un modelo de transcripción",
@@ -946,7 +948,9 @@
         "copied": "Se copió el resultado.",
         "captureSelection": "Usar el texto seleccionado",
         "selectionEmpty": "No hay texto seleccionado en la aplicación que tiene el foco.",
-        "selectionChanged": "El texto seleccionado cambió mientras se ejecutaba la transformación, así que no se escribió nada. Copiá el resultado en su lugar."
+        "selectionChanged": "El texto seleccionado cambió mientras se ejecutaba la transformación, así que no se escribió nada. Copiá el resultado en su lugar.",
+        "captureInvalidated": "Has cambiado el texto, así que la captura ya no vale y no se puede aceptar.",
+        "shortcutNotRegistered": "El atajo {{shortcut}} no se pudo registrar: puede que otra aplicación ya lo tenga cogido."
       },
       "diff": {
         "title": "Cambios",
@@ -1014,6 +1018,63 @@
       "errors": {
         "load": "No se pudo cargar el historial de texto.",
         "action": "No se pudo revertir el cambio."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Integración con escritorio remoto",
+      "description": "Dictá en esta computadora y pegá el texto en una sesión remota abierta con mRemoteNG. No se instala nada en la máquina remota.",
+      "enable": {
+        "title": "Habilitá la integración con mRemoteNG / RDP",
+        "description": "Agrega la opción de preparar una transcripción para una sesión remota y el atajo que la acompaña."
+      },
+      "manualMode": {
+        "title": "Pegado manual",
+        "description": "El texto va al portapapeles y vos presionás Ctrl+V en la sesión remota."
+      },
+      "autoMode": {
+        "title": "Inserción automática",
+        "description": "Dixi presiona Ctrl+V por vos, y solo cuando se pueden verificar el cliente remoto, una única sesión de destino y el foco."
+      },
+      "autoModeNotValidated": "Todavía no se validó el modo automático contra una sesión en vivo.",
+      "restoreClipboard": {
+        "title": "Restaurar el portapapeles cuando termine",
+        "description": "Vuelve a poner el contenido que tenía el portapapeles antes de preparar el texto."
+      },
+      "notify": {
+        "title": "Avisame cuando el texto esté listo",
+        "description": "Muestra una notificación cuando la transcripción está lista para pegar."
+      },
+      "actions": {
+        "title": "Acciones",
+        "prepare": "Preparar la última transcripción",
+        "confirm": "Ya lo pegué",
+        "cancel": "Cancelar la transferencia"
+      },
+      "status": {
+        "idle": "No hay ninguna transferencia en curso.",
+        "ready": "El texto está listo para pegar en el escritorio remoto.",
+        "remoteRead": "El cliente remoto leyó el texto.",
+        "pasted": "Se confirmó el pegado.",
+        "cancelled": "Se canceló la transferencia.",
+        "expired": "La transferencia venció sin confirmación.",
+        "failed": "No se pudo iniciar la transferencia."
+      },
+      "detection": {
+        "title": "Entorno detectado",
+        "installed": "Cliente remoto",
+        "notInstalled": "No instalado",
+        "running": "En ejecución",
+        "stopped": "Detenido",
+        "sessions": "Sesiones RDP abiertas",
+        "focused": "La sesión RDP tiene el foco.",
+        "notFocused": "La sesión RDP no tiene el foco.",
+        "blocked": "El modo automático no puede actuar: {{reason}}"
+      }
+    },
+    "selection": {
+      "errors": {
+        "focusedApp": "La aplicación que tenía el foco era {{app}}.",
+        "focusedAppIsDixi": "Dixi tenía el foco: vuelve a la aplicación donde está el texto y pulsa el atajo allí."
       }
     }
   },

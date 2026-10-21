@@ -179,6 +179,18 @@ const settingUpdaters: {
     commands.changePasteDelayAfterMsSetting(value as number),
   reliable_paste: (value) =>
     commands.changeReliablePasteSetting(value as boolean),
+  remote_desktop_enabled: (value) =>
+    commands.changeRemoteDesktopEnabledSetting(value as boolean),
+  remote_desktop_manual_mode: (value) =>
+    commands.changeRemoteDesktopManualModeSetting(value as boolean),
+  remote_desktop_auto_mode: (value) =>
+    commands.changeRemoteDesktopAutoModeSetting(value as boolean),
+  remote_desktop_restore_clipboard: (value) =>
+    commands.changeRemoteDesktopRestoreClipboardSetting(value as boolean),
+  remote_desktop_notify: (value) =>
+    commands.changeRemoteDesktopNotifySetting(value as boolean),
+  remote_desktop_timeout_ms: (value) =>
+    commands.changeRemoteDesktopTimeoutSetting(value as number),
   paste_method: (value) => commands.changePasteMethodSetting(value as string),
   typing_tool: (value) => commands.changeTypingToolSetting(value as string),
   external_script_path: (value) =>
