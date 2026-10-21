@@ -510,6 +510,38 @@ pub struct AppSettings {
     /// fixed delay. See `paste_tx`. macOS and Windows only.
     #[serde(default)]
     pub reliable_paste: bool,
+    /// The integration with a remote desktop reached through clipboard
+    /// redirection (mRemoteNG over RDP) is enabled.
+    ///
+    /// It is off by default: the integration only makes sense on the
+    /// machines where that remote client is actually used.
+    #[serde(default)]
+    pub remote_desktop_enabled: bool,
+    /// The user pastes the transcript by hand inside the remote session.
+    ///
+    /// This is the only mode that can be validated without touching the
+    /// remote machine, so it is the one that is available.
+    #[serde(default = "default_remote_desktop_manual_mode")]
+    pub remote_desktop_manual_mode: bool,
+    /// Dixi pastes the transcript into the remote session by itself.
+    ///
+    /// It is off by default and it only acts when every condition is
+    /// verified: the remote client, a single destination session, the
+    /// clipboard redirection and the focus. When any of them cannot be
+    /// confirmed, the transfer falls back to the manual mode.
+    #[serde(default)]
+    pub remote_desktop_auto_mode: bool,
+    /// The previous clipboard content is restored when the remote transfer
+    /// settles.
+    #[serde(default = "default_remote_desktop_restore_clipboard")]
+    pub remote_desktop_restore_clipboard: bool,
+    /// How long the transcript may stay on the clipboard waiting for the
+    /// paste, in milliseconds.
+    #[serde(default = "default_remote_desktop_timeout_ms")]
+    pub remote_desktop_timeout_ms: u64,
+    /// The app tells the user that the text is ready to paste.
+    #[serde(default = "default_remote_desktop_notify")]
+    pub remote_desktop_notify: bool,
     #[serde(default = "default_typing_tool")]
     pub typing_tool: TypingTool,
     #[serde(default)]
@@ -613,6 +645,28 @@ fn default_overlay_style() -> OverlayStyle {
 }
 
 fn default_vad_enabled() -> bool {
+    true
+}
+
+/// The manual paste is the mode that can be validated without touching the
+/// remote machine, so it is the one that is on by default.
+fn default_remote_desktop_manual_mode() -> bool {
+    true
+}
+
+/// The previous clipboard content is restored when the transfer settles.
+fn default_remote_desktop_restore_clipboard() -> bool {
+    true
+}
+
+/// Three minutes: the user has to reach the remote session, click the field
+/// and press Ctrl+V there.
+fn default_remote_desktop_timeout_ms() -> u64 {
+    crate::paste_tx::DEFAULT_EXTERNAL_TIMEOUT.as_millis() as u64
+}
+
+/// The notification that tells the user the text is ready to paste.
+fn default_remote_desktop_notify() -> bool {
     true
 }
 
@@ -1047,6 +1101,29 @@ pub fn get_default_settings() -> AppSettings {
             current_binding: "escape".to_string(),
         },
     );
+    // The transcript is prepared for a paste in a remote session. It is a
+    // global shortcut on purpose: the user has to keep working in the remote
+    // window, and a shortcut never takes the focus away from it.
+    #[cfg(target_os = "windows")]
+    let default_prepare_remote_paste_shortcut = "ctrl+alt+space";
+    #[cfg(target_os = "macos")]
+    let default_prepare_remote_paste_shortcut = "ctrl+alt+space";
+    #[cfg(target_os = "linux")]
+    let default_prepare_remote_paste_shortcut = "ctrl+alt+space";
+    #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
+    let default_prepare_remote_paste_shortcut = "ctrl+alt+space";
+
+    bindings.insert(
+        "prepare_remote_paste".to_string(),
+        ShortcutBinding {
+            id: "prepare_remote_paste".to_string(),
+            name: "Prepare the transcription for a remote desktop".to_string(),
+            description: "Copies the last transcription to the clipboard so it can be pasted in a remote session."
+                .to_string(),
+            default_binding: default_prepare_remote_paste_shortcut.to_string(),
+            current_binding: default_prepare_remote_paste_shortcut.to_string(),
+        },
+    );
 
     AppSettings {
         settings_schema_version: default_settings_schema_version(),
@@ -1102,6 +1179,12 @@ pub fn get_default_settings() -> AppSettings {
         paste_delay_ms: default_paste_delay_ms(),
         paste_delay_after_ms: default_paste_delay_after_ms(),
         reliable_paste: false,
+        remote_desktop_enabled: false,
+        remote_desktop_manual_mode: default_remote_desktop_manual_mode(),
+        remote_desktop_auto_mode: false,
+        remote_desktop_restore_clipboard: default_remote_desktop_restore_clipboard(),
+        remote_desktop_timeout_ms: default_remote_desktop_timeout_ms(),
+        remote_desktop_notify: default_remote_desktop_notify(),
         typing_tool: default_typing_tool(),
         external_script_path: None,
         filler_word_removal_enabled: default_filler_word_removal_enabled(),

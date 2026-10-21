@@ -25,6 +25,7 @@ mod overlay;
 mod paste_tx;
 pub mod portable;
 mod release_contract;
+mod remote_desktop;
 mod secure_input;
 mod secrets;
 mod settings;
@@ -248,6 +249,9 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     app_handle.manage(model_manager.clone());
     app_handle.manage(transcription_manager.clone());
     app_handle.manage(history_manager.clone());
+    // The transfer to the remote desktop that may be waiting for the user to
+    // paste the transcript in the remote session.
+    app_handle.manage(remote_desktop::RemoteDesktopState::default());
     if let Some(manager) = dictionary_manager {
         app_handle.manage(manager);
     }
@@ -347,6 +351,13 @@ fn initialize_core_logic(app_handle: &AppHandle) {
             }
             "copy_last_transcript" => {
                 tray::copy_last_transcript(app);
+            }
+            "prepare_remote_paste" => {
+                // The transcript goes to the local clipboard and the user
+                // pastes it in the remote session. Nothing is typed here.
+                if let Err(error) = remote_desktop::prepare(app) {
+                    log::warn!("The transcript could not be prepared: {}", error);
+                }
             }
             "unload_model" => {
                 let transcription_manager = app.state::<Arc<TranscriptionManager>>();
@@ -813,6 +824,18 @@ pub fn run(cli_args: CliArgs) {
             commands::transcription::set_model_unload_timeout,
             commands::transcription::get_model_load_status,
             commands::transcription::unload_model_manually,
+            commands::remote_desktop::detect_remote_desktop,
+            commands::remote_desktop::prepare_remote_paste,
+            commands::remote_desktop::confirm_remote_paste,
+            commands::remote_desktop::cancel_remote_transfer,
+            commands::remote_desktop::remote_transfer_status,
+            commands::remote_desktop::insert_remote_transcription,
+            commands::remote_desktop::change_remote_desktop_enabled_setting,
+            commands::remote_desktop::change_remote_desktop_manual_mode_setting,
+            commands::remote_desktop::change_remote_desktop_auto_mode_setting,
+            commands::remote_desktop::change_remote_desktop_restore_clipboard_setting,
+            commands::remote_desktop::change_remote_desktop_notify_setting,
+            commands::remote_desktop::change_remote_desktop_timeout_setting,
             commands::history::get_history_entries,
             commands::history::toggle_history_entry_saved,
             commands::history::get_audio_file_path,

@@ -84,10 +84,14 @@ const ALLOWED_LATIN = new Set([
   "dixi", "github", "releases", "hugging", "face", "ggml", "georgi",
   "gerganov", "openai", "anthropic", "apple", "silicon", "tahoe",
   "whisper", "silero", "earshot", "bluetooth", "beta", "data",
+  // Cliente de escritorio remoto (la integracion con mRemoteNG)
+  "mremoteng",
   // Sistemas y tecnologias
   "linux", "macos", "windows", "json", "url", "api", "gpu", "cpu", "vad",
   "metal", "cuda", "webview", "ai", "chat", "completions", "intelligence",
   "mac", "endpoint", "clamshell", "transcribe", "cpp", "models",
+  // Protocolo de escritorio remoto
+  "rdp",
   // Teclas y atajos
   "ctrl", "shift", "enter", "cmd", "super", "insert", "option", "space",
   "pid", "d", "e", "i",

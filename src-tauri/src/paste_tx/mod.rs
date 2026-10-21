@@ -47,6 +47,13 @@ use macos as platform;
 #[cfg(target_os = "windows")]
 use windows as platform;
 
+/// The clipboard lease for a paste the user performs by hand.
+///
+/// Only Windows exposes it: the remote-desktop integration it exists for is
+/// a Windows client (mRemoteNG).
+#[cfg(target_os = "windows")]
+pub(crate) use windows::{publish_for_manual_paste, ExternalPaste};
+
 /// How long after the *last* observed read the transcript stays on the
 /// clipboard before restoring. Covers applications that read the clipboard
 /// several times per paste (e.g. Chromium probe-then-read).
@@ -61,6 +68,29 @@ pub(crate) const RESTORE_TIMEOUT: Duration = Duration::from_secs(8);
 /// When the chord could not be injected at all, no legitimate receipt can
 /// arrive, so restore quickly instead of waiting out the full timeout.
 pub(crate) const FAILED_INJECTION_TIMEOUT: Duration = Duration::from_millis(500);
+
+/// How long a transcript published for a paste the user performs *by hand*
+/// may stay on the clipboard before it is restored anyway.
+///
+/// The user has to switch to the remote session, click the field and press
+/// Ctrl+V there, so this window is deliberately generous: restoring earlier
+/// would replace the text before the remote side asked for it, and a fixed
+/// delay proves nothing about the synchronization.
+pub(crate) const DEFAULT_EXTERNAL_TIMEOUT: Duration = Duration::from_secs(180);
+
+/// What turns a clipboard read into evidence that the transcript was
+/// consumed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum TxTrigger {
+    /// The caller injects the paste chord right after the publication, so
+    /// only the reads that follow the chord count. A read before that is an
+    /// eager third party reacting to the clipboard change itself.
+    Chord,
+    /// The text is pasted by hand somewhere else — typically a remote
+    /// desktop reached through clipboard redirection. Every read after the
+    /// publication counts, because there is no chord to compare against.
+    Publication,
+}
 
 /// Shared, cross-thread record of one paste transaction.
 #[derive(Debug)]
@@ -86,6 +116,13 @@ pub(crate) struct TxState {
     pub auto_submit_sent: bool,
     /// First post-injection receipt has been logged.
     pub logged_receipt: bool,
+    /// What makes a read count as evidence that the transcript was consumed.
+    pub trigger: TxTrigger,
+    /// The caller asked to settle the transaction: the user confirmed the
+    /// paste, or cancelled it.
+    pub settle_requested: bool,
+    /// How long the transaction may stay open before it settles on its own.
+    pub timeout: Duration,
 }
 
 impl TxState {
@@ -99,6 +136,21 @@ impl TxState {
             cancelled: false,
             auto_submit_sent: false,
             logged_receipt: false,
+            trigger: TxTrigger::Chord,
+            settle_requested: false,
+            timeout: RESTORE_TIMEOUT,
+        }
+    }
+
+    /// A transaction for a paste the user performs by hand.
+    ///
+    /// It has no chord, so it is settled by the caller (the user confirmed
+    /// the paste, or cancelled) and never by the reads going quiet.
+    pub fn for_publication(timeout: Duration) -> Self {
+        Self {
+            trigger: TxTrigger::Publication,
+            timeout,
+            ..Self::new()
         }
     }
 
@@ -106,15 +158,26 @@ impl TxState {
     pub fn record_receipt(&mut self, at: Instant) {
         self.receipts.push(at);
         if !self.logged_receipt {
-            if let Some(injected) = self.injected_at {
-                if at >= injected {
+            if let Some(trigger) = self.trigger_at() {
+                if at >= trigger {
                     self.logged_receipt = true;
                     log::info!(
-                        "[reliable-paste] clipboard read {}ms after chord",
-                        at.duration_since(injected).as_millis()
+                        "[reliable-paste] clipboard read {}ms after the trigger",
+                        at.duration_since(trigger).as_millis()
                     );
                 }
             }
+        }
+    }
+
+    /// The instant from which a read counts as evidence.
+    ///
+    /// For a chord transaction that is the moment the chord was injected; for
+    /// a transaction the user pastes by hand it is the publication itself.
+    pub fn trigger_at(&self) -> Option<Instant> {
+        match self.trigger {
+            TxTrigger::Chord => self.injected_at,
+            TxTrigger::Publication => Some(self.published_at),
         }
     }
 
@@ -125,6 +188,17 @@ impl TxState {
 
     pub fn any_receipt_after_injection(&self) -> bool {
         self.last_receipt_after_injection().is_some()
+    }
+
+    /// The last read that counts as evidence for this transaction's trigger.
+    pub fn last_receipt_after_trigger(&self) -> Option<Instant> {
+        let trigger = self.trigger_at()?;
+        self.receipts.iter().copied().rev().find(|t| *t >= trigger)
+    }
+
+    /// Whether a consumer read the clipboard after the trigger.
+    pub fn any_receipt_after_trigger(&self) -> bool {
+        self.last_receipt_after_trigger().is_some()
     }
 }
 
@@ -137,21 +211,39 @@ pub(crate) enum WaitDecision {
 /// Pure decision: given the current transaction state, keep waiting for the
 /// target to read, or finish now. Both platform event loops call this.
 pub(crate) fn evaluate(state: &TxState, now: Instant) -> WaitDecision {
-    if state.ownership_lost || state.cancelled {
+    if state.ownership_lost || state.cancelled || state.settle_requested {
         return WaitDecision::Finish;
     }
-    if let Some(last) = state.last_receipt_after_injection() {
-        if now.duration_since(last) >= QUIET_PERIOD {
-            return WaitDecision::Finish;
+    match state.trigger {
+        TxTrigger::Chord => {
+            if let Some(last) = state.last_receipt_after_injection() {
+                if now.duration_since(last) >= QUIET_PERIOD {
+                    return WaitDecision::Finish;
+                }
+            }
+            let deadline = if state.injection_failed {
+                FAILED_INJECTION_TIMEOUT
+            } else {
+                state.timeout
+            };
+            if now.duration_since(state.published_at) >= deadline {
+                return WaitDecision::Finish;
+            }
         }
-    }
-    let deadline = if state.injection_failed {
-        FAILED_INJECTION_TIMEOUT
-    } else {
-        RESTORE_TIMEOUT
-    };
-    if now.duration_since(state.published_at) >= deadline {
-        return WaitDecision::Finish;
+        TxTrigger::Publication => {
+            // The user pastes by hand, in the remote session. The transcript
+            // stays on the clipboard until the caller settles it (the user
+            // confirmed the paste, or cancelled it) or the transfer expires.
+            //
+            // A read never ends this transaction early: the remote side can
+            // still ask for the clipboard when the user presses Ctrl+V there,
+            // and the synchronization is asynchronous. Restoring on a read
+            // would be exactly the fixed-delay race this module exists to
+            // avoid.
+            if now.duration_since(state.published_at) >= state.timeout {
+                return WaitDecision::Finish;
+            }
+        }
     }
     WaitDecision::KeepWaiting
 }
@@ -277,6 +369,50 @@ mod tests {
     #[test]
     fn ownership_loss_finishes_immediately() {
         let mut s = state_after_publish(Duration::from_millis(10));
+        s.ownership_lost = true;
+        assert!(matches!(evaluate(&s, Instant::now()), WaitDecision::Finish));
+    }
+
+    fn publication_state(timeout: Duration) -> TxState {
+        let mut s = TxState::for_publication(timeout);
+        s.published_at = Instant::now() - Duration::from_millis(100);
+        s
+    }
+
+    #[test]
+    fn publication_keeps_waiting_even_after_the_reads_go_quiet() {
+        // The user pastes by hand in the remote session: a read does not
+        // mean the remote side already asked for the clipboard.
+        let mut s = publication_state(Duration::from_secs(180));
+        s.receipts.push(Instant::now() - QUIET_PERIOD - Duration::from_millis(50));
+        assert!(matches!(evaluate(&s, Instant::now()), WaitDecision::KeepWaiting));
+    }
+
+    #[test]
+    fn publication_counts_reads_from_the_publication() {
+        let mut s = publication_state(Duration::from_secs(180));
+        s.receipts.push(Instant::now() - Duration::from_millis(10));
+        assert!(s.any_receipt_after_trigger());
+        // The chord was never injected, so the chord-only accessor stays empty.
+        assert!(!s.any_receipt_after_injection());
+    }
+
+    #[test]
+    fn publication_finishes_when_the_caller_settles_it() {
+        let mut s = publication_state(Duration::from_secs(180));
+        s.settle_requested = true;
+        assert!(matches!(evaluate(&s, Instant::now()), WaitDecision::Finish));
+    }
+
+    #[test]
+    fn publication_finishes_when_the_transfer_expires() {
+        let s = publication_state(Duration::from_millis(50));
+        assert!(matches!(evaluate(&s, Instant::now()), WaitDecision::Finish));
+    }
+
+    #[test]
+    fn publication_finishes_when_the_clipboard_ownership_is_lost() {
+        let mut s = publication_state(Duration::from_secs(180));
         s.ownership_lost = true;
         assert!(matches!(evaluate(&s, Instant::now()), WaitDecision::Finish));
     }

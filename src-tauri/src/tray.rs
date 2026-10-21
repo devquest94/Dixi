@@ -63,6 +63,9 @@ struct MenuInputs {
     downloaded_models: Vec<(String, String)>,
     locale: String,
     update_checks_enabled: bool,
+    /// The integration with the remote desktop is on, so the transcription can
+    /// be prepared for a paste in a remote session.
+    remote_desktop_enabled: bool,
 }
 
 /// Complete description of what the tray should look like.
@@ -334,6 +337,7 @@ fn compute_desired(app: &AppHandle, icon_state: TrayIconState) -> TrayDesired {
             downloaded_models,
             locale: settings.app_language,
             update_checks_enabled: settings.update_checks_enabled,
+            remote_desktop_enabled: settings.remote_desktop_enabled,
         },
     }
 }
@@ -509,6 +513,15 @@ fn build_menu(app: &AppHandle, inputs: &MenuInputs) -> tauri::Result<(Menu<tauri
         true,
         None::<&str>,
     )?;
+    // The transcript is prepared for a paste in a remote session. The item is
+    // only usable while the integration is on.
+    let prepare_remote_paste_i = MenuItem::with_id(
+        app,
+        "prepare_remote_paste",
+        &strings.prepare_remote_paste,
+        inputs.remote_desktop_enabled,
+        None::<&str>,
+    )?;
     let quit_i = MenuItem::with_id(app, "quit", &strings.quit, true, quit_accelerator)?;
     let separator = || PredefinedMenuItem::separator(app);
 
@@ -522,6 +535,7 @@ fn build_menu(app: &AppHandle, inputs: &MenuInputs) -> tauri::Result<(Menu<tauri
                 &cancel_i,
                 &separator()?,
                 &copy_last_transcript_i,
+                &prepare_remote_paste_i,
                 &separator()?,
                 &settings_i,
                 &check_updates_i,
@@ -560,6 +574,7 @@ fn build_menu(app: &AppHandle, inputs: &MenuInputs) -> tauri::Result<(Menu<tauri
                 &version_i,
                 &separator()?,
                 &copy_last_transcript_i,
+                &prepare_remote_paste_i,
                 &separator()?,
                 &model_submenu,
                 &unload_model_i,
@@ -594,7 +609,12 @@ fn build_menu(app: &AppHandle, inputs: &MenuInputs) -> tauri::Result<(Menu<tauri
     Ok((menu, tooltip))
 }
 
-fn last_transcript_text(entry: &HistoryEntry) -> &str {
+/// The text of a transcription: the corrected one when it exists, the raw
+/// one otherwise.
+///
+/// It is shared with the remote-desktop integration, which prepares the same
+/// text for the user to paste in a remote session.
+pub(crate) fn last_transcript_text(entry: &HistoryEntry) -> &str {
     entry
         .post_processed_text
         .as_deref()
@@ -694,6 +714,7 @@ mod tests {
             downloaded_models: vec![("small".to_string(), "Small".to_string())],
             locale: "en".to_string(),
             update_checks_enabled: true,
+            remote_desktop_enabled: false,
         }
     }
 

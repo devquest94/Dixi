@@ -16,7 +16,7 @@
 
 use std::sync::{mpsc::Sender, Arc, Mutex, Once};
 use std::thread;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use log::{error, info, warn};
 use tauri::Manager;
@@ -40,7 +40,7 @@ use windows::Win32::System::Memory::{
 };
 use windows::Win32::System::Ole::{
     CF_BITMAP, CF_DSPBITMAP, CF_DSPENHMETAFILE, CF_DSPMETAFILEPICT, CF_DSPTEXT, CF_ENHMETAFILE,
-    CF_OWNERDISPLAY, CF_PALETTE, CF_UNICODETEXT,
+    CF_METAFILEPICT, CF_OWNERDISPLAY, CF_PALETTE, CF_TEXT, CF_UNICODETEXT,
 };
 use windows::Win32::UI::WindowsAndMessaging::{
     CopyImage, CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW, GetMessageW,
@@ -76,6 +76,13 @@ pub(super) struct WinTxShared {
     /// ClipboardHandling::CopyToClipboard — settle by leaving the transcript
     /// on the clipboard as plain text instead of restoring the snapshot.
     preserve_transcript: bool,
+    /// Clipboard formats that were present but cannot be restored without
+    /// loss. Their names are reported so the decision to replace them is an
+    /// informed one.
+    unrestorable_formats: Mutex<Vec<u32>>,
+    /// Called when the transaction settles on its own — the transfer expired,
+    /// or the clipboard ownership was lost before the caller settled it.
+    settle_notify: Option<Box<dyn Fn() + Send + Sync>>,
 }
 
 /// The transaction currently holding the clipboard, if any. A new
@@ -298,6 +305,7 @@ unsafe fn restore_snapshot(shared: &WinTxShared) {
 unsafe fn snapshot_clipboard(hwnd: HWND, shared: &WinTxShared) -> Result<(), String> {
     OpenClipboard(Some(hwnd)).map_err(|e| format!("OpenClipboard failed: {e}"))?;
     let mut formats = Vec::new();
+    let mut unrestorable: Vec<u32> = Vec::new();
     let mut format = 0u32;
     loop {
         format = EnumClipboardFormats(format);
@@ -313,7 +321,11 @@ unsafe fn snapshot_clipboard(hwnd: HWND, shared: &WinTxShared) -> Result<(), Str
                     if let Ok(mut slot) = shared.saved_bitmap.lock() {
                         *slot = Some(copy.0 as usize);
                     }
+                } else {
+                    unrestorable.push(format);
                 }
+            } else {
+                unrestorable.push(format);
             }
             continue;
         }
@@ -327,16 +339,19 @@ unsafe fn snapshot_clipboard(hwnd: HWND, shared: &WinTxShared) -> Result<(), Str
             || format == CF_OWNERDISPLAY.0 as u32
             || format == CF_PALETTE.0 as u32
         {
+            unrestorable.push(format);
             continue;
         }
         if let Ok(handle) = GetClipboardData(format) {
             let hg = HGLOBAL(handle.0);
             let size = GlobalSize(hg);
             if size == 0 || size > MAX_FORMAT_BYTES {
+                unrestorable.push(format);
                 continue;
             }
             let ptr = GlobalLock(hg) as *const u8;
             if ptr.is_null() {
+                unrestorable.push(format);
                 continue;
             }
             let data = std::slice::from_raw_parts(ptr, size).to_vec();
@@ -347,6 +362,9 @@ unsafe fn snapshot_clipboard(hwnd: HWND, shared: &WinTxShared) -> Result<(), Str
     let _ = CloseClipboard();
     if let Ok(mut slot) = shared.snapshot.lock() {
         *slot = formats;
+    }
+    if let Ok(mut slot) = shared.unrestorable_formats.lock() {
+        *slot = unrestorable;
     }
     Ok(())
 }
@@ -478,6 +496,12 @@ fn on_timer(_hwnd: HWND, shared: &WinTxShared) {
         }
     }
 
+    // The caller is told that the transaction settled on its own. It happens
+    // after the restore, so the caller sees a settled clipboard.
+    if let Some(notify) = &shared.settle_notify {
+        notify();
+    }
+
     unsafe {
         PostQuitMessage(0);
     }
@@ -590,6 +614,8 @@ pub(super) fn run(
         auto_submit,
         auto_submit_key,
         preserve_transcript: clipboard_handling == ClipboardHandling::CopyToClipboard,
+        unrestorable_formats: Mutex::new(Vec::new()),
+        settle_notify: None,
     });
 
     let (ready_tx, ready_rx) = std::sync::mpsc::channel();
@@ -621,4 +647,134 @@ pub(super) fn run(
     }
 
     Ok(())
+}
+
+/// A transcript published for a paste the user performs *by hand*.
+///
+/// This is the remote-desktop case: the text is handed to the RDP client
+/// through the clipboard redirection and the user presses Ctrl+V inside the
+/// remote session. No keystroke is injected here, so the transaction stays
+/// open until the caller settles it.
+pub(crate) struct ExternalPaste {
+    shared: Arc<WinTxShared>,
+    /// The clipboard formats that were present but cannot be restored without
+    /// loss. Only their names are reported: they are technical facts, not
+    /// content.
+    unrestorable_formats: Vec<String>,
+}
+
+impl ExternalPaste {
+    /// Settles the transaction. The worker restores the previous clipboard
+    /// content — if the clipboard still belongs to this transaction — and
+    /// stops.
+    pub(crate) fn settle(&self) {
+        if let Ok(mut st) = self.shared.state.lock() {
+            st.settle_requested = true;
+        }
+    }
+
+    /// Whether a consumer read the clipboard after the publication.
+    ///
+    /// For a remote session this is the moment the RDP client picked the text
+    /// up. It does not prove the remote application pasted it.
+    pub(crate) fn was_read(&self) -> bool {
+        self.shared
+            .state
+            .lock()
+            .map(|st| st.any_receipt_after_trigger())
+            .unwrap_or(false)
+    }
+
+    /// Whether the clipboard still holds this transaction's text.
+    ///
+    /// When it does not, somebody else copied something and their content
+    /// wins: the restore is skipped.
+    pub(crate) fn still_ours(&self) -> bool {
+        let sequence = *self.shared.sequence.lock().unwrap();
+        unsafe { GetClipboardSequenceNumber() == sequence }
+    }
+
+    /// The clipboard formats that cannot be restored without loss.
+    pub(crate) fn unrestorable_formats(&self) -> &[String] {
+        &self.unrestorable_formats
+    }
+}
+
+/// The human-readable name of a clipboard format.
+///
+/// Only the name is produced, never the content: this ends up in the UI and
+/// in the logs.
+fn format_name(format: u32) -> String {
+    match format {
+        f if f == CF_UNICODETEXT.0 as u32 => "CF_UNICODETEXT".to_string(),
+        f if f == CF_TEXT.0 as u32 => "CF_TEXT".to_string(),
+        f if f == CF_BITMAP.0 as u32 => "CF_BITMAP".to_string(),
+        f if f == CF_ENHMETAFILE.0 as u32 => "CF_ENHMETAFILE".to_string(),
+        f if f == CF_METAFILEPICT.0 as u32 => "CF_METAFILEPICT".to_string(),
+        f if f == CF_PALETTE.0 as u32 => "CF_PALETTE".to_string(),
+        f if f == CF_OWNERDISPLAY.0 as u32 => "CF_OWNERDISPLAY".to_string(),
+        f if f == CF_DSPTEXT.0 as u32 => "CF_DSPTEXT".to_string(),
+        f if f == CF_DSPBITMAP.0 as u32 => "CF_DSPBITMAP".to_string(),
+        f if f == CF_DSPMETAFILEPICT.0 as u32 => "CF_DSPMETAFILEPICT".to_string(),
+        f if f == CF_DSPENHMETAFILE.0 as u32 => "CF_DSPENHMETAFILE".to_string(),
+        _ => format!("format #{format}"),
+    }
+}
+
+/// Publishes `text` on the clipboard and keeps it there until the returned
+/// handle is settled.
+///
+/// No keystroke is injected: the user pastes the text by hand, typically
+/// inside a remote session reached through clipboard redirection. The
+/// transcript therefore stays on the clipboard until the user confirms the
+/// paste, because the synchronization is asynchronous and restoring early
+/// would replace the text before the remote side asked for it.
+///
+/// `timeout` bounds how long the transcript may stay there. `restore` tells
+/// whether the previous clipboard content is put back when the transaction
+/// settles. `settle_notify` is called when the transaction settles on its
+/// own, which for this mode means the transfer expired.
+pub(crate) fn publish_for_manual_paste(
+    text: &str,
+    app_handle: &tauri::AppHandle,
+    timeout: Duration,
+    restore: bool,
+    settle_notify: Option<Box<dyn Fn() + Send + Sync>>,
+) -> Result<ExternalPaste, String> {
+    let shared = Arc::new(WinTxShared {
+        state: Mutex::new(TxState::for_publication(timeout)),
+        text: text.to_string(),
+        snapshot: Mutex::new(Vec::new()),
+        saved_bitmap: Mutex::new(None),
+        sequence: Mutex::new(0),
+        app_handle: app_handle.clone(),
+        // No chord is injected, so there is no Enter to send afterwards.
+        auto_submit: false,
+        auto_submit_key: AutoSubmitKey::Enter,
+        preserve_transcript: !restore,
+        unrestorable_formats: Mutex::new(Vec::new()),
+        settle_notify,
+    });
+
+    let (ready_tx, ready_rx) = std::sync::mpsc::channel();
+    let shared_for_pump = shared.clone();
+    thread::spawn(move || pump_thread(shared_for_pump, ready_tx));
+
+    match ready_rx.recv() {
+        Ok(Ok(())) => {}
+        Ok(Err(e)) => return Err(e),
+        Err(_) => return Err("clipboard worker died before publishing".to_string()),
+    }
+    info!("[manual-paste] transcript published for a paste by hand");
+
+    let unrestorable_formats = shared
+        .unrestorable_formats
+        .lock()
+        .map(|formats| formats.iter().map(|f| format_name(*f)).collect())
+        .unwrap_or_default();
+
+    Ok(ExternalPaste {
+        shared,
+        unrestorable_formats,
+    })
 }

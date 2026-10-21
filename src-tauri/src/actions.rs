@@ -15,7 +15,7 @@ use crate::utils::{
     self, show_processing_overlay, show_recording_overlay, show_transcribing_overlay,
 };
 use crate::TranscriptionCoordinator;
-use log::{debug, error, warn};
+use log::{debug, error, info, warn};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::future::Future;
@@ -831,6 +831,35 @@ impl ShortcutAction for CancelAction {
     }
 }
 
+// Prepare Remote Paste Action
+//
+// Publishes the last transcription on the local clipboard so the user can
+// paste it, by hand, in a remote session reached through clipboard
+// redirection (mRemoteNG over RDP).
+//
+// Nothing is typed here: the redirection of the RDP client carries the text
+// to the remote machine, and the user presses Ctrl+V there. The shortcut is
+// global for the same reason the capture shortcut is: the focus must stay in
+// the remote window.
+struct PrepareRemotePasteAction;
+
+impl ShortcutAction for PrepareRemotePasteAction {
+    fn start(&self, app: &AppHandle, _binding_id: &str, _shortcut_str: &str) {
+        match crate::remote_desktop::prepare(app) {
+            Ok(_) => {
+                info!("[remote-desktop] the transcript is ready to paste in the remote session");
+            }
+            Err(error) => {
+                warn!("[remote-desktop] the transcript could not be prepared: {}", error);
+            }
+        }
+    }
+
+    fn stop(&self, _app: &AppHandle, _binding_id: &str, _shortcut_str: &str) {
+        // Nothing to do on stop: the transcription is prepared on the press.
+    }
+}
+
 // Test Action
 struct TestAction;
 
@@ -874,6 +903,10 @@ pub static ACTION_MAP: Lazy<HashMap<String, Arc<dyn ShortcutAction>>> = Lazy::ne
     map.insert(
         "test".to_string(),
         Arc::new(TestAction) as Arc<dyn ShortcutAction>,
+    );
+    map.insert(
+        "prepare_remote_paste".to_string(),
+        Arc::new(PrepareRemotePasteAction) as Arc<dyn ShortcutAction>,
     );
     map
 });
