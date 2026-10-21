@@ -5,8 +5,10 @@ import { listen } from "@tauri-apps/api/event";
 import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { useOsType } from "@/hooks/useOsType";
 import { describeFailure } from "../selectionErrors";
+import { describeShortcutProblem } from "../captureShortcut";
 import {
   commands,
+  type CaptureShortcutStatus,
   type SelectionContext,
   type SelectionFailure,
   type TextDiffInfo,
@@ -79,13 +81,24 @@ export const TransformsSettings: React.FC = () => {
   // Una captura deja de valer en cuanto se escribe en el texto: la
   // identidad de la seleccion original ya no esta, y no se puede aceptar.
   const [captureInvalid, setCaptureInvalid] = useState(false);
-  // Si el atajo global no se pudo registrar, el usuario tiene que saberlo:
-  // si no, el atajo simplemente nunca se dispara.
-  const [shortcutRegistered, setShortcutRegistered] = useState(true);
+  // Lo que el backend sabe del atajo global de captura: si esta registrado,
+  // con que backend, y si fallo, por que. El aviso sale de ahi, para que no
+  // acuse a otra aplicacion de algo que no ha hecho.
+  const [shortcutStatus, setShortcutStatus] = useState<CaptureShortcutStatus | null>(
+    null,
+  );
 
   // El atajo global de captura: es la via principal, porque no le quita el
   // foco a la aplicacion de origen.
   const captureShortcut = getSetting("bindings")?.capture_selection?.current_binding;
+
+  // Lo que hay que decir del atajo, o nada. El mensaje sale del estado real
+  // del backend, y distingue un conflicto con otra aplicacion de un fallo
+  // interno de Dixi.
+  const shortcutProblem = useMemo(
+    () => describeShortcutProblem(t, shortcutStatus),
+    [t, shortcutStatus],
+  );
 
   const loadTransforms = useCallback(async () => {
     setIsLoading(true);
@@ -293,13 +306,13 @@ export const TransformsSettings: React.FC = () => {
   useEffect(() => {
     let mounted = true;
 
-    // Si el atajo global no se pudo registrar —porque otra aplicacion ya
-    // tiene esa combinacion— el usuario tiene que saberlo: si no, el atajo
-    // simplemente nunca se dispara y no hay explicacion.
+    // El estado del atajo global: si no se pudo registrar, el usuario tiene
+    // que saberlo, porque si no el atajo simplemente nunca se dispara. Y
+    // tiene que saber **por que** fallo, no una suposicion.
     void commands.getCaptureShortcutState().then((result) => {
       if (!mounted) return;
       if (result.status === "ok") {
-        setShortcutRegistered(result.data.registered);
+        setShortcutStatus(result.data.status);
         return;
       }
       console.error(
@@ -325,6 +338,22 @@ export const TransformsSettings: React.FC = () => {
       mounted = false;
     };
   }, [applyCapture]);
+
+  // El estado del atajo cambia sin que el panel se entere: al arrancar
+  // Dixi, al cambiar la combinacion, al grabarla. El backend lo avisa, y el
+  // panel se entera: si no, el aviso se queda en lo que se leyo al abrirlo.
+  useEffect(() => {
+    const unlistenStatus = listen<CaptureShortcutStatus>(
+      "capture-shortcut-status",
+      (event) => {
+        setShortcutStatus(event.payload);
+      },
+    );
+
+    return () => {
+      void unlistenStatus.then((unlisten) => unlisten());
+    };
+  }, []);
 
   // The shortcut captures and tells the interface; a failure is a message
   // the user has to see, because nothing else will happen.
@@ -700,13 +729,9 @@ export const TransformsSettings: React.FC = () => {
           </div>
         )}
 
-        {canCaptureSelection && !shortcutRegistered && (
+        {canCaptureSelection && shortcutProblem && (
           <div className="px-4 py-3">
-            <p className="text-sm text-error">
-              {t("settings.transforms.runner.shortcutNotRegistered", {
-                shortcut: captureShortcut ?? "",
-              })}
-            </p>
+            <p className="text-sm text-error">{shortcutProblem}</p>
           </div>
         )}
 
