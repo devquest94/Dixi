@@ -10,6 +10,7 @@
 //! setting and can be changed at runtime.
 
 mod handler;
+pub mod capture_state;
 pub mod handy_keys;
 pub mod tauri_impl;
 
@@ -144,41 +145,96 @@ fn reconcile_cancel_shortcut(app: &AppHandle) {
     }
 }
 
-/// Whether the capture shortcut is registered right now.
+/// The state of the capture shortcut.
 ///
-/// A global shortcut that another application already holds is not an error
-/// the user can see: the shortcut simply never fires. The state is kept so
-/// the interface can say so, instead of leaving the user with a shortcut
-/// that does nothing and no explanation.
-static CAPTURE_SHORTCUT_REGISTERED: AtomicBool = AtomicBool::new(false);
-
-/// Whether the capture shortcut could be registered.
-pub fn capture_shortcut_registered() -> bool {
-    CAPTURE_SHORTCUT_REGISTERED.load(Ordering::Relaxed)
+/// A global shortcut that does not fire is not an error the user can see:
+/// it simply never happens. The state is kept so the interface can say what
+/// really happened, instead of leaving the user with a shortcut that does
+/// nothing and no explanation.
+///
+/// The state is written from **one** place —the function that registers a
+/// shortcut— so that every route that registers one is accounted for. It
+/// used to be written from a single route, and the route that runs at
+/// startup was not that one: the state said "not registered" while the
+/// shortcut was registered and working.
+pub fn capture_shortcut_status() -> capture_state::CaptureShortcutStatus {
+    capture_state::CAPTURE_SHORTCUT.get_or_not_tried()
 }
 
-/// Records whether the capture shortcut could be registered.
-fn set_capture_shortcut_registered(registered: bool) {
-    CAPTURE_SHORTCUT_REGISTERED.store(registered, Ordering::Relaxed);
+/// The backend that is in use, as the state records it.
+fn shortcut_backend(implementation: KeyboardImplementation) -> capture_state::ShortcutBackend {
+    match implementation {
+        KeyboardImplementation::Tauri => capture_state::ShortcutBackend::Tauri,
+        KeyboardImplementation::HandyKeys => capture_state::ShortcutBackend::HandyKeys,
+    }
+}
+
+/// Records the result of registering the capture shortcut, writes it to the
+/// log and tells the interface.
+///
+/// The log carries the date (the log itself has it), the backend, the
+/// combination and the stable code of the failure. It never carries
+/// anything private: a shortcut combination is the user's own setting.
+fn record_capture_registration(
+    app: &AppHandle,
+    binding: &ShortcutBinding,
+    implementation: KeyboardImplementation,
+    result: &Result<(), String>,
+) {
+    let backend = shortcut_backend(implementation);
+    let status =
+        capture_state::CAPTURE_SHORTCUT.record(&binding.current_binding, backend, result);
+
+    match &result {
+        Ok(()) => info!(
+            "Shortcut registration: id=capture_selection backend={} combination={} result=ok",
+            status.backend,
+            status.binding
+        ),
+        Err(error) => error!(
+            "Shortcut registration: id=capture_selection backend={} combination={} result=error code={:?} detail={}",
+            status.backend,
+            status.binding,
+            status.error_code,
+            error
+        ),
+    }
+
+    // The interface shows the state, and it has to show it even if the
+    // panel was opened after the attempt: the event carries the state to
+    // whoever is listening, and the command carries it to whoever asks.
+    let _ = app.emit("capture-shortcut-status", &status);
 }
 
 /// Register a shortcut using the appropriate implementation
+///
+/// This is the only route that registers a shortcut. Every other one calls
+/// it, so the state of the capture shortcut is always written.
 pub fn register_shortcut(app: &AppHandle, binding: ShortcutBinding) -> Result<(), String> {
-    let settings = get_settings(app);
+    let implementation = get_settings(app).keyboard_implementation;
+    register_shortcut_with(app, binding, implementation)
+}
+
+/// Registers a shortcut with a given implementation, recording the state of
+/// the capture shortcut.
+///
+/// The switch between implementations needs this: the wrapper decides with
+/// the setting, and during a switch the setting is not the implementation
+/// that is being applied.
+fn register_shortcut_with(
+    app: &AppHandle,
+    binding: ShortcutBinding,
+    implementation: KeyboardImplementation,
+) -> Result<(), String> {
     let is_capture = binding.id == "capture_selection";
-    let combination = binding.current_binding.clone();
-    let result = match settings.keyboard_implementation {
-        KeyboardImplementation::Tauri => tauri_impl::register_shortcut(app, binding),
-        KeyboardImplementation::HandyKeys => handy_keys::register_shortcut(app, binding),
+
+    let result = match implementation {
+        KeyboardImplementation::Tauri => tauri_impl::register_shortcut(app, binding.clone()),
+        KeyboardImplementation::HandyKeys => handy_keys::register_shortcut(app, binding.clone()),
     };
 
     if is_capture {
-        set_capture_shortcut_registered(result.is_ok());
-        if let Err(error) = &result {
-            // Another application may already hold the combination. The user
-            // has to know, because otherwise the shortcut simply never fires.
-            error!("The capture shortcut '{combination}' could not be registered: {error}");
-        }
+        record_capture_registration(app, &binding, implementation, &result);
     }
 
     result
@@ -186,18 +242,40 @@ pub fn register_shortcut(app: &AppHandle, binding: ShortcutBinding) -> Result<()
 
 /// Unregister a shortcut using the appropriate implementation
 pub fn unregister_shortcut(app: &AppHandle, binding: ShortcutBinding) -> Result<(), String> {
-    let settings = get_settings(app);
+    let implementation = get_settings(app).keyboard_implementation;
+    unregister_shortcut_with(app, binding, implementation)
+}
+
+/// Unregisters a shortcut with a given implementation, recording the state
+/// of the capture shortcut.
+///
+/// The switch between implementations needs this, for the same reason
+/// [`register_shortcut_with`] needs it.
+fn unregister_shortcut_with(
+    app: &AppHandle,
+    binding: ShortcutBinding,
+    implementation: KeyboardImplementation,
+) -> Result<(), String> {
     let is_capture = binding.id == "capture_selection";
-    let result = match settings.keyboard_implementation {
-        KeyboardImplementation::Tauri => tauri_impl::unregister_shortcut(app, binding),
-        KeyboardImplementation::HandyKeys => handy_keys::unregister_shortcut(app, binding),
+
+    let result = match implementation {
+        KeyboardImplementation::Tauri => tauri_impl::unregister_shortcut(app, binding.clone()),
+        KeyboardImplementation::HandyKeys => handy_keys::unregister_shortcut(app, binding.clone()),
     };
 
-    if is_capture {
+    if is_capture && result.is_ok() {
         // A shortcut that is not registered is not registered: the state has
         // to say so, or the interface would promise a capture that cannot
-        // happen.
-        set_capture_shortcut_registered(false);
+        // happen. When the release itself failed the shortcut is probably
+        // still there, so the state is left as it was.
+        let released = capture_state::CAPTURE_SHORTCUT.release();
+        if let Some(status) = released {
+            info!(
+                "Shortcut registration: id=capture_selection backend={} combination={} result=released",
+                status.backend, status.binding
+            );
+            let _ = app.emit("capture-shortcut-status", &status);
+        }
     }
 
     result
@@ -526,10 +604,7 @@ fn unregister_all_shortcuts(app: &AppHandle, implementation: KeyboardImplementat
             continue;
         }
 
-        let result = match implementation {
-            KeyboardImplementation::Tauri => tauri_impl::unregister_shortcut(app, binding),
-            KeyboardImplementation::HandyKeys => handy_keys::unregister_shortcut(app, binding),
-        };
+        let result = unregister_shortcut_with(app, binding, implementation);
 
         if let Err(e) = result {
             warn!(
@@ -589,10 +664,7 @@ fn register_all_shortcuts_for_implementation(
         }
 
         // Register with the appropriate implementation
-        let result = match implementation {
-            KeyboardImplementation::Tauri => tauri_impl::register_shortcut(app, binding),
-            KeyboardImplementation::HandyKeys => handy_keys::register_shortcut(app, binding),
-        };
+        let result = register_shortcut_with(app, binding, implementation);
 
         if let Err(e) = result {
             error!(

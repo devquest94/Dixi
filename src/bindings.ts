@@ -1825,22 +1825,63 @@ step: string | null }
 /**
  * The state of the capture shortcut.
  * 
- * A global shortcut that another application already holds does not fire,
- * and the user would have no way of knowing why. The state is exposed so the
- * interface can say it.
+ * The state says what really happened, not just whether the shortcut
+ * works: a global shortcut that another application already holds does not
+ * fire, and the user would have no way of knowing why. It also says **why**
+ * it failed, so that the interface does not accuse another application of
+ * something it did not do.
  */
 export type CaptureShortcutState = { 
 /**
- * Whether the shortcut could be registered.
+ * The state of the registration.
+ */
+status: CaptureShortcutStatus }
+/**
+ * What is known about the capture shortcut right now.
+ */
+export type CaptureShortcutStatus = { 
+/**
+ * Whether the shortcut is registered and in effect.
  */
 registered: boolean; 
 /**
- * The combination it is registered with.
+ * Whether there was an attempt to register it at all.
+ * 
+ * Before the first attempt there is nothing to report: the interface
+ * must not accuse anybody of anything.
+ */
+attempted: boolean; 
+/**
+ * The combination that is in effect, or the one that was tried.
  */
 binding: string; 
 /**
+ * The backend that was used.
+ */
+backend: string; 
+/**
+ * The stable code of the failure, when there was one.
+ */
+error_code: RegistrationErrorCode | null; 
+/**
+ * The message the backend gave.
+ */
+error: string | null; 
+/**
+ * Whether the failure is another application's doing.
+ */
+conflicts_with_another_application: boolean; 
+/**
+ * When the last attempt happened, in milliseconds since the epoch.
+ */
+attempted_at: number | null; 
+/**
  * Whether this system can capture the selection of another application
  * at all.
+ * 
+ * The capture of a selection only exists on Windows. On the other
+ * platforms the shortcut is not registered on purpose, and the
+ * interface must not offer it.
  */
 available: boolean }
 /**
@@ -2108,6 +2149,44 @@ style_id: string | null;
  */
 cleanup_level: CleanupLevel | null; created_at: number; updated_at: number }
 export type RecordingRetentionPeriod = "never" | "preserve_limit" | "days_3" | "weeks_2" | "months_3"
+/**
+ * Why the last attempt to register the capture shortcut failed.
+ * 
+ * The codes are `snake_case`, like the rest of the codes the backend sends
+ * to the interface.
+ */
+export type RegistrationErrorCode = 
+/**
+ * Another application holds the same combination.
+ * 
+ * Only the Tauri backend can produce this: it asks the system to
+ * reserve the combination, and the system refuses when somebody else
+ * already has it.
+ */
+"conflict" | 
+/**
+ * Dixi itself had already registered the same combination.
+ * 
+ * This is a duplicate inside Dixi, not a conflict with another
+ * application.
+ */
+"duplicate" | 
+/**
+ * The combination could not be interpreted.
+ */
+"invalid_combination" | 
+/**
+ * The backend was not ready: its state was never initialized.
+ */
+"not_initialized" | 
+/**
+ * The backend did not answer.
+ */
+"backend_unavailable" | 
+/**
+ * Anything else.
+ */
+"unknown"
 /**
  * A retired ONNX model found on disk.
  */

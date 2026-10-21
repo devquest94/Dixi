@@ -21,36 +21,36 @@ use crate::settings::get_settings;
 
 /// The state of the capture shortcut.
 ///
-/// A global shortcut that another application already holds does not fire,
-/// and the user would have no way of knowing why. The state is exposed so the
-/// interface can say it.
+/// The state says what really happened, not just whether the shortcut
+/// works: a global shortcut that another application already holds does not
+/// fire, and the user would have no way of knowing why. It also says **why**
+/// it failed, so that the interface does not accuse another application of
+/// something it did not do.
 #[derive(Clone, Debug, Serialize, Deserialize, Type)]
 pub struct CaptureShortcutState {
-    /// Whether the shortcut could be registered.
-    pub registered: bool,
-    /// The combination it is registered with.
-    pub binding: String,
-    /// Whether this system can capture the selection of another application
-    /// at all.
-    pub available: bool,
+    /// The state of the registration.
+    pub status: crate::shortcut::capture_state::CaptureShortcutStatus,
 }
 
 /// The state of the capture shortcut.
 #[tauri::command]
 #[specta::specta]
 pub async fn get_capture_shortcut_state(app: AppHandle) -> Result<CaptureShortcutState, String> {
-    let settings = get_settings(&app);
-    let binding = settings
-        .bindings
-        .get("capture_selection")
-        .map(|binding| binding.current_binding.clone())
-        .unwrap_or_default();
+    let mut status = crate::shortcut::capture_shortcut_status();
 
-    Ok(CaptureShortcutState {
-        registered: crate::shortcut::capture_shortcut_registered(),
-        binding,
-        available: cfg!(target_os = "windows"),
-    })
+    // Before the first attempt the state says nothing, but the combination
+    // that is configured still has to be shown: that is the one the user
+    // would press.
+    if status.binding.is_empty() {
+        let settings = get_settings(&app);
+        status.binding = settings
+            .bindings
+            .get(crate::shortcut::capture_state::CAPTURE_SHORTCUT_ID)
+            .map(|binding| binding.current_binding.clone())
+            .unwrap_or_default();
+    }
+
+    Ok(CaptureShortcutState { status })
 }
 
 /// Captures the selection of the application that has the focus.

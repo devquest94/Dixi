@@ -423,7 +423,17 @@ pub fn validate_shortcut(raw: &str) -> Result<(), String> {
 
 /// Initialize handy-keys shortcuts
 pub fn init_shortcuts(app: &AppHandle) -> Result<(), String> {
+    // The state has to be available before anything is registered: the
+    // registration goes through the common route, which reads the state
+    // from the application. When it is already there, the shortcuts are
+    // already registered and there is nothing to do again.
+    if app.try_state::<HandyKeysState>().is_some() {
+        info!("The handy-keys state was already initialized; the shortcuts are not registered again");
+        return Ok(());
+    }
+
     let state = HandyKeysState::new(app.clone())?;
+    app.manage(state);
 
     let default_bindings = settings::get_default_settings().bindings;
     let user_settings = settings::load_or_create_app_settings(app);
@@ -448,7 +458,11 @@ pub fn init_shortcuts(app: &AppHandle) -> Result<(), String> {
             .cloned()
             .unwrap_or(default_binding);
 
-        if let Err(e) = state.register(&binding) {
+        // The registration goes through the common route, so that the state
+        // of the capture shortcut is written here too: this is the route
+        // that runs at startup, and it is the one that decides whether the
+        // shortcut is in effect.
+        if let Err(e) = super::register_shortcut(app, binding) {
             error!(
                 "Failed to register handy-keys shortcut {} during init: {}",
                 id, e
@@ -456,7 +470,6 @@ pub fn init_shortcuts(app: &AppHandle) -> Result<(), String> {
         }
     }
 
-    app.manage(state);
     info!("handy-keys shortcuts initialized");
     Ok(())
 }
