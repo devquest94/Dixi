@@ -306,7 +306,7 @@ fn is_password_control(class: &str, style: isize) -> bool {
 /// from Win32: the browsers themselves refuse to hand out the content of a
 /// masked field, so the read is safe even there.
 #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
-const SUPPORTED_TEXT_CLASSES: &[&str] = &[
+const NATIVE_TEXT_CLASSES: &[&str] = &[
     // Native text controls.
     "edit",
     "tedit",
@@ -315,10 +315,17 @@ const SUPPORTED_TEXT_CLASSES: &[&str] = &[
     "richedit50w",
     "richeditd2dpt",
     "richeditd2dptx",
-    // Browser renderers, where the document lives.
-    "chrome_widgetwin_1",
-    "mozillawindowclass",
 ];
+
+/// The prefixes of the browser renderers, where the document lives.
+///
+/// Chromium gives the **focused child** the class
+/// `Chrome_RenderWidgetHostHWND` —the widget that hosts the rendered page—,
+/// and the top level window the class `Chrome_WidgetWin_1`. The focused
+/// child is the one that has to be checked, so the family is matched by
+/// prefix instead of by an exact name.
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+const BROWSER_RENDERER_PREFIXES: &[&str] = &["chrome_", "mozillawindowclass", "webkit"];
 
 /// Whether the class name is one of the verified text controls.
 ///
@@ -327,25 +334,41 @@ const SUPPORTED_TEXT_CLASSES: &[&str] = &[
 #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
 pub(crate) fn is_supported_text_class(class: &str) -> bool {
     let class = class.trim().to_ascii_lowercase();
-    SUPPORTED_TEXT_CLASSES.contains(&class.as_str())
+    is_native_text_class(&class) || is_browser_renderer_class(&class)
 }
 
-/// The clipboard formats that Dixi is able to save and restore exactly.
-///
-/// Everything else — an image, files, HTML, RTF — would be lost when the
-/// clipboard is emptied, so the operation is refused before that happens.
+/// Whether the class is a native text control, the only kind that answers
+/// with its own text.
 #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
-pub(crate) const RESTORABLE_CLIPBOARD_FORMATS: &[u32] = &[1, 13, 16];
+pub(crate) fn is_native_text_class(class: &str) -> bool {
+    let class = class.trim().to_ascii_lowercase();
+    NATIVE_TEXT_CLASSES.contains(&class.as_str())
+}
 
-/// Whether the clipboard holds only formats that can be restored exactly.
-///
-/// The helper takes the list of formats so that the tests can reach it
-/// without a desktop session.
+/// Whether the class belongs to a browser renderer.
 #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
-pub(crate) fn clipboard_is_restorable(formats: &[u32]) -> bool {
-    formats
+pub(crate) fn is_browser_renderer_class(class: &str) -> bool {
+    let class = class.trim().to_ascii_lowercase();
+    BROWSER_RENDERER_PREFIXES
         .iter()
-        .all(|format| RESTORABLE_CLIPBOARD_FORMATS.contains(format))
+        .any(|prefix| class.starts_with(prefix))
+}
+
+/// Whether a clipboard format can be saved and put back exactly.
+///
+/// A format can be restored exactly when its content lives in movable
+/// memory: the bytes are copied and written back as they were. That covers
+/// the text, the locale, the HTML and the RTF, and the list of copied
+/// files. What does **not** fit is a format whose content is a handle that
+/// only Windows knows how to interpret —a bitmap, a metafile, a palette—:
+/// those are refused, and the operation is cancelled before anything is
+/// modified.
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+pub(crate) fn clipboard_format_is_restorable(format: u32, is_memory: bool) -> bool {
+    // `CF_BITMAP` (2), `CF_METAFILEPICT` (3), `CF_PALETTE` (9) and
+    // `CF_ENHMETAFILE` (14) hold handles that cannot be copied as bytes.
+    const HANDLE_FORMATS: &[u32] = &[2, 3, 9, 14];
+    !HANDLE_FORMATS.contains(&format) && is_memory
 }
 
 /// The checks that have to pass before anything is written.
@@ -372,9 +395,32 @@ pub(crate) fn verify_destination(
     Ok(())
 }
 
+/// Whether the window of a selection still exists.
+///
+/// A window that was closed cannot be written to, so the operation is
+/// cancelled instead of writing somewhere else.
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+pub(crate) fn window_is_alive(window: isize) -> bool {
+    #[cfg(target_os = "windows")]
+    {
+        use windows::Win32::Foundation::HWND;
+        use windows::Win32::UI::WindowsAndMessaging::IsWindow;
+
+        // SAFETY: the call only asks whether the handle is a window that
+        // still exists; it does not use it.
+        unsafe { IsWindow(Some(HWND(window as *mut std::ffi::c_void))).as_bool() }
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = window;
+        false
+    }
+}
+
 #[cfg(target_os = "windows")]
 mod platform {
     use std::mem::size_of;
+    use std::sync::Mutex;
     use std::time::{Duration, Instant};
 
     use windows::core::PWSTR;
@@ -388,20 +434,21 @@ mod platform {
     use windows::Win32::System::Memory::{
         GlobalAlloc, GlobalLock, GlobalSize, GlobalUnlock, GMEM_MOVEABLE,
     };
-    use windows::Win32::System::Ole::{CF_LOCALE, CF_TEXT, CF_UNICODETEXT};
+    use windows::Win32::System::Ole::{CF_TEXT, CF_UNICODETEXT};
     use windows::Win32::System::Threading::{
         OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_FORMAT,
         PROCESS_QUERY_LIMITED_INFORMATION,
     };
     use windows::Win32::UI::WindowsAndMessaging::{
         GetClassNameW, GetForegroundWindow, GetGUIThreadInfo, GetWindowLongPtrW,
-        GetWindowThreadProcessId, IsIconic, IsWindow, SendMessageW, SetForegroundWindow,
-        ShowWindow, GUITHREADINFO, GWL_STYLE, SW_RESTORE,
+        GetWindowThreadProcessId, IsIconic, SendMessageW, SetForegroundWindow, ShowWindow,
+        GUITHREADINFO, GWL_STYLE, SW_RESTORE,
     };
 
     use super::{
-        clipboard_is_restorable, is_password_control, is_supported_text_class, verify_destination,
-        Selection, SelectionContext, SelectionError,
+        clipboard_format_is_restorable, is_native_text_class, is_password_control,
+        is_supported_text_class, verify_destination, window_is_alive, Selection, SelectionContext,
+        SelectionError,
     };
 
     // `SendInput` lives in the `Win32_UI_Input_KeyboardAndMouse` feature of
@@ -480,6 +527,15 @@ mod platform {
     /// How long the copy waits for the focused application to answer the
     /// `Ctrl+C` chord.
     const COPY_TIMEOUT: Duration = Duration::from_millis(750);
+    /// The clipboard can only be used by one thing at a time.
+    ///
+    /// Reading a selection empties the clipboard, asks for a copy and puts
+    /// the clipboard back. If two of those sequences overlapped —the global
+    /// shortcut and a command from the interface, say— one of them would
+    /// save an already emptied clipboard and the user would end up with an
+    /// empty one. The lock makes the sequences one after the other.
+    static CLIPBOARD_LOCK: Mutex<()> = Mutex::new(());
+
     /// How long the paste waits before the clipboard is restored, so that the
     /// focused application has read the text it is going to paste.
     ///
@@ -502,17 +558,10 @@ mod platform {
     enum SavedClipboard {
         /// The clipboard was empty.
         Empty,
-        /// The clipboard held text. Every format it held is saved, so it can
-        /// be put back exactly as it was: the same text in the same formats,
-        /// with the same locale.
-        Text {
-            /// The text in `CF_UNICODETEXT`.
-            unicode: Option<String>,
-            /// The raw bytes of `CF_TEXT`, terminator included.
-            ansi: Option<Vec<u8>>,
-            /// The locale of `CF_LOCALE`.
-            locale: Option<u32>,
-        },
+        /// The clipboard held content, and every format of it was saved with
+        /// its exact bytes: the format identifier and the content. The
+        /// content is put back exactly as it was.
+        Formats(Vec<(u32, Vec<u8>)>),
     }
 
     /// Restores the captured clipboard content when it goes out of scope.
@@ -795,46 +844,17 @@ mod platform {
         Ok(())
     }
 
-    /// Writes the locale to the clipboard. The clipboard must already be
-    /// open and empty.
-    unsafe fn set_clipboard_locale(value: u32) -> Result<(), SelectionError> {
-        let global = GlobalAlloc(GMEM_MOVEABLE, 4).map_err(|error| {
-            SelectionError::Clipboard(format!("could not allocate the clipboard: {error}"))
-        })?;
-
-        let pointer = GlobalLock(global) as *mut u32;
-        if pointer.is_null() {
-            let _ = GlobalFree(Some(global));
-            return Err(SelectionError::Clipboard(
-                "could not lock the clipboard memory".to_string(),
-            ));
-        }
-        // SAFETY: the pointer is the locked buffer of a `CF_LOCALE` value.
-        unsafe {
-            *pointer = value;
-        }
-        let _ = GlobalUnlock(global);
-
-        if SetClipboardData(CF_LOCALE.0 as u32, Some(HANDLE(global.0))).is_err() {
-            let _ = GlobalFree(Some(global));
-            return Err(SelectionError::Clipboard(
-                "could not set the clipboard locale".to_string(),
-            ));
-        }
-        Ok(())
-    }
-
     /// Checks that the clipboard can be used without damaging it.
     ///
-    /// The clipboard is only used when it holds text, because that is the
-    /// only thing Dixi is able to put back exactly. A clipboard with an
-    /// image, with copied files, with HTML or with RTF is refused here,
-    /// before anything is modified.
+    /// The clipboard is only used when everything it holds can be put back
+    /// exactly. A clipboard with an image, a metafile or a palette is
+    /// refused here, before anything is modified.
     unsafe fn ensure_clipboard_is_usable() -> Result<(), SelectionError> {
-        let _clipboard = Clipboard::open()?;
-        if !clipboard_is_restorable(&clipboard_formats()) {
-            return Err(SelectionError::ClipboardNotPreservable);
-        }
+        // Only one sequence at a time may touch the clipboard.
+        let _lock = CLIPBOARD_LOCK.lock().map_err(|_| {
+            SelectionError::Clipboard("the clipboard lock is poisoned".to_string())
+        })?;
+        let _ = snapshot_clipboard()?;
         Ok(())
     }
 
@@ -857,7 +877,8 @@ mod platform {
 
     /// The raw bytes of a clipboard format, when it is available.
     ///
-    /// The clipboard has to be open.
+    /// The clipboard has to be open. `None` means the content is not in
+    /// memory that can be copied, so it cannot be put back.
     unsafe fn read_clipboard_bytes(format: u32) -> Option<Vec<u8>> {
         let Ok(handle) = GetClipboardData(format) else {
             return None;
@@ -871,82 +892,77 @@ mod platform {
         let size = GlobalSize(global);
         // SAFETY: the pointer is the locked buffer and the size is the size
         // of that buffer, so the slice stays inside it.
-        let bytes = unsafe { std::slice::from_raw_parts(pointer, size) }.to_vec();
+        let mut bytes = unsafe { std::slice::from_raw_parts(pointer, size) }.to_vec();
         let _ = GlobalUnlock(global);
+
+        // `CF_TEXT` is a string terminated with a null, and the allocation
+        // can be bigger than the string: the bytes after the terminator are
+        // padding and are not part of the content.
+        if format == CF_TEXT.0 as u32 {
+            if let Some(end) = bytes.iter().position(|byte| *byte == 0) {
+                bytes.truncate(end + 1);
+            }
+        }
+
         Some(bytes)
     }
 
-    /// The locale of the clipboard, when it has one.
+    /// Reads the current clipboard content, format by format.
     ///
-    /// The clipboard has to be open.
-    unsafe fn read_clipboard_locale() -> Option<u32> {
-        let Ok(handle) = GetClipboardData(CF_LOCALE.0 as u32) else {
-            return None;
-        };
-
-        let global = HGLOBAL(handle.0);
-        let pointer = GlobalLock(global) as *const u32;
-        if pointer.is_null() {
-            return None;
-        }
-        // SAFETY: the pointer is the locked buffer of a `CF_LOCALE` value,
-        // which is a single locale identifier.
-        let value = unsafe { *pointer };
-        let _ = GlobalUnlock(global);
-        Some(value)
-    }
-
-    /// Reads the current clipboard content, if it is text.
+    /// Every format whose content lives in movable memory is saved **with
+    /// its exact bytes**: the text, the locale, the HTML, the RTF, the list
+    /// of copied files. That is what makes the restore faithful, and it is
+    /// why a user who copied a paragraph from a web page does not lose it
+    /// because Dixi read a selection.
     ///
-    /// A clipboard that holds something else — an image, copied files, HTML,
-    /// RTF — is refused here, **before** anything is modified: emptying the
-    /// clipboard would destroy that content, and a faithful restore of it
-    /// would need the OLE clipboard object, which is out of the reach of
-    /// this module. Refusing is the only way to promise that the clipboard
-    /// of the user is never damaged.
+    /// A format whose content is a handle that only Windows can interpret —
+    /// a bitmap, a metafile, a palette— is refused here, **before** anything
+    /// is modified: emptying the clipboard would destroy it and it could
+    /// not be put back.
     unsafe fn snapshot_clipboard() -> Result<SavedClipboard, SelectionError> {
         let _clipboard = Clipboard::open()?;
 
-        let formats = clipboard_formats();
-        if !clipboard_is_restorable(&formats) {
-            return Err(SelectionError::ClipboardNotPreservable);
+        let mut formats = Vec::new();
+        for format in clipboard_formats() {
+            let Some(bytes) = read_clipboard_bytes(format) else {
+                // The format is there but its content is not in memory that
+                // can be copied: the operation is refused.
+                return Err(SelectionError::ClipboardNotPreservable);
+            };
+            if !clipboard_format_is_restorable(format, true) {
+                return Err(SelectionError::ClipboardNotPreservable);
+            }
+            formats.push((format, bytes));
         }
 
-        let unicode = read_clipboard_text()?;
-        let ansi = read_clipboard_bytes(CF_TEXT.0 as u32);
-        let locale = read_clipboard_locale();
-
-        if unicode.is_none() && ansi.is_none() && locale.is_none() {
+        if formats.is_empty() {
             return Ok(SavedClipboard::Empty);
         }
-        Ok(SavedClipboard::Text {
-            unicode,
-            ansi,
-            locale,
-        })
+        Ok(SavedClipboard::Formats(formats))
     }
 
     /// Puts the captured clipboard content back.
+    ///
+    /// A failure to restore is not silent: it is written to the log, because
+    /// losing the clipboard of the user is exactly the thing this module
+    /// promises not to do.
     unsafe fn restore_clipboard(saved: &SavedClipboard) {
         let Ok(_clipboard) = Clipboard::open() else {
+            log::warn!(
+                "The clipboard could not be opened to restore it: the content of the user may be lost"
+            );
             return;
         };
         let _ = EmptyClipboard();
         match saved {
             SavedClipboard::Empty => {}
-            SavedClipboard::Text {
-                unicode,
-                ansi,
-                locale,
-            } => {
-                if let Some(text) = unicode {
-                    let _ = set_clipboard_text(text);
-                }
-                if let Some(bytes) = ansi {
-                    let _ = set_clipboard_bytes(CF_TEXT.0 as u32, &bytes);
-                }
-                if let Some(value) = locale {
-                    let _ = set_clipboard_locale(*value);
+            SavedClipboard::Formats(formats) => {
+                for (format, bytes) in formats {
+                    if let Err(error) = set_clipboard_bytes(*format, bytes) {
+                        log::warn!(
+                            "The clipboard format {format} could not be restored: {error:?}"
+                        );
+                    }
                 }
             }
         }
@@ -1001,6 +1017,11 @@ mod platform {
     /// Copies the current selection with `Ctrl+C` and returns the copied
     /// text. The clipboard is left exactly as it was found.
     fn copy_selection() -> Result<String, SelectionError> {
+        // Only one sequence at a time may touch the clipboard.
+        let _lock = CLIPBOARD_LOCK.lock().map_err(|_| {
+            SelectionError::Clipboard("the clipboard lock is poisoned".to_string())
+        })?;
+
         // SAFETY: the clipboard is opened and closed inside the snapshot.
         let saved = unsafe { snapshot_clipboard() }?;
         let _guard = ClipboardGuard { saved };
@@ -1042,7 +1063,17 @@ mod platform {
 
     /// Pastes text over the current selection with `Ctrl+V`. The clipboard
     /// is left exactly as it was found.
-    fn paste_text(text: &str) -> Result<(), SelectionError> {
+    ///
+    /// The wait is not a fixed guess when the control can answer: the
+    /// control's text is watched until it changes, which is the moment the
+    /// application has taken what was pasted. When the control does not
+    /// answer —the browser renderers— a bounded wait is used instead.
+    fn paste_text(text: &str, control: HWND, before: Option<&str>) -> Result<(), SelectionError> {
+        // Only one sequence at a time may touch the clipboard.
+        let _lock = CLIPBOARD_LOCK.lock().map_err(|_| {
+            SelectionError::Clipboard("the clipboard lock is poisoned".to_string())
+        })?;
+
         // SAFETY: the clipboard is opened and closed inside the snapshot.
         let saved = unsafe { snapshot_clipboard() }?;
         let _guard = ClipboardGuard { saved };
@@ -1065,7 +1096,22 @@ mod platform {
         // The focused application reads the clipboard when it handles the
         // paste, so the text is left in place for a moment before the
         // clipboard is restored.
-        std::thread::sleep(PASTE_SETTLE);
+        let deadline = Instant::now() + PASTE_SETTLE;
+        loop {
+            if let Some(before) = before {
+                // SAFETY: the control is the one that holds the focus; it is
+                // only asked for its text.
+                if let Some(after) = unsafe { read_control_text(control) } {
+                    if after != before {
+                        return Ok(());
+                    }
+                }
+            }
+            if Instant::now() >= deadline {
+                break;
+            }
+            std::thread::sleep(POLL_INTERVAL);
+        }
         Ok(())
     }
 
@@ -1105,7 +1151,7 @@ mod platform {
         // SAFETY: the window is only queried, shown and brought to the
         // front. No handle is stored and none is freed.
         unsafe {
-            if !IsWindow(Some(window)).as_bool() {
+            if !window_is_alive(window.0 as isize) {
                 return Err(SelectionError::DestinationGone);
             }
             if IsIconic(window).as_bool() {
@@ -1139,6 +1185,11 @@ mod platform {
         expected_text: &str,
         new_text: &str,
     ) -> Result<(), SelectionError> {
+        // Nothing to write: the result is the text that was already there.
+        if new_text.trim() == expected_text.trim() {
+            return Ok(());
+        }
+
         // The clipboard is checked before anything else: if it holds
         // something that cannot be restored exactly, the operation is
         // refused here, without bringing the application of the user to
@@ -1157,14 +1208,14 @@ mod platform {
             refuse_unsupported_control(control)?;
         }
 
+        // The text of the control before the paste, to be able to tell
+        // afterwards that the application really took the new text.
+        let before = unsafe { read_control_text(control) };
+
         // The selection is read again and compared with the one that was
         // captured: the user may have typed or moved the selection in the
-        // meantime. A selection that can no longer be read is a changed
-        // selection, not a clipboard failure.
-        let current = copy_selection().map_err(|error| match error {
-            SelectionError::NothingSelected => SelectionError::SelectionChanged,
-            other => other,
-        })?;
+        // meantime.
+        let current = copy_selection()?;
 
         verify_destination(
             context.window,
@@ -1175,12 +1226,13 @@ mod platform {
             &current,
         )?;
 
-        paste_text(new_text)?;
+        paste_text(new_text, control, before.as_deref())?;
 
         // The write is checked afterwards: the destination has to hold the
-        // new text, or the selection has to be gone, which is what a paste
-        // leaves behind.
-        if !write_took_effect(control, expected_text, new_text) {
+        // new text, or —in the controls that do not answer with their text,
+        // like the browser renderers— the selection has to be gone, which
+        // is what a paste leaves behind.
+        if !write_took_effect(control, before.as_deref(), expected_text, new_text) {
             return Err(SelectionError::Write(
                 "the application did not take the new text".to_string(),
             ));
@@ -1191,13 +1243,19 @@ mod platform {
 
     /// The whole text of a control, when the control answers with it.
     ///
-    /// The native text controls answer with `WM_GETTEXT`; a browser renderer
-    /// does not, and `None` says so.
+    /// Only the native text controls answer with `WM_GETTEXT`. A browser
+    /// renderer does not, and the `0` it returns cannot be told apart from
+    /// the answer of an empty control, so the decision is made with the
+    /// class of the control.
     unsafe fn read_control_text(control: HWND) -> Option<String> {
         /// The `WM_GETTEXT` message.
         const WM_GETTEXT: u32 = 0x000D;
         /// The `WM_GETTEXTLENGTH` message.
         const WM_GETTEXTLENGTH: u32 = 0x000E;
+
+        if !is_native_text_class(&class_name(control)) {
+            return None;
+        }
 
         // SAFETY: the messages are sent to a control that exists, and the
         // buffer is sized with the length the control reports.
@@ -1224,11 +1282,20 @@ mod platform {
     }
 
     /// Whether the destination took the text that was written.
-    fn write_took_effect(control: HWND, expected_text: &str, new_text: &str) -> bool {
+    fn write_took_effect(
+        control: HWND,
+        before: Option<&str>,
+        expected_text: &str,
+        new_text: &str,
+    ) -> bool {
         // SAFETY: the control is the one that holds the focus; it is only
         // asked for its text.
         if let Some(text) = unsafe { read_control_text(control) } {
-            return text.contains(new_text.trim());
+            // The text has to have changed AND to hold the new text. Looking
+            // for the new text alone would give a false "yes" when it was
+            // already somewhere else in the document.
+            let changed = before.map(|before| before != text).unwrap_or(true);
+            return changed && text.contains(new_text.trim());
         }
 
         // The control does not answer with its text, so the only thing that

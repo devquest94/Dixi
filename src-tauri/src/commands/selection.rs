@@ -71,11 +71,11 @@ pub async fn apply_to_captured_selection(
         .ok_or_else(|| selection::failure(selection::SelectionError::NothingSelected))?;
 
     let expected = context.text.clone();
-    selection::write_to_context(&context, &expected, &new_text).map_err(selection::failure)?;
 
-    // The change is recorded with the place where it was made: without it,
-    // putting the original text back would mean writing it wherever the
-    // focus happens to be.
+    // The change is recorded BEFORE the write, with the place where it is
+    // made: without that place, putting the original text back would mean
+    // writing it wherever the focus happens to be. If the write fails, the
+    // entry is removed, so the history only holds what really happened.
     let entry = history_manager
         .record_with_context(
             HistoryKind::Transform,
@@ -87,5 +87,20 @@ pub async fn apply_to_captured_selection(
         )
         .map_err(|error| selection::failure(selection::SelectionError::Write(error)))?;
 
-    Ok(entry)
+    match selection::write_to_context(&context, &expected, &new_text) {
+        Ok(()) => Ok(entry),
+        Err(error) => {
+            if let Some(id) = entry {
+                let _ = history_manager.remove(id);
+            }
+            // A selection that can no longer be read is a changed
+            // selection: the caller says so and offers to copy.
+            match error {
+                selection::SelectionError::NothingSelected => Err(selection::failure(
+                    selection::SelectionError::SelectionChanged,
+                )),
+                other => Err(selection::failure(other)),
+            }
+        }
+    }
 }

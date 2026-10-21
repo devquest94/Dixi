@@ -84,8 +84,27 @@ fn only_the_verified_text_controls_are_read() {
     assert!(is_supported_text_class("RichEdit20W"));
     assert!(is_supported_text_class("RichEditD2DPT"));
     // The browser renderers, where the document really is.
-    assert!(is_supported_text_class("Chrome_WidgetWin_1"));
     assert!(is_supported_text_class("MozillaWindowClass"));
+}
+
+#[test]
+fn the_focused_child_of_a_chromium_window_is_read() {
+    // Chromium gives the FOCUSED CHILD the class
+    // `Chrome_RenderWidgetHostHWND`; `Chrome_WidgetWin_1` is the top level
+    // window, which is never the focused control. The class was confirmed
+    // in the Chromium binary.
+    assert!(is_supported_text_class("Chrome_RenderWidgetHostHWND"));
+    assert!(is_supported_text_class("Chrome_WidgetWin_1"));
+}
+
+#[test]
+fn the_browser_renderers_are_not_native_text_controls() {
+    // A renderer does not answer with its text, so the checks that read the
+    // text of a control cannot be used with it.
+    assert!(!is_native_text_class("Chrome_RenderWidgetHostHWND"));
+    assert!(!is_native_text_class("Chrome_WidgetWin_1"));
+    assert!(is_native_text_class("Edit"));
+    assert!(is_native_text_class("RichEdit20W"));
 }
 
 #[test]
@@ -113,24 +132,30 @@ fn the_class_is_matched_without_case_and_without_spaces() {
 // --- The clipboard -----------------------------------------------------------
 
 #[test]
-fn a_clipboard_with_only_text_can_be_restored() {
-    // `CF_TEXT`, `CF_UNICODETEXT` and `CF_LOCALE` are the three formats
-    // that Dixi saves and puts back.
-    assert!(clipboard_is_restorable(&[]));
-    assert!(clipboard_is_restorable(&[13]));
-    assert!(clipboard_is_restorable(&[1, 13]));
-    assert!(clipboard_is_restorable(&[1, 13, 16]));
+fn a_format_in_memory_can_be_restored() {
+    // The text, the locale, the HTML, the RTF and the list of copied files
+    // all live in movable memory, so they can be saved and put back with
+    // their exact bytes.
+    assert!(clipboard_format_is_restorable(1, true)); // CF_TEXT
+    assert!(clipboard_format_is_restorable(13, true)); // CF_UNICODETEXT
+    assert!(clipboard_format_is_restorable(16, true)); // CF_LOCALE
+    assert!(clipboard_format_is_restorable(100, true)); // a registered format
 }
 
 #[test]
-fn a_clipboard_with_something_else_is_refused() {
-    // An image, copied files, HTML or RTF would be destroyed by emptying
-    // the clipboard, so the operation has to be refused before that.
-    assert!(!clipboard_is_restorable(&[2]));
-    assert!(!clipboard_is_restorable(&[13, 2]));
-    assert!(!clipboard_is_restorable(&[15]));
-    assert!(!clipboard_is_restorable(&[13, 16, 2]));
-    assert!(!clipboard_is_restorable(&[13, 16, 5]));
+fn a_format_with_a_handle_cannot_be_restored() {
+    // A bitmap, a metafile or a palette hold a handle that only Windows
+    // knows how to interpret: the operation is refused.
+    assert!(!clipboard_format_is_restorable(2, true)); // CF_BITMAP
+    assert!(!clipboard_format_is_restorable(3, true)); // CF_METAFILEPICT
+    assert!(!clipboard_format_is_restorable(9, true)); // CF_PALETTE
+    assert!(!clipboard_format_is_restorable(14, true)); // CF_ENHMETAFILE
+}
+
+#[test]
+fn a_format_that_is_not_in_memory_cannot_be_restored() {
+    assert!(!clipboard_format_is_restorable(13, false));
+    assert!(!clipboard_format_is_restorable(1, false));
 }
 
 // --- The destination ---------------------------------------------------------
@@ -170,6 +195,37 @@ fn a_destination_with_another_text_is_refused() {
         verify_destination(10, 20, "hola", 10, 20, ""),
         Err(SelectionError::SelectionChanged)
     );
+}
+
+#[test]
+fn a_control_of_zero_is_never_the_control_that_was_read() {
+    // The regression that broke "Aceptar": the handle of the focused
+    // control used to arrive as a zero, and a zero is never the control
+    // that was read.
+    assert_eq!(
+        verify_destination(10, 0, "hola", 10, 20, "hola"),
+        Err(SelectionError::SelectionChanged)
+    );
+    assert_eq!(
+        verify_destination(10, 20, "hola", 10, 0, "hola"),
+        Err(SelectionError::SelectionChanged)
+    );
+    // And a capture never produces a context with a control of zero.
+    let context = SelectionContext::new(Selection {
+        text: "hola".to_string(),
+        window: 10,
+        control: 20,
+        app_name: None,
+    });
+    assert_ne!(context.control, 0);
+}
+
+#[test]
+fn a_window_that_is_not_alive_is_detected() {
+    // A window that was closed is not a destination. A handle that was
+    // never a window is not alive either.
+    assert!(!window_is_alive(0));
+    assert!(!window_is_alive(-1));
 }
 
 #[test]

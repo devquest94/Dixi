@@ -30,6 +30,21 @@ use crate::tray;
 
 // Note: Commands are accessed via shortcut::handy_keys:: in lib.rs
 
+/// Whether a binding can be registered in this system.
+///
+/// The capture of the selection of another application only exists on
+/// Windows: on the other platforms there is nothing to capture, so its
+/// shortcut is not registered. A global shortcut that does nothing would
+/// swallow the keys and make them useless everywhere else.
+///
+/// The decision lives here so that every route that registers a shortcut
+/// takes it into account: the two implementations, the re-registration
+/// after a recording, and the re-registration when the implementation
+/// changes.
+pub fn binding_is_available(id: &str) -> bool {
+    !(id == "capture_selection" && cfg!(not(target_os = "windows")))
+}
+
 /// Initialize shortcuts using the configured implementation
 pub fn init_shortcuts(app: &AppHandle) {
     let user_settings = settings::load_or_create_app_settings(app);
@@ -305,6 +320,9 @@ pub fn resume_all_shortcuts(app: &AppHandle) {
         if id == "cancel" {
             continue;
         }
+        if !binding_is_available(id) {
+            continue;
+        }
         if id == "transcribe_with_post_process" && !settings.post_process_enabled {
             continue;
         }
@@ -493,6 +511,11 @@ fn register_all_shortcuts_for_implementation(
     for (id, default_binding) in &default_bindings {
         // Skip cancel shortcut as it's dynamically registered
         if id == "cancel" {
+            continue;
+        }
+
+        // The shortcuts that do not exist in this system.
+        if !binding_is_available(id) {
             continue;
         }
 

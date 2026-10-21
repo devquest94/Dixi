@@ -25,10 +25,8 @@ pub fn init_shortcuts(app: &AppHandle) {
         if id == "transcribe_with_post_process" && !user_settings.post_process_enabled {
             continue;
         }
-        // The capture of a selection in another application only exists on
-        // Windows: on the other platforms there is nothing to capture, so
-        // the shortcut is not registered and does not swallow the keys.
-        if id == "capture_selection" && cfg!(not(target_os = "windows")) {
+        // The shortcuts that do not exist in this system.
+        if !super::binding_is_available(&id) {
             continue;
         }
         let binding = user_settings

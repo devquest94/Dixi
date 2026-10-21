@@ -237,6 +237,19 @@ impl TextHistoryManager {
         Ok(Some(id))
     }
 
+    /// Removes a change from the history.
+    ///
+    /// It is used when a change was recorded but never happened: the entry
+    /// would be a lie, and the user would see a change that cannot be
+    /// undone because there is nothing to undo.
+    pub fn remove(&self, id: i64) -> Result<(), String> {
+        let conn = self.connection()?;
+        conn.execute("DELETE FROM text_history WHERE id = ?1", params![id])
+            .map_err(|e| format!("Failed to remove the text history entry: {e}"))?;
+        self.reload()?;
+        Ok(())
+    }
+
     /// The history, newest first.
     pub fn list(&self, limit: usize) -> Vec<TextHistoryEntry> {
         self.entries
@@ -265,8 +278,7 @@ impl TextHistoryManager {
     ///
     /// The entry is kept so the user can still see what happened; it is just
     /// not offered as undoable again.
-    pub fn mark_undone(&self, id: i64) -> Result<(), String> {
-        let conn = self.connection()?;
+    pub fn mark_undone(&self, id: i64) -> Result<(), String> {        let conn = self.connection()?;
         let changed = conn
             .execute(
                 "UPDATE text_history SET undone = 1 WHERE id = ?1",
@@ -406,8 +418,7 @@ mod tests {
     }
 
     #[test]
-    fn a_change_without_a_place_cannot_be_reverted() {
-        let (_dir, manager) = manager();
+    fn a_change_without_a_place_cannot_be_reverted() {        let (_dir, manager) = manager();
         let id = manager
             .record(
                 HistoryKind::Cleanup,
@@ -508,6 +519,24 @@ mod tests {
 
         assert!(manager.last_undoable().is_none());
         assert!(manager.get(id).expect("the entry is still there").undone);
+    }
+
+    #[test]
+    fn a_change_that_never_happened_is_removed() {
+        // El cambio se registra antes de escribir, para que el deshacer
+        // exista aunque la escritura falle. Si la escritura falla, la
+        // entrada se borra: el historial solo guarda lo que de verdad pasó.
+        let (_dir, manager) = manager();
+        let id = manager
+            .record(HistoryKind::Transform, None, None, "a", "b")
+            .expect("recorded")
+            .expect("an id");
+        assert!(manager.get(id).is_some());
+
+        manager.remove(id).expect("removed");
+
+        assert!(manager.get(id).is_none());
+        assert!(manager.list(50).is_empty());
     }
 
     #[test]

@@ -93,6 +93,11 @@ pub async fn revert_text_history_entry(
         Err(selection::SelectionError::SelectionChanged) => {
             Err(selection::failure(selection::SelectionError::SelectionChanged))
         }
+        // There is nothing selected in the application: the user has to
+        // select the text that Dixi wrote before it can be put back.
+        Err(selection::SelectionError::NothingSelected) => {
+            Err(selection::failure(selection::SelectionError::NothingSelected))
+        }
         Err(error) => Err(selection::failure(error)),
     }
 }
