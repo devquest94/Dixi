@@ -958,7 +958,12 @@
         "nothingCaptured": "Noch kein Text erfasst.",
         "acceptNeedsCapture": "Erfassen Sie eine Auswahl, bevor Sie übernehmen.",
         "captureInvalidated": "Der Text wurde geändert, damit passt die erfasste Auswahl nicht mehr. Erfassen Sie die Auswahl erneut.",
-        "shortcutNotRegistered": "Die Tastenkombination {{shortcut}} konnte nicht registriert werden: Eine andere Anwendung belegt sie bereits. Ändern Sie sie unter Tastenkürzel."
+        "shortcutNotRegistered": "Die Tastenkombination {{shortcut}} konnte nicht registriert werden. Ändern Sie sie unter Tastenkürzel.",
+        "shortcutConflict": "Die Tastenkombination {{shortcut}} konnte nicht registriert werden: Eine andere Anwendung hat diese Kombination bereits. Ändern Sie sie unter Tastenkürzel.",
+        "shortcutDuplicate": "Die Tastenkombination {{shortcut}} konnte nicht registriert werden: Dixi hatte diese Kombination bereits registriert. Starten Sie Dixi neu, oder ändern Sie sie unter Tastenkürzel.",
+        "shortcutInvalidCombination": "Die Tastenkombination {{shortcut}} ist keine gültige Kombination. Ändern Sie sie unter Tastenkürzel.",
+        "shortcutNotInitialized": "Die Tastenkombination {{shortcut}} konnte nicht registriert werden: Die Tastenverwaltung war nicht bereit. Starten Sie Dixi neu.",
+        "shortcutBackendUnavailable": "Die Tastenkombination {{shortcut}} konnte nicht registriert werden: Die Tastenverwaltung hat nicht geantwortet. Starten Sie Dixi neu."
       },
       "diff": {
         "title": "Änderungen",

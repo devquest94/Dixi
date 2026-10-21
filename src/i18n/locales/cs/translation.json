@@ -958,7 +958,12 @@
         "nothingCaptured": "Zatím nebyl zachycen žádný text.",
         "acceptNeedsCapture": "Nejprve zachytněte výběr, teprve poté přijměte.",
         "captureInvalidated": "Text se změnil, takže zachycený výběr už neplatí. Zachyťte výběr znovu.",
-        "shortcutNotRegistered": "Zkratku {{shortcut}} se nepodařilo zaregistrovat: už ji má jiná aplikace. Změňte ji v klávesových zkratkách."
+        "shortcutNotRegistered": "Zkratku {{shortcut}} se nepodařilo zaregistrovat. Změňte ji v klávesových zkratkách.",
+        "shortcutConflict": "Zkratku {{shortcut}} se nepodařilo zaregistrovat: tuto kombinaci už má jiná aplikace. Změňte ji v klávesových zkratkách.",
+        "shortcutDuplicate": "Zkratku {{shortcut}} se nepodařilo zaregistrovat: Dixi už měl tuto kombinaci zaregistrovanou. Restartujte Dixi, nebo ji změňte v klávesových zkratkách.",
+        "shortcutInvalidCombination": "Zkratka {{shortcut}} není platná kombinace. Změňte ji v klávesových zkratkách.",
+        "shortcutNotInitialized": "Zkratku {{shortcut}} se nepodařilo zaregistrovat: motor zkratek nebyl připraven. Restartujte Dixi.",
+        "shortcutBackendUnavailable": "Zkratku {{shortcut}} se nepodařilo zaregistrovat: motor zkratek neodpověděl. Restartujte Dixi."
       },
       "diff": {
         "title": "Změny",

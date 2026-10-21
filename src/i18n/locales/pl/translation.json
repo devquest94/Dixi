@@ -958,7 +958,12 @@
         "nothingCaptured": "Nie przechwycono jeszcze żadnego tekstu.",
         "acceptNeedsCapture": "Przechwyć zaznaczenie przed zaakceptowaniem.",
         "captureInvalidated": "Tekst się zmienił, więc przechwycone zaznaczenie już nie pasuje. Przechwyć zaznaczenie ponownie.",
-        "shortcutNotRegistered": "Nie udało się zarejestrować skrótu {{shortcut}}: jest już zajęty przez inną aplikację. Zmień go w skrótach klawiaturowych."
+        "shortcutNotRegistered": "Nie udało się zarejestrować skrótu {{shortcut}}. Zmień go w skrótach klawiaturowych.",
+        "shortcutConflict": "Nie udało się zarejestrować skrótu {{shortcut}}: inną aplikacja ma już tę kombinację. Zmień go w skrótach klawiaturowych.",
+        "shortcutDuplicate": "Nie udało się zarejestrować skrótu {{shortcut}}: Dixi miał już zarejestrowaną tę kombinację. Uruchom ponownie Dixi albo zmień skrót w skrótach klawiaturowych.",
+        "shortcutInvalidCombination": "Skrót {{shortcut}} nie jest prawidłową kombinacją. Zmień go w skrótach klawiaturowych.",
+        "shortcutNotInitialized": "Nie udało się zarejestrować skrótu {{shortcut}}: silnik skrótów nie był gotowy. Uruchom ponownie Dixi.",
+        "shortcutBackendUnavailable": "Nie udało się zarejestrować skrótu {{shortcut}}: silnik skrótów nie odpowiedział. Uruchom ponownie Dixi."
       },
       "diff": {
         "title": "Zmiany",

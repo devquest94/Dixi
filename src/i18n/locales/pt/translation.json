@@ -958,7 +958,12 @@
         "nothingCaptured": "Nenhum texto capturado ainda.",
         "acceptNeedsCapture": "Capture uma seleção antes de aceitar.",
         "captureInvalidated": "O texto mudou, então a seleção capturada não vale mais. Capture a seleção de novo.",
-        "shortcutNotRegistered": "Não foi possível registrar o atalho {{shortcut}}: outro aplicativo já o usa. Altere-o nos atalhos de teclado."
+        "shortcutNotRegistered": "Não foi possível registrar o atalho {{shortcut}}. Altere-o nos atalhos de teclado.",
+        "shortcutConflict": "Não foi possível registrar o atalho {{shortcut}}: outro aplicativo já tem essa combinação. Altere-o nos atalhos de teclado.",
+        "shortcutDuplicate": "Não foi possível registrar o atalho {{shortcut}}: o Dixi já tinha essa combinação registrada. Reinicie o Dixi, ou altere-o nos atalhos de teclado.",
+        "shortcutInvalidCombination": "O atalho {{shortcut}} não é uma combinação válida. Altere-o nos atalhos de teclado.",
+        "shortcutNotInitialized": "Não foi possível registrar o atalho {{shortcut}}: o motor de atalhos não estava pronto. Reinicie o Dixi.",
+        "shortcutBackendUnavailable": "Não foi possível registrar o atalho {{shortcut}}: o motor de atalhos não respondeu. Reinicie o Dixi."
       },
       "diff": {
         "title": "Alterações",

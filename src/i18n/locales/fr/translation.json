@@ -958,7 +958,12 @@
         "nothingCaptured": "Aucun texte capturé pour le moment.",
         "acceptNeedsCapture": "Capturez une sélection avant d'accepter.",
         "captureInvalidated": "Le texte a changé, la sélection capturée ne correspond donc plus. Capturez à nouveau la sélection.",
-        "shortcutNotRegistered": "Le raccourci {{shortcut}} n'a pas pu être enregistré : une autre application l'a déjà. Modifiez-le dans les raccourcis clavier."
+        "shortcutNotRegistered": "Le raccourci {{shortcut}} n'a pas pu être enregistré. Modifiez-le dans les raccourcis clavier.",
+        "shortcutConflict": "Le raccourci {{shortcut}} n'a pas pu être enregistré : une autre application a déjà cette combinaison. Modifiez-le dans les raccourcis clavier.",
+        "shortcutDuplicate": "Le raccourci {{shortcut}} n'a pas pu être enregistré : Dixi avait déjà cette combinaison enregistrée. Redémarrez Dixi, ou modifiez-le dans les raccourcis clavier.",
+        "shortcutInvalidCombination": "Le raccourci {{shortcut}} n'est pas une combinaison valide. Modifiez-le dans les raccourcis clavier.",
+        "shortcutNotInitialized": "Le raccourci {{shortcut}} n'a pas pu être enregistré : le moteur de raccourcis n'était pas prêt. Redémarrez Dixi.",
+        "shortcutBackendUnavailable": "Le raccourci {{shortcut}} n'a pas pu être enregistré : le moteur de raccourcis n'a pas répondu. Redémarrez Dixi."
       },
       "diff": {
         "title": "Modifications",

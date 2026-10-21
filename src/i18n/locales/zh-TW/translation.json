@@ -958,7 +958,12 @@
         "nothingCaptured": "尚未擷取任何文字。",
         "acceptNeedsCapture": "請先擷取選取範圍，再接受。",
         "captureInvalidated": "文字已變更，因此擷取的選取範圍不再適用。請重新擷取選取範圍。",
-        "shortcutNotRegistered": "快捷鍵 {{shortcut}} 無法登錄：另一個應用程式已占用該快捷鍵。請在鍵盤快捷鍵中變更。"
+        "shortcutNotRegistered": "快捷鍵 {{shortcut}} 無法登錄。請在鍵盤快捷鍵中變更。",
+        "shortcutConflict": "快捷鍵 {{shortcut}} 無法登錄：另一個應用程式已占用該組合。請在鍵盤快捷鍵中變更。",
+        "shortcutDuplicate": "快捷鍵 {{shortcut}} 無法登錄：Dixi 已經登錄過該組合。請重新啟動 Dixi，或在鍵盤快捷鍵中變更。",
+        "shortcutInvalidCombination": "快捷鍵 {{shortcut}} 不是有效的組合。請在鍵盤快捷鍵中變更。",
+        "shortcutNotInitialized": "快捷鍵 {{shortcut}} 無法登錄：快捷鍵引擎尚未就緒。請重新啟動 Dixi。",
+        "shortcutBackendUnavailable": "快捷鍵 {{shortcut}} 無法登錄：快捷鍵引擎沒有回應。請重新啟動 Dixi。"
       },
       "diff": {
         "title": "變更",

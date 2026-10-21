@@ -958,7 +958,12 @@
         "nothingCaptured": "まだテキストを取得していません。",
         "acceptNeedsCapture": "採用する前に選択内容を取得してください。",
         "captureInvalidated": "テキストが変更されたため、取得した選択内容は使えなくなりました。選択内容をもう一度取得してください。",
-        "shortcutNotRegistered": "ショートカット {{shortcut}} を登録できませんでした。別のアプリが既に使っています。キーボードショートカットで変更してください。"
+        "shortcutNotRegistered": "ショートカット {{shortcut}} を登録できませんでした。キーボードショートカットで変更してください。",
+        "shortcutConflict": "ショートカット {{shortcut}} を登録できませんでした：同じ組み合わせを他のアプリケーションが既に使っています。キーボードショートカットで変更してください。",
+        "shortcutDuplicate": "ショートカット {{shortcut}} を登録できませんでした：Dixi が同じ組み合わせをすでに登録しています。Dixi を再起動するか、キーボードショートカットで変更してください。",
+        "shortcutInvalidCombination": "ショートカット {{shortcut}} は有効な組み合わせではありません。キーボードショートカットで変更してください。",
+        "shortcutNotInitialized": "ショートカット {{shortcut}} を登録できませんでした：ショートカットエンジンが準備できていませんでした。Dixi を再起動してください。",
+        "shortcutBackendUnavailable": "ショートカット {{shortcut}} を登録できませんでした：ショートカットエンジンが応答しませんでした。Dixi を再起動してください。"
       },
       "diff": {
         "title": "変更点",

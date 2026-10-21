@@ -958,7 +958,12 @@
         "nothingCaptured": "Henüz metin yakalanmadı.",
         "acceptNeedsCapture": "Kabul etmeden önce bir seçimi yakalayın.",
         "captureInvalidated": "Metin değiştiği için yakalanan seçim artık geçerli değil. Seçimi yeniden yakalayın.",
-        "shortcutNotRegistered": "{{shortcut}} kısayolu kaydedilemedi: başka bir uygulama zaten kullanıyor. Onu klavye kısayollarından değiştirin."
+        "shortcutNotRegistered": "{{shortcut}} kısayolu kaydedilemedi. Klavye kısayollarından değiştirin.",
+        "shortcutConflict": "{{shortcut}} kısayolu kaydedilemedi: bu kombinasyona sahip başka bir uygulama var. Klavye kısayollarından değiştirin.",
+        "shortcutDuplicate": "{{shortcut}} kısayolu kaydedilemedi: Dixi bu kombinasyonu zaten kaydetmişti. Dixi'yi yeniden başlatın ya da klavye kısayollarından değiştirin.",
+        "shortcutInvalidCombination": "{{shortcut}} geçerli bir kombinasyon değil. Klavye kısayollarından değiştirin.",
+        "shortcutNotInitialized": "{{shortcut}} kısayolu kaydedilemedi: kısayol motoru hazır değildi. Dixi'yi yeniden başlatın.",
+        "shortcutBackendUnavailable": "{{shortcut}} kısayolu kaydedilemedi: kısayol motoru yanıt vermedi. Dixi'yi yeniden başlatın."
       },
       "diff": {
         "title": "Değişiklikler",

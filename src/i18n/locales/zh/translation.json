@@ -958,7 +958,12 @@
         "nothingCaptured": "尚未捕获任何文本。",
         "acceptNeedsCapture": "请先捕获选区，再接受。",
         "captureInvalidated": "文本已更改，因此捕获的选区不再适用。请重新捕获选区。",
-        "shortcutNotRegistered": "快捷键 {{shortcut}} 无法注册：另一个应用已经占用该快捷键。请在键盘快捷键中更改。"
+        "shortcutNotRegistered": "快捷键 {{shortcut}} 无法注册。请在键盘快捷键中更改。",
+        "shortcutConflict": "快捷键 {{shortcut}} 无法注册：另一个应用已经占用该组合。请在键盘快捷键中更改。",
+        "shortcutDuplicate": "快捷键 {{shortcut}} 无法注册：Dixi 已经注册过该组合。请重新启动 Dixi，或在键盘快捷键中更改。",
+        "shortcutInvalidCombination": "快捷键 {{shortcut}} 不是有效的组合。请在键盘快捷键中更改。",
+        "shortcutNotInitialized": "快捷键 {{shortcut}} 无法注册：快捷键引擎尚未就绪。请重新启动 Dixi。",
+        "shortcutBackendUnavailable": "快捷键 {{shortcut}} 无法注册：快捷键引擎没有响应。请重新启动 Dixi。"
       },
       "diff": {
         "title": "更改",

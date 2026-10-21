@@ -958,7 +958,12 @@
         "nothingCaptured": "Belum ada teks yang ditangkap.",
         "acceptNeedsCapture": "Tangkap pilihan sebelum menerima.",
         "captureInvalidated": "Teksnya berubah, jadi pilihan yang ditangkap tidak lagi berlaku. Tangkap pilihannya lagi.",
-        "shortcutNotRegistered": "Pintasan {{shortcut}} tidak bisa didaftarkan: aplikasi lain sudah memakainya. Ubah di pintasan papan ketik."
+        "shortcutNotRegistered": "Pintasan {{shortcut}} tidak bisa didaftarkan. Ubah di pintasan papan ketik.",
+        "shortcutConflict": "Pintasan {{shortcut}} tidak bisa didaftarkan: aplikasi lain sudah punya kombinasi itu. Ubah di pintasan papan ketik.",
+        "shortcutDuplicate": "Pintasan {{shortcut}} tidak bisa didaftarkan: Dixi sudah punya kombinasi itu terdaftar. Mulai ulang Dixi, atau ubah di pintasan papan ketik.",
+        "shortcutInvalidCombination": "Pintasan {{shortcut}} bukan kombinasi yang valid. Ubah di pintasan papan ketik.",
+        "shortcutNotInitialized": "Pintasan {{shortcut}} tidak bisa didaftarkan: mesin pintasan belum siap. Mulai ulang Dixi.",
+        "shortcutBackendUnavailable": "Pintasan {{shortcut}} tidak bisa didaftarkan: mesin pintasan tidak menjawab. Mulai ulang Dixi."
       },
       "diff": {
         "title": "Perubahan",

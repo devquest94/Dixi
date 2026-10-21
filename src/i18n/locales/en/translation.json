@@ -958,7 +958,12 @@
         "nothingCaptured": "No text captured yet.",
         "acceptNeedsCapture": "Capture a selection before accepting.",
         "captureInvalidated": "The text was changed, so the captured selection no longer applies. Capture the selection again.",
-        "shortcutNotRegistered": "The shortcut {{shortcut}} could not be registered: another application already has it. Change it in the keyboard shortcuts."
+        "shortcutNotRegistered": "The shortcut {{shortcut}} could not be registered. Change it in the keyboard shortcuts.",
+        "shortcutConflict": "The shortcut {{shortcut}} could not be registered: another application already has that combination. Change it in the keyboard shortcuts.",
+        "shortcutDuplicate": "The shortcut {{shortcut}} could not be registered: Dixi already had that combination registered. Restart Dixi, or change it in the keyboard shortcuts.",
+        "shortcutInvalidCombination": "The shortcut {{shortcut}} is not a valid combination. Change it in the keyboard shortcuts.",
+        "shortcutNotInitialized": "The shortcut {{shortcut}} could not be registered: the shortcut engine was not ready. Restart Dixi.",
+        "shortcutBackendUnavailable": "The shortcut {{shortcut}} could not be registered: the shortcut engine did not answer. Restart Dixi."
       },
       "diff": {
         "title": "Changes",

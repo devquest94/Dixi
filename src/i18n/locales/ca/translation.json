@@ -958,7 +958,12 @@
         "nothingCaptured": "Encara no s'ha capturat cap text.",
         "acceptNeedsCapture": "Captureu una selecció abans d'acceptar.",
         "captureInvalidated": "El text ha canviat, de manera que la selecció capturada ja no serveix. Captureu la selecció de nou.",
-        "shortcutNotRegistered": "No s'ha pogut registrar l'atall {{shortcut}}: una altra aplicació ja el té. Canvieu-lo a les dreceres de teclat."
+        "shortcutNotRegistered": "L'atall {{shortcut}} no s'ha pogut registrar. Canvieu-lo a les dreceres de teclat.",
+        "shortcutConflict": "L'atall {{shortcut}} no s'ha pogut registrar: una altra aplicació ja té aquesta combinació. Canvieu-lo a les dreceres de teclat.",
+        "shortcutDuplicate": "L'atall {{shortcut}} no s'ha pogut registrar: Dixi ja tenia aquesta combinació registrada. Reinicieu Dixi, o canvieu-lo a les dreceres de teclat.",
+        "shortcutInvalidCombination": "L'atall {{shortcut}} no és una combinació vàlida. Canvieu-lo a les dreceres de teclat.",
+        "shortcutNotInitialized": "L'atall {{shortcut}} no s'ha pogut registrar: el motor d'atalts no estava preparat. Reinicieu Dixi.",
+        "shortcutBackendUnavailable": "L'atall {{shortcut}} no s'ha pogut registrar: el motor d'atalts no va respondre. Reinicieu Dixi."
       },
       "diff": {
         "title": "Canvis",

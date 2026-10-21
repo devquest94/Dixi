@@ -958,7 +958,12 @@
         "nothingCaptured": "Chưa chụp văn bản nào.",
         "acceptNeedsCapture": "Chụp vùng chọn trước khi chấp nhận.",
         "captureInvalidated": "Văn bản đã thay đổi nên vùng chọn đã chụp không còn đúng. Hãy chụp lại vùng chọn.",
-        "shortcutNotRegistered": "Không thể đăng ký phím tắt {{shortcut}}: ứng dụng khác đã dùng nó. Hãy đổi trong phím tắt bàn phím."
+        "shortcutNotRegistered": "Không thể đăng ký phím tắt {{shortcut}}. Hãy đổi trong phím tắt bàn phím.",
+        "shortcutConflict": "Không thể đăng ký phím tắt {{shortcut}}: ứng dụng khác đã có tổ hợp đó. Hãy đổi trong phím tắt bàn phím.",
+        "shortcutDuplicate": "Không thể đăng ký phím tắt {{shortcut}}: Dixi đã đăng ký tổ hợp đó. Hãy khởi động lại Dixi, hoặc đổi trong phím tắt bàn phím.",
+        "shortcutInvalidCombination": "Phím tắt {{shortcut}} không phải là tổ hợp hợp lệ. Hãy đổi trong phím tắt bàn phím.",
+        "shortcutNotInitialized": "Không thể đăng ký phím tắt {{shortcut}}: bộ máy phím tắt chưa sẵn sàng. Hãy khởi động lại Dixi.",
+        "shortcutBackendUnavailable": "Không thể đăng ký phím tắt {{shortcut}}: bộ máy phím tắt không phản hồi. Hãy khởi động lại Dixi."
       },
       "diff": {
         "title": "Thay đổi",

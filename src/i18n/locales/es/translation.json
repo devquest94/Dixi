@@ -958,7 +958,12 @@
         "nothingCaptured": "Todavía no hay texto capturado.",
         "acceptNeedsCapture": "Capturá una selección antes de aceptar.",
         "captureInvalidated": "El texto cambió, así que la selección capturada ya no corresponde. Capturá la selección otra vez.",
-        "shortcutNotRegistered": "El atajo {{shortcut}} no se pudo registrar: otra aplicación ya lo tiene. Cambialo en los atajos de teclado."
+        "shortcutNotRegistered": "El atajo {{shortcut}} no se pudo registrar. Cambialo en los atajos de teclado.",
+        "shortcutConflict": "El atajo {{shortcut}} no se pudo registrar: otra aplicación ya tiene esa combinación. Cambialo en los atajos de teclado.",
+        "shortcutDuplicate": "El atajo {{shortcut}} no se pudo registrar: Dixi ya tenía esa combinación registrada. Reiniciá Dixi, o cambialo en los atajos de teclado.",
+        "shortcutInvalidCombination": "El atajo {{shortcut}} no es una combinación válida. Cambialo en los atajos de teclado.",
+        "shortcutNotInitialized": "El atajo {{shortcut}} no se pudo registrar: el motor de atajos no estaba listo. Reiniciá Dixi.",
+        "shortcutBackendUnavailable": "El atajo {{shortcut}} no se pudo registrar: el motor de atajos no respondió. Reiniciá Dixi."
       },
       "diff": {
         "title": "Cambios",

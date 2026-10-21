@@ -958,7 +958,12 @@
         "nothingCaptured": "Nessun testo acquisito finora.",
         "acceptNeedsCapture": "Acquisisci una selezione prima di accettare.",
         "captureInvalidated": "Il testo è cambiato, quindi la selezione acquisita non vale più. Acquisisci di nuovo la selezione.",
-        "shortcutNotRegistered": "Non è stato possibile registrare la scorciatoia {{shortcut}}: un'altra app ce l'ha già. Cambiala nelle scorciatoie da tastiera."
+        "shortcutNotRegistered": "Non è stato possibile registrare la scorciatoia {{shortcut}}. Cambiala nelle scorciatoie da tastiera.",
+        "shortcutConflict": "Non è stato possibile registrare la scorciatoia {{shortcut}}: un'altra app ha già quella combinazione. Cambiala nelle scorciatoie da tastiera.",
+        "shortcutDuplicate": "Non è stato possibile registrare la scorciatoia {{shortcut}}: Dixi aveva già registrato quella combinazione. Riavvia Dixi, oppure cambiala nelle scorciatoie da tastiera.",
+        "shortcutInvalidCombination": "La scorciatoia {{shortcut}} non è una combinazione valida. Cambiala nelle scorciatoie da tastiera.",
+        "shortcutNotInitialized": "Non è stato possibile registrare la scorciatoia {{shortcut}}: il motore delle scorciatoie non era pronto. Riavvia Dixi.",
+        "shortcutBackendUnavailable": "Non è stato possibile registrare la scorciatoia {{shortcut}}: il motore delle scorciatoie non ha risposto. Riavvia Dixi."
       },
       "diff": {
         "title": "Modifiche",

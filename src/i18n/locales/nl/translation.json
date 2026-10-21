@@ -958,7 +958,12 @@
         "nothingCaptured": "Nog geen tekst vastgelegd.",
         "acceptNeedsCapture": "Leg een selectie vast voordat u accepteert.",
         "captureInvalidated": "De tekst is gewijzigd, dus de vastgelegde selectie klopt niet meer. Leg de selectie opnieuw vast.",
-        "shortcutNotRegistered": "De sneltoets {{shortcut}} kon niet worden geregistreerd: een andere app heeft hem al. Wijzig hem bij de sneltoetsen."
+        "shortcutNotRegistered": "De sneltoets {{shortcut}} kon niet worden geregistreerd. Wijzig hem bij de sneltoetsen.",
+        "shortcutConflict": "De sneltoets {{shortcut}} kon niet worden geregistreerd: een andere app heeft die combinatie al. Wijzig hem bij de sneltoetsen.",
+        "shortcutDuplicate": "De sneltoets {{shortcut}} kon niet worden geregistreerd: Dixi had die combinatie al geregistreerd. Start Dixi opnieuw, of wijzig hem bij de sneltoetsen.",
+        "shortcutInvalidCombination": "De sneltoets {{shortcut}} is geen geldige combinatie. Wijzig hem bij de sneltoetsen.",
+        "shortcutNotInitialized": "De sneltoets {{shortcut}} kon niet worden geregistreerd: de sneltoetsengine was niet klaar. Start Dixi opnieuw.",
+        "shortcutBackendUnavailable": "De sneltoets {{shortcut}} kon niet worden geregistreerd: de sneltoetsengine gaf geen antwoord. Start Dixi opnieuw."
       },
       "diff": {
         "title": "Wijzigingen",

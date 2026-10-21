@@ -958,7 +958,12 @@
         "nothingCaptured": "Der er endnu ikke opslaget tekst.",
         "acceptNeedsCapture": "Opsaml en markering, før du accepterer.",
         "captureInvalidated": "Teksten blev ændret, så den optagede markering gælder ikke længere. Opsaml markeringen igen.",
-        "shortcutNotRegistered": "Genvejstasten {{shortcut}} kunne ikke registreres: en anden app har den allerede. Skift den under tastaturgenveje."
+        "shortcutNotRegistered": "Genvejstasten {{shortcut}} kunne ikke registreres. Skift den under tastaturgenveje.",
+        "shortcutConflict": "Genvejstasten {{shortcut}} kunne ikke registreres: en anden app har allerede den kombination. Skift den under tastaturgenveje.",
+        "shortcutDuplicate": "Genvejstasten {{shortcut}} kunne ikke registreres: Dixi havde allerede registreret den kombination. Genstart Dixi, eller skift den under tastaturgenveje.",
+        "shortcutInvalidCombination": "Genvejstasten {{shortcut}} er ikke en gyldig kombination. Skift den under tastaturgenveje.",
+        "shortcutNotInitialized": "Genvejstasten {{shortcut}} kunne ikke registreres: genvejstastemotoren var ikke klar. Genstart Dixi.",
+        "shortcutBackendUnavailable": "Genvejstasten {{shortcut}} kunne ikke registreres: genvejstastemotoren svarede ikke. Genstart Dixi."
       },
       "diff": {
         "title": "Ændringer",

@@ -958,7 +958,12 @@
         "nothingCaptured": "עדיין לא נלכד טקסט.",
         "acceptNeedsCapture": "לכדו בחירה לפני שתאשרו.",
         "captureInvalidated": "הטקסט השתנה, ולכן הבחירה שנלכדה כבר אינה מתאימה. לכדו את הבחירה שוב.",
-        "shortcutNotRegistered": "לא ניתן היה לרשום את הקיצור {{shortcut}}: אפליקציה אחרת כבר מחזיקה בו. שנו אותו בקיצורי המקלדת."
+        "shortcutNotRegistered": "לא ניתן היה לרשום את הקיצור {{shortcut}}. שנו אותו בקיצורי המקלדת.",
+        "shortcutConflict": "לא ניתן היה לרשום את הקיצור {{shortcut}}: ליישום אחר יש כבר את הצירוף הזה. שנו אותו בקיצורי המקלדת.",
+        "shortcutDuplicate": "לא ניתן היה לרשום את הקיצור {{shortcut}}: ב-Dixi כבר היה רשום הצירוף הזה. הפעילו מחדש את Dixi, או שנו אותו בקיצורי המקלדת.",
+        "shortcutInvalidCombination": "הקיצור {{shortcut}} אינו צירוף תקין. שנו אותו בקיצורי המקלדת.",
+        "shortcutNotInitialized": "לא ניתן היה לרשום את הקיצור {{shortcut}}: מנוע הקיצורים לא היה מוכן. הפעילו מחדש את Dixi.",
+        "shortcutBackendUnavailable": "לא ניתן היה לרשום את הקיצור {{shortcut}}: מנוע הקיצורים לא ענה. הפעילו מחדש את Dixi."
       },
       "diff": {
         "title": "שינויים",
