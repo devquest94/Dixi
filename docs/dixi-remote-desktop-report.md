@@ -27,7 +27,7 @@ la política de seguridad de la empresa.
 | `MREMOTENG_DETECTED` | `PASS` | mRemoteNG 1.76.20.24615 instalado en `C:\Program Files (x86)\mRemoteNG\`, con `Interop.MSTSCLib.dll` y `AxInterop.MSTSCLib.dll` (el ActiveX RDP de Microsoft embebido). |
 | `CONNECTION_PROTOCOL` | `RDP` | La única conexión configurada en `confCons.xml` tiene `Protocol="RDP"`, y el log del propio cliente registra `Connexión ... via "RDP"`. |
 | `REMOTE_MANUAL_MODE` | `PASS` | Publicación sin和弦, sin tecla enviada, con estados explícitos y restauración diferida. |
-| `REMOTE_AUTO_MODE` | `PARTIAL` | La decisión, las guardas y el envío están implementados y probados, pero **no se ejecutó contra una sesión RDP real**. Desactivado por defecto. |
+| `REMOTE_AUTO_MODE` | `PARTIAL` | Las **guardas** están implementadas y **validadas contra una sesión RDP real** (el cliente se detecta, hay exactamente una sesión, y el foco dentro de ella se reconoce). Lo que falta es comprobar que el `Ctrl+V` aterriza en el campo correcto del equipo remoto. Desactivado por defecto. |
 | `CLIPBOARD_STATES` | `PASS` | Los cuatro estados pedidos existen, y el de "restauración segura" distingue los formatos que no se pueden recuperar sin pérdida. |
 | `REMOTE_UI` | `PASS` | Sección de Ajustes, atajo, bandeja y traducciones en los 26 idiomas. |
 | `REMOTE_TESTS` | `PASS` | Pruebas unitarias del Rust y verificaciones del frontend ejecutadas, con resultado real registrado abajo. |
@@ -65,12 +65,13 @@ sin conflictos semánticos. Aun así, el merge es una decisión del usuario.
 | Instalado | Sí |
 | Versión | 1.76.20.24615 |
 | Ruta | `C:\Program Files (x86)\mRemoteNG\mRemoteNG.exe` |
-| ActiveX de RDP | `Interop.MSTSCLib.dll` + `AxInterop.MSTSCLib.dll` (32 bits) |
-| Motor RDP de Windows | `C:\Windows\SysWOW64\mstscax.dll` (10.0.19041.6456) |
+| Arquitectura | 32 bits, .NET (WinForms) |
+| Motor RDP | **Indigo** (implementación de RDP en .NET), no el ActiveX de Microsoft |
 
-Que mRemoteNG embeba `AxInterop.MSTSCLib` es el dato que decide la arquitectura
-de toda la función: la sesión RDP no es un protocolo propio de mRemoteNG, es
-el cliente RDP de Microsoft Running dentro de su proceso.
+Que mRemoteNG embeba `AxInterop.MSTSCLib` no significa que use ese ActiveX:
+es el ensamblado de interoperabilidad del modo opcional con el cliente de
+Microsoft. **La prueba real mostró que mRemoteNG habla RDP con Indigo**, una
+implementación pura en .NET. La prueba que lo demuestra está en 2.5.
 
 ### 2.3 El protocolo de la conexión
 
@@ -91,7 +92,7 @@ extraído de la configuración fue el protocolo.
 
 Esta es la decisión de diseño central, y sale de lo anterior:
 
-1. El cliente RDP de Microsoft **ya sincroniza el portapapeles local con la
+1. El cliente RDP de mRemoteNG **sincroniza el portapapeles local con la
    sesión remota** por el canal de redirección que el servidor autoriza. Esa
    redirección es el mecanismo sancionado por la política corporativa: no
    hay que tocar `rdpclip.exe` del equipo remoto ni cambiar nada del lado
@@ -110,6 +111,51 @@ Esta es la decisión de diseño central, y sale de lo anterior:
 
 El modo automático (inyectar el Ctrl+V) queda como una capa opcional encima,
 con guardas, y desactivado.
+
+### 2.5 Lo que la prueba real corrigió: cómo se reconoce la sesión RDP
+
+La primera versión de la detección buscaba una ventana cuya clase hubiera
+sido registrada por `mstscax.dll` (el ActiveX de Microsoft). **La prueba
+real contra la sesión abierta refutó ese supuesto**, en sus dos partes:
+
+| Se suponía | Lo que muestra la máquina real |
+|---|---|
+| `mstscax.dll` está cargado y su ventana tiene su clase | `mstscax.dll` **nunca se carga**: mRemoteNG habla RDP con **Indigo** |
+| La superficie RDP es una ventana identificable por su clase de módulo | Todas las ventanas son WinForms genéricas (`WindowsForms10.Window.8.*`) y `GetClassLongPtr(GCLP_HMODULE)` devuelve **cero** en todas: esas clases se registran sin módulo |
+
+Lo que sí aparece, y es lo que usa la detección final:
+
+| Clase de ventana | Qué es |
+|---|---|
+| `UIMainClass` / `UIContainerClass` | La ventana del cliente remoto |
+| **`IHWindowClass`** | **El Indigo Host: donde se dibuja la sesión RDP** |
+| `OPWindowClass` / `OPContainerClass` | El panel de salida de Indigo |
+| `BBarWindowClass` | La barra de acoplamiento |
+
+Por eso la detección final cuenta las ventanas `IHWindowClass` visibles del
+proceso de mRemoteNG: **cada una es una sesión RDP abierta**, y contarlas
+resuelve también el caso de "dos sesiones abiertas" (destino ambiguo).
+
+Además, la sesión RDP se dibuja **dentro** de la ventana del cliente: cuando
+el usuario está en la sesión, la ventana enfocada es la del cliente. Por eso
+el foco se comprueba con la ventana que tiene el foco real dentro del
+proceso (`GetGUIThreadInfo`), y se exige que esté **dentro** de una ventana
+`IHWindowClass`.
+
+**Verificación contra la sesión real** (con mRemoteNG abierto y la conexión
+establecida), en los tres estados que importan:
+
+| Estado | Resultado | Lectura |
+|---|---|---|
+| La sesión abierta, el foco en el navegador | `client_running: true`, `rdp_sessions: 1`, `focused: OtherApplication` | El cliente y la sesión se detectan; el foco no está en la sesión. |
+| El foco en la sesión RDP | `client_running: true`, `rdp_sessions: 1`, **`focused: RdpSession`** | El usuario está dentro de la sesión. |
+| Detalle de la ventana con el foco | `foreground class="UIMainClass" titulo="WorkingDesktop"` \| **`focus class="IHWindowClass" tam=(2048,1152)`** | Confirma el mecanismo: la ventana enfocada es la del cliente, y la que tiene el teclado es el Indigo Host. |
+
+Los cuatro hechos que necesita la integración quedan comprobados contra la
+máquina real: **el cliente se detecta, hay exactamente una sesión RDP
+abierta, y el foco dentro de esa sesión se reconoce**.
+
+
 
 ---
 
@@ -182,17 +228,17 @@ encargo, todas verificadas por una función pura y cubierta por pruebas:
 | Interruptor general | `remote_desktop_enabled` | Apagado por defecto. |
 | Modo automático | `remote_desktop_auto_mode` | Apagado por defecto, y además no aparece como opción lista en la interfaz. |
 | Cliente remoto | el proceso `mremoteng.exe` está corriendo | Sin el cliente no hay destino. |
-| Sesión RDP | hay exactamente **una** superficie RDP | Con dos sesiones el destino es ambiguo: se rechaza. |
-| Foco | la superficie RDP enfocada | Se exige que el usuario esté en la sesión remota. |
+| Sesión RDP | hay exactamente **una** ventana `IHWindowClass` visible | Con dos sesiones el destino es ambiguo: se rechaza. |
+| Foco | la ventana con el foco real está **dentro** de una sesión | Se exige que el usuario esté en la sesión, no en la lista de conexiones. |
 | Redirección | implícita en que el portapapeles local llega | El cliente RDP la gestiona; Dixi no la puede forzar ni tocar. |
 | Re-verificación | el foco se comprueba **otra vez** justo antes de enviar la tecla | El foco puede cambiar entre la decisión y la acción. |
 | Confirmación | si algo no se puede confirmar, se cae al modo manual | Una transcripción pegada en la ventana equivocada es peor que una tecla de más. |
 
-**El reconocimiento de la superficie RDP no se basa en el nombre de clase.**
-Una ventana se considera superficie RDP cuando la clase de la ventana fue
-registrada por `mstscax.dll`, el módulo del ActiveX de Microsoft. Eso no depende
-de nombres internos de mRemoteNG que podrían cambiar, y no puede confundirse
-con la ventana principal del cliente.
+**El reconocimiento de la superficie RDP se basa en una clase de ventana
+medida contra la máquina real**, no en un nombre supuesto: `IHWindowClass`,
+la ventana del Indigo Host donde mRemoteNG dibuja la sesión. La primera
+versión del código buscaba el ActiveX de Microsoft y **la prueba real la
+refutó** (ver 2.5).
 
 **Lo que no se pudo verificar sin una sesión real:** que el texto llegue al
 equipo remoto y que el Ctrl+V aterrice en el campo correcto. Por eso el modo
