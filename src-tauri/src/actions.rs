@@ -860,9 +860,15 @@ impl ShortcutAction for CaptureSelectionAction {
             }
             Err(error) => {
                 let failure = crate::managers::selection::failure(error);
+                // El log tecnico del intento fallido: que aplicacion tenia
+                // el foco, que clase de control era y en que paso fallo.
+                // Nunca el texto.
                 log::warn!(
-                    "CaptureSelectionAction: the selection could not be captured: {}",
-                    failure.message
+                    "CaptureSelectionAction: app={} class={} step={} result=error code={}",
+                    failure.diagnostics.app_name.as_deref().unwrap_or("?"),
+                    failure.diagnostics.control_class.as_deref().unwrap_or("?"),
+                    failure.diagnostics.step.as_deref().unwrap_or("?"),
+                    failure.code
                 );
                 if let Err(error) = app.emit("selection-capture-failed", &failure) {
                     log::warn!("CaptureSelectionAction: could not notify the interface: {error}");

@@ -882,6 +882,7 @@ pub fn run(cli_args: CliArgs) {
             commands::selection::get_captured_selection,
             commands::selection::clear_captured_selection,
             commands::selection::apply_to_captured_selection,
+            commands::selection::get_capture_shortcut_state,
             helpers::clamshell::is_laptop,
         ])
         .events(collect_events![

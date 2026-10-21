@@ -144,22 +144,63 @@ fn reconcile_cancel_shortcut(app: &AppHandle) {
     }
 }
 
+/// Whether the capture shortcut is registered right now.
+///
+/// A global shortcut that another application already holds is not an error
+/// the user can see: the shortcut simply never fires. The state is kept so
+/// the interface can say so, instead of leaving the user with a shortcut
+/// that does nothing and no explanation.
+static CAPTURE_SHORTCUT_REGISTERED: AtomicBool = AtomicBool::new(false);
+
+/// Whether the capture shortcut could be registered.
+pub fn capture_shortcut_registered() -> bool {
+    CAPTURE_SHORTCUT_REGISTERED.load(Ordering::Relaxed)
+}
+
+/// Records whether the capture shortcut could be registered.
+fn set_capture_shortcut_registered(registered: bool) {
+    CAPTURE_SHORTCUT_REGISTERED.store(registered, Ordering::Relaxed);
+}
+
 /// Register a shortcut using the appropriate implementation
 pub fn register_shortcut(app: &AppHandle, binding: ShortcutBinding) -> Result<(), String> {
     let settings = get_settings(app);
-    match settings.keyboard_implementation {
+    let is_capture = binding.id == "capture_selection";
+    let combination = binding.current_binding.clone();
+    let result = match settings.keyboard_implementation {
         KeyboardImplementation::Tauri => tauri_impl::register_shortcut(app, binding),
         KeyboardImplementation::HandyKeys => handy_keys::register_shortcut(app, binding),
+    };
+
+    if is_capture {
+        set_capture_shortcut_registered(result.is_ok());
+        if let Err(error) = &result {
+            // Another application may already hold the combination. The user
+            // has to know, because otherwise the shortcut simply never fires.
+            error!("The capture shortcut '{combination}' could not be registered: {error}");
+        }
     }
+
+    result
 }
 
 /// Unregister a shortcut using the appropriate implementation
 pub fn unregister_shortcut(app: &AppHandle, binding: ShortcutBinding) -> Result<(), String> {
     let settings = get_settings(app);
-    match settings.keyboard_implementation {
+    let is_capture = binding.id == "capture_selection";
+    let result = match settings.keyboard_implementation {
         KeyboardImplementation::Tauri => tauri_impl::unregister_shortcut(app, binding),
         KeyboardImplementation::HandyKeys => handy_keys::unregister_shortcut(app, binding),
+    };
+
+    if is_capture {
+        // A shortcut that is not registered is not registered: the state has
+        // to say so, or the interface would promise a capture that cannot
+        // happen.
+        set_capture_shortcut_registered(false);
     }
+
+    result
 }
 
 // ============================================================================

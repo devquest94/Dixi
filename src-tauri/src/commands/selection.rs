@@ -9,12 +9,49 @@
 
 use std::sync::Arc;
 
+use serde::{Deserialize, Serialize};
+use specta::Type;
 use tauri::{AppHandle, Manager, State};
 
 use crate::managers::selection::{
     self, SelectionContext, SelectionContextStore, SelectionFailure,
 };
 use crate::managers::text_history::{HistoryKind, TextHistoryManager};
+use crate::settings::get_settings;
+
+/// The state of the capture shortcut.
+///
+/// A global shortcut that another application already holds does not fire,
+/// and the user would have no way of knowing why. The state is exposed so the
+/// interface can say it.
+#[derive(Clone, Debug, Serialize, Deserialize, Type)]
+pub struct CaptureShortcutState {
+    /// Whether the shortcut could be registered.
+    pub registered: bool,
+    /// The combination it is registered with.
+    pub binding: String,
+    /// Whether this system can capture the selection of another application
+    /// at all.
+    pub available: bool,
+}
+
+/// The state of the capture shortcut.
+#[tauri::command]
+#[specta::specta]
+pub async fn get_capture_shortcut_state(app: AppHandle) -> Result<CaptureShortcutState, String> {
+    let settings = get_settings(&app);
+    let binding = settings
+        .bindings
+        .get("capture_selection")
+        .map(|binding| binding.current_binding.clone())
+        .unwrap_or_default();
+
+    Ok(CaptureShortcutState {
+        registered: crate::shortcut::capture_shortcut_registered(),
+        binding,
+        available: cfg!(target_os = "windows"),
+    })
+}
 
 /// Captures the selection of the application that has the focus.
 ///

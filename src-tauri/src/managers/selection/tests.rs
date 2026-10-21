@@ -88,13 +88,17 @@ fn only_the_verified_text_controls_are_read() {
 }
 
 #[test]
-fn the_focused_child_of_a_chromium_window_is_read() {
-    // Chromium gives the FOCUSED CHILD the class
-    // `Chrome_RenderWidgetHostHWND`; `Chrome_WidgetWin_1` is the top level
-    // window, which is never the focused control. The class was confirmed
-    // in the Chromium binary.
-    assert!(is_supported_text_class("Chrome_RenderWidgetHostHWND"));
+fn the_focused_control_of_a_chromium_window_is_read() {
+    // The class that holds the keyboard focus in Chromium is the top level
+    // window, `Chrome_WidgetWin_1`; `Chrome_RenderWidgetHostHWND` is its
+    // child, the widget that hosts the painted page, and it does not hold
+    // the focus. Both are checked, because the family is matched by prefix:
+    // the renderer is the same family and is where the document lives.
+    //
+    // The focused class was confirmed on the desktop with a Win32 probe
+    // (`GetGUIThreadInfo`), not inferred.
     assert!(is_supported_text_class("Chrome_WidgetWin_1"));
+    assert!(is_supported_text_class("Chrome_RenderWidgetHostHWND"));
 }
 
 #[test]
@@ -274,6 +278,94 @@ fn every_failure_has_a_stable_code() {
         assert_eq!(failure.code, code);
         assert!(!failure.message.is_empty());
     }
+}
+
+#[test]
+fn a_failure_carries_the_application_that_had_the_focus() {
+    // The whole point of the diagnostics: the interface has to be able to say
+    // *which* application was in front, because "it does not work" is not an
+    // answer.
+    let diagnostics = CaptureDiagnostics {
+        app_name: Some("chrome.exe".to_string()),
+        control_class: Some("Chrome_WidgetWin_1".to_string()),
+        step: Some("copy".to_string()),
+    };
+
+    let failure = failure(SelectionError::NothingSelected.with_diagnostics(diagnostics));
+
+    assert_eq!(failure.code, "nothing_selected");
+    assert_eq!(failure.diagnostics.app_name.as_deref(), Some("chrome.exe"));
+    assert_eq!(
+        failure.diagnostics.control_class.as_deref(),
+        Some("Chrome_WidgetWin_1")
+    );
+    assert_eq!(failure.diagnostics.step.as_deref(), Some("copy"));
+}
+
+#[test]
+fn the_code_of_a_wrapped_failure_is_the_code_of_its_reason() {
+    // The diagnostics are an envelope: they must not change the reason the
+    // interface translates.
+    let cases = [
+        (
+            SelectionError::PasswordField,
+            "password_field",
+        ),
+        (
+            SelectionError::UnsupportedControl,
+            "unsupported_control",
+        ),
+        (
+            SelectionError::ClipboardNotPreservable,
+            "clipboard_not_preservable",
+        ),
+        (SelectionError::SelectionChanged, "selection_changed"),
+        (SelectionError::DestinationGone, "destination_gone"),
+    ];
+
+    for (reason, code) in cases {
+        let failure = failure(reason.clone().with_diagnostics(CaptureDiagnostics {
+            app_name: Some("notepad.exe".to_string()),
+            control_class: Some("RichEditD2DPT".to_string()),
+            step: Some("control".to_string()),
+        }));
+        assert_eq!(failure.code, code);
+        assert_eq!(failure.diagnostics.app_name.as_deref(), Some("notepad.exe"));
+    }
+}
+
+#[test]
+fn the_diagnostics_never_carry_the_selected_text() {
+    // The text the user had selected is private, and the diagnostics travel
+    // to the interface and to the log: they may only carry technical facts.
+    let failure = failure(SelectionError::NothingSelected.with_diagnostics(
+        CaptureDiagnostics {
+            app_name: Some("chrome.exe".to_string()),
+            control_class: Some("Chrome_WidgetWin_1".to_string()),
+            step: Some("copy".to_string()),
+        },
+    ));
+
+    let rendered = format!(
+        "{:?} {} {} {}",
+        failure.diagnostics,
+        failure.code,
+        failure.message,
+        failure.diagnostics.app_name.clone().unwrap_or_default()
+    );
+    assert!(!rendered.contains("texto secreto"));
+}
+
+#[test]
+fn a_failure_without_diagnostics_still_has_its_code() {
+    // Not every path knows the application: the focus may be gone before
+    // anything could be read. The reason still has to reach the interface.
+    let failure = failure(SelectionError::DestinationGone);
+
+    assert_eq!(failure.code, "destination_gone");
+    assert!(failure.diagnostics.app_name.is_none());
+    assert!(failure.diagnostics.control_class.is_none());
+    assert!(failure.diagnostics.step.is_none());
 }
 
 // --- The context -------------------------------------------------------------

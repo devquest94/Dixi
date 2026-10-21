@@ -132,6 +132,38 @@ pub enum SelectionError {
     DestinationGone,
     /// The text could not be written.
     Write(String),
+    /// The attempt failed, and this is what was known about it.
+    Failed {
+        /// Why it failed.
+        reason: Box<SelectionError>,
+        /// What was known when it failed.
+        diagnostics: CaptureDiagnostics,
+    },
+}
+
+impl SelectionError {
+    /// Adds what was known about the attempt.
+    pub fn with_diagnostics(self, diagnostics: CaptureDiagnostics) -> Self {
+        SelectionError::Failed {
+            reason: Box::new(self),
+            diagnostics,
+        }
+    }
+}
+
+/// What was known about a failed attempt.
+///
+/// Only technical data: the process that had the focus, the class of the
+/// focused control and the step that failed. **The selected text is never
+/// part of it**, and neither is anything that could be private.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, Type)]
+pub struct CaptureDiagnostics {
+    /// The process that had the focus, when it could be read.
+    pub app_name: Option<String>,
+    /// The class of the focused control, when it could be read.
+    pub control_class: Option<String>,
+    /// Which step failed: `focus`, `control` or `copy`.
+    pub step: Option<String>,
 }
 
 /// Why a selection could not be read or written, in a shape the interface
@@ -145,48 +177,74 @@ pub struct SelectionFailure {
     pub code: String,
     /// The reason in English.
     pub message: String,
+    /// What was known about the attempt: the process that had the focus, the
+    /// class of the focused control and the step that failed. The interface
+    /// uses it to say *which* application was in front, because "it does not
+    /// work" is not an answer.
+    pub diagnostics: CaptureDiagnostics,
 }
 
 /// Turns an error of the selection manager into a failure the interface can
 /// show.
 pub fn failure(error: SelectionError) -> SelectionFailure {
-    let (code, message) = match error {
-        SelectionError::NothingSelected => {
-            ("nothing_selected", "there is no selected text".to_string())
+    let (code, message, diagnostics) = match error {
+        SelectionError::Failed {
+            reason,
+            diagnostics,
+        } => {
+            let (code, message) = reason_code(*reason);
+            (code, message, diagnostics)
         }
+        other => {
+            let (code, message) = reason_code(other);
+            (code, message, CaptureDiagnostics::default())
+        }
+    };
+    SelectionFailure {
+        code,
+        message,
+        diagnostics,
+    }
+}
+
+/// The stable code and the English message of a reason.
+fn reason_code(error: SelectionError) -> (String, String) {
+    let (code, message) = match error {
+        SelectionError::NothingSelected => (
+            "nothing_selected".to_string(),
+            "there is no selected text".to_string(),
+        ),
         SelectionError::PasswordField => (
-            "password_field",
+            "password_field".to_string(),
             "the focused control is a password field".to_string(),
         ),
         SelectionError::UnsupportedControl => (
-            "unsupported_control",
+            "unsupported_control".to_string(),
             "the focused control is not a text control that Dixi knows".to_string(),
         ),
         SelectionError::ClipboardNotPreservable => (
-            "clipboard_not_preservable",
+            "clipboard_not_preservable".to_string(),
             "the clipboard holds content that cannot be restored exactly, so it was not touched"
                 .to_string(),
         ),
         SelectionError::Clipboard(message) => {
-            ("clipboard", format!("the clipboard failed: {message}"))
+            ("clipboard".to_string(), format!("the clipboard failed: {message}"))
         }
         SelectionError::SelectionChanged => (
-            "selection_changed",
+            "selection_changed".to_string(),
             "the selection changed since it was read, so nothing was written".to_string(),
         ),
         SelectionError::DestinationUnavailable(message) => {
-            ("destination_unavailable", message)
+            ("destination_unavailable".to_string(), message)
         }
         SelectionError::DestinationGone => (
-            "destination_gone",
+            "destination_gone".to_string(),
             "the application where the text was read no longer exists".to_string(),
         ),
-        SelectionError::Write(message) => ("write", message),
+        SelectionError::Write(message) => ("write".to_string(), message),
+        SelectionError::Failed { reason, .. } => reason_code(*reason),
     };
-    SelectionFailure {
-        code: code.to_string(),
-        message,
-    }
+    (code, message)
 }
 
 /// The text that is selected right now, if any.
@@ -319,11 +377,17 @@ const NATIVE_TEXT_CLASSES: &[&str] = &[
 
 /// The prefixes of the browser renderers, where the document lives.
 ///
-/// Chromium gives the **focused child** the class
-/// `Chrome_RenderWidgetHostHWND` —the widget that hosts the rendered page—,
-/// and the top level window the class `Chrome_WidgetWin_1`. The focused
-/// child is the one that has to be checked, so the family is matched by
-/// prefix instead of by an exact name.
+    /// Chromium does not give the keyboard focus to the widget that hosts
+    /// the rendered page: the control that holds the focus is the top level
+    /// window, with the class `Chrome_WidgetWin_1`, and the renderer
+    /// (`Chrome_RenderWidgetHostHWND`) is only its child. The class that is
+    /// read is therefore the top level one, so the family is matched by
+    /// prefix instead of by an exact name: the same rule then covers the
+    /// other browsers and their other classes.
+    ///
+    /// The prefix is enough because the read is made with the clipboard and
+    /// not with the control: a browser only answers the copy with the text
+    /// that is really selected.
 #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
 const BROWSER_RENDERER_PREFIXES: &[&str] = &["chrome_", "mozillawindowclass", "webkit"];
 
@@ -618,20 +682,50 @@ mod platform {
         }
     }
 
+    /// The window and the control that hold the focus, with what was known
+    /// about them.
+    struct Focus {
+        window: HWND,
+        control: HWND,
+        app_name: Option<String>,
+        control_class: String,
+    }
+
+    impl Focus {
+        /// What was known when something failed.
+        fn diagnostics(&self, step: &str) -> super::CaptureDiagnostics {
+            super::CaptureDiagnostics {
+                app_name: self.app_name.clone(),
+                control_class: Some(self.control_class.clone()),
+                step: Some(step.to_string()),
+            }
+        }
+    }
+
     /// The window that has the focus and the control inside it that holds
     /// the keyboard focus.
-    fn focused_control() -> Result<(HWND, HWND), SelectionError> {
+    fn focused_control() -> Result<Focus, SelectionError> {
         // SAFETY: plain Win32 queries on the foreground window. The handles
         // are only read, never stored and never freed.
         unsafe {
             let window = GetForegroundWindow();
+            let app_name = app_name(window);
+
+            let failed = |step: &str| {
+                SelectionError::NothingSelected.with_diagnostics(super::CaptureDiagnostics {
+                    app_name: app_name.clone(),
+                    control_class: None,
+                    step: Some(step.to_string()),
+                })
+            };
+
             if window.0.is_null() {
-                return Err(SelectionError::NothingSelected);
+                return Err(failed("foreground"));
             }
 
             let thread = GetWindowThreadProcessId(window, None);
             if thread == 0 {
-                return Err(SelectionError::NothingSelected);
+                return Err(failed("foreground"));
             }
 
             let mut info = GUITHREADINFO {
@@ -639,7 +733,7 @@ mod platform {
                 ..Default::default()
             };
             if GetGUIThreadInfo(thread, &mut info).is_err() {
-                return Err(SelectionError::NothingSelected);
+                return Err(failed("focus"));
             }
 
             // The focus may be on a control of another thread, in which case
@@ -650,11 +744,17 @@ mod platform {
             } else {
                 info.hwndFocus
             };
+            let control_class = class_name(control);
             if control.0.is_null() {
-                return Err(SelectionError::NothingSelected);
+                return Err(failed("focus"));
             }
 
-            Ok((window, control))
+            Ok(Focus {
+                window,
+                control,
+                app_name,
+                control_class,
+            })
         }
     }
 
@@ -861,7 +961,8 @@ mod platform {
     /// The formats the clipboard holds right now.
     ///
     /// The clipboard has to be open.
-    unsafe fn clipboard_formats() -> Vec<u32> {        let mut formats = Vec::new();
+    unsafe fn clipboard_formats() -> Vec<u32> {
+        let mut formats = Vec::new();
         let mut current = 0_u32;
         loop {
             // SAFETY: the clipboard is open and the call only enumerates the
@@ -1117,29 +1218,41 @@ mod platform {
 
     /// The text that is selected right now, if any.
     pub fn current_selection() -> Result<Selection, SelectionError> {
-        let (window, control) = focused_control()?;
+        let focus = focused_control()?;
 
         // SAFETY: the control is the one that holds the keyboard focus and
         // is only queried for its class name and its style.
         unsafe {
-            refuse_password_field(control)?;
-            refuse_unsupported_control(control)?;
+            refuse_password_field(focus.control)
+                .map_err(|error| error.with_diagnostics(focus.diagnostics("control")))?;
+            refuse_unsupported_control(focus.control)
+                .map_err(|error| error.with_diagnostics(focus.diagnostics("control")))?;
         }
 
-        let text = copy_selection()?;
+        let text = copy_selection()
+            .map_err(|error| error.with_diagnostics(focus.diagnostics("copy")))?;
 
         Ok(Selection {
             text,
-            window: window.0 as isize,
-            control: control.0 as isize,
-            app_name: app_name(window),
+            window: focus.window.0 as isize,
+            control: focus.control.0 as isize,
+            app_name: focus.app_name,
         })
     }
 
     /// Captures the selection of the application that has the focus, together
     /// with the context needed to write it back later.
     pub fn capture_context() -> Result<SelectionContext, SelectionError> {
-        Ok(SelectionContext::new(current_selection()?))
+        let selection = current_selection()?;
+
+        // El log tecnico del intento: que aplicacion tenia el foco y que
+        // clase de control era. **Nunca** el texto capturado.
+        log::info!(
+            "Capture: app={} result=ok",
+            selection.app_name.as_deref().unwrap_or("?")
+        );
+
+        Ok(SelectionContext::new(selection))
     }
 
     /// Brings a window back to the front and waits until it has the focus.
@@ -1180,6 +1293,10 @@ mod platform {
     /// Nothing is written unless everything still matches: the same window,
     /// the same control, the same selected text and a destination that is
     /// not a protected field.
+    ///
+    /// Every failure carries the same diagnostics as a failed capture: the
+    /// application that was in front, and the step that failed. The user is
+    /// told *where* it failed, not just that it failed.
     pub fn write_to_context(
         context: &SelectionContext,
         expected_text: &str,
@@ -1194,18 +1311,26 @@ mod platform {
         // something that cannot be restored exactly, the operation is
         // refused here, without bringing the application of the user to
         // the front for nothing.
-        unsafe { ensure_clipboard_is_usable()? };
+        unsafe { ensure_clipboard_is_usable() }
+            .map_err(|error| error.with_diagnostics(write_diagnostics(context, None, "clipboard")))?;
 
         let window = HWND(context.window as *mut std::ffi::c_void);
-        focus_window(window)?;
+        focus_window(window)
+            .map_err(|error| error.with_diagnostics(write_diagnostics(context, None, "focus")))?;
 
-        let (current_window, control) = focused_control()?;
+        let focus = focused_control()
+            .map_err(|error| error.with_diagnostics(write_diagnostics(context, None, "focus")))?;
+        let control = focus.control;
 
         // SAFETY: the control is the one that holds the keyboard focus and
         // is only queried for its class name and its style.
         unsafe {
-            refuse_password_field(control)?;
-            refuse_unsupported_control(control)?;
+            refuse_password_field(control).map_err(|error| {
+                error.with_diagnostics(write_diagnostics(context, Some(focus.control_class.clone()), "control"))
+            })?;
+            refuse_unsupported_control(control).map_err(|error| {
+                error.with_diagnostics(write_diagnostics(context, Some(focus.control_class.clone()), "control"))
+            })?;
         }
 
         // The text of the control before the paste, to be able to tell
@@ -1215,18 +1340,25 @@ mod platform {
         // The selection is read again and compared with the one that was
         // captured: the user may have typed or moved the selection in the
         // meantime.
-        let current = copy_selection()?;
+        let current = copy_selection().map_err(|error| {
+            error.with_diagnostics(write_diagnostics(context, Some(focus.control_class.clone()), "copy"))
+        })?;
 
         verify_destination(
             context.window,
             context.control,
             expected_text,
-            current_window.0 as isize,
+            focus.window.0 as isize,
             control.0 as isize,
             &current,
-        )?;
+        )
+        .map_err(|error| {
+            error.with_diagnostics(write_diagnostics(context, Some(focus.control_class.clone()), "verify"))
+        })?;
 
-        paste_text(new_text, control, before.as_deref())?;
+        paste_text(new_text, control, before.as_deref()).map_err(|error| {
+            error.with_diagnostics(write_diagnostics(context, Some(focus.control_class.clone()), "paste"))
+        })?;
 
         // The write is checked afterwards: the destination has to hold the
         // new text, or —in the controls that do not answer with their text,
@@ -1235,10 +1367,31 @@ mod platform {
         if !write_took_effect(control, before.as_deref(), expected_text, new_text) {
             return Err(SelectionError::Write(
                 "the application did not take the new text".to_string(),
-            ));
+            )
+            .with_diagnostics(write_diagnostics(
+                context,
+                Some(focus.control_class.clone()),
+                "write",
+            )));
         }
 
         Ok(())
+    }
+
+    /// The diagnostics of a failed write.
+    ///
+    /// The application is known from the captured context; the class of the
+    /// control is only known once the focus has been read.
+    fn write_diagnostics(
+        context: &SelectionContext,
+        control_class: Option<String>,
+        step: &str,
+    ) -> super::CaptureDiagnostics {
+        super::CaptureDiagnostics {
+            app_name: context.app_name.clone(),
+            control_class,
+            step: Some(step.to_string()),
+        }
     }
 
     /// The whole text of a control, when the control answers with it.

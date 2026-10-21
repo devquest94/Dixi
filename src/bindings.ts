@@ -1669,6 +1669,17 @@ async applyToCapturedSelection(newText: string, sourceId: string | null) : Promi
 }
 },
 /**
+ * The state of the capture shortcut.
+ */
+async getCaptureShortcutState() : Promise<Result<CaptureShortcutState, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_capture_shortcut_state") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
  * Stub implementation for non-macOS platforms
  * Always returns false since laptop detection is macOS-specific
  */
@@ -1791,6 +1802,47 @@ export type AudioDevice = { index: string; name: string; is_default: boolean }
 export type AutoSubmitKey = "enter" | "ctrl_enter" | "cmd_enter"
 export type AvailableAccelerators = { transcribe: string[]; gpu_devices: GpuDeviceOption[] }
 export type BindingResponse = { success: boolean; binding: ShortcutBinding | null; error: string | null }
+/**
+ * What was known about a failed attempt.
+ * 
+ * Only technical data: the process that had the focus, the class of the
+ * focused control and the step that failed. **The selected text is never
+ * part of it**, and neither is anything that could be private.
+ */
+export type CaptureDiagnostics = { 
+/**
+ * The process that had the focus, when it could be read.
+ */
+app_name: string | null; 
+/**
+ * The class of the focused control, when it could be read.
+ */
+control_class: string | null; 
+/**
+ * Which step failed: `focus`, `control` or `copy`.
+ */
+step: string | null }
+/**
+ * The state of the capture shortcut.
+ * 
+ * A global shortcut that another application already holds does not fire,
+ * and the user would have no way of knowing why. The state is exposed so the
+ * interface can say it.
+ */
+export type CaptureShortcutState = { 
+/**
+ * Whether the shortcut could be registered.
+ */
+registered: boolean; 
+/**
+ * The combination it is registered with.
+ */
+binding: string; 
+/**
+ * Whether this system can capture the selection of another application
+ * at all.
+ */
+available: boolean }
 /**
  * Script applied to Mandarin and Cantonese output. Other languages are never
  * converted.
@@ -2136,7 +2188,14 @@ code: string;
 /**
  * The reason in English.
  */
-message: string }
+message: string; 
+/**
+ * What was known about the attempt: the process that had the focus, the
+ * class of the focused control and the step that failed. The interface
+ * uses it to say *which* application was in front, because "it does not
+ * work" is not an answer.
+ */
+diagnostics: CaptureDiagnostics }
 /**
  * How the transcribe shortcut's key events drive a recording.
  */
