@@ -299,6 +299,16 @@ Cambios concretos en `paste_tx`:
   complete. Con eso, cerrar Dixi con una transferencia abierta devuelve el
   portapapeles a su contenido anterior en vez de vaciarlo.
 
+  *Estado de la verificación:* la **función de restauración** está verificada
+  en vivo por la vía de la confirmación (`restored previous clipboard` en el
+  log, con el hash del portapapeles volviendo al valor anterior), y el
+  camino de salida usa esa misma función. Lo que **no** se pudo ejercitar de
+  forma automatizada es el disparador: al cerrar la ventana la app se
+  oculta en la bandeja en lugar de salir (`prevent_close` + `hide`), así
+  que hace falta pasar por el ítem "Salir" de la bandeja para llegar a
+  `RunEvent::Exit`, y eso no es automatizable sin automatización de la
+  interfaz.
+
 ### 3.3 Modo automático: evaluación y guardas
 
 El modo automático **sí se implementó**, con las condiciones que pedía el
