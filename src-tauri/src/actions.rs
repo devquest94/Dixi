@@ -48,6 +48,28 @@ impl Drop for FinishGuard {
     }
 }
 
+/// A file name for a recording that no other recording has.
+///
+/// The millisecond timestamp alone is not enough: two dictations that start
+/// in the same millisecond would write the same file, and the second would
+/// overwrite the first. The counter makes the name unique within the
+/// process, and the check against the folder covers the recordings that
+/// survive a restart.
+fn recording_file_name(recordings_dir: &std::path::Path) -> String {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+
+    let stamp = chrono::Utc::now().timestamp_millis();
+    let seq = COUNTER.fetch_add(1, Ordering::Relaxed);
+    let mut candidate = format!("dixi-{}-{}.wav", stamp, seq);
+    let mut bump = 0u64;
+    while recordings_dir.join(&candidate).exists() {
+        bump += 1;
+        candidate = format!("dixi-{}-{}-{}.wav", stamp, seq, bump);
+    }
+    candidate
+}
+
 /// Waits for the WAV file to finish being written and verifies it.
 ///
 /// Returns whether the file is on disk with the expected number of samples.
@@ -702,10 +724,7 @@ impl ShortcutAction for TranscribeAction {
                 } else {
                     // Save WAV concurrently with transcription
                     let sample_count = samples.len();
-                    let file_name = format!(
-                        "dixi-{}.wav",
-                        chrono::Utc::now().timestamp_millis()
-                    );
+                    let file_name = recording_file_name(hm.recordings_dir());
                     let wav_path = hm.recordings_dir().join(&file_name);
                     let wav_path_for_verify = wav_path.clone();
                     let samples_for_wav = samples.clone();
@@ -793,16 +812,20 @@ impl ShortcutAction for TranscribeAction {
                                     sample_count,
                                 )
                                 .await;
-                                if wav_saved {
-                                    if let Err(err) = hm.save_entry(
-                                        file_name,
-                                        transcription,
-                                        post_process,
-                                        post_processed_text,
-                                        post_process_prompt,
-                                    ) {
-                                        error!("Failed to save history entry: {}", err);
-                                    }
+                                // The text is what the user keeps: it goes to the history
+                                // even if the recording could not be written. Without the
+                                // entry, the dictation is lost and there is no way back.
+                                if !wav_saved {
+                                    warn!("The recording was not written to disk; the history entry has no audio");
+                                }
+                                if let Err(err) = hm.save_entry(
+                                    file_name,
+                                    transcription,
+                                    post_process,
+                                    post_processed_text,
+                                    post_process_prompt,
+                                ) {
+                                    error!("Failed to save history entry: {}", err);
                                 }
                                 crate::latency::mark_since(
                                     crate::latency::Stage::History,
@@ -885,16 +908,20 @@ impl ShortcutAction for TranscribeAction {
                                     sample_count,
                                 )
                                 .await;
-                                if wav_saved {
-                                    if let Err(err) = hm.save_entry(
-                                        file_name,
-                                        transcription,
-                                        post_process,
-                                        post_processed_text,
-                                        post_process_prompt,
-                                    ) {
-                                        error!("Failed to save history entry: {}", err);
-                                    }
+                                // The text is what the user keeps: it goes to the history
+                                // even if the recording could not be written. Without the
+                                // entry, the dictation is lost and there is no way back.
+                                if !wav_saved {
+                                    warn!("The recording was not written to disk; the history entry has no audio");
+                                }
+                                if let Err(err) = hm.save_entry(
+                                    file_name,
+                                    transcription,
+                                    post_process,
+                                    post_processed_text,
+                                    post_process_prompt,
+                                ) {
+                                    error!("Failed to save history entry: {}", err);
                                 }
                                 crate::latency::mark_since(
                                     crate::latency::Stage::History,
@@ -927,16 +954,20 @@ impl ShortcutAction for TranscribeAction {
                                 sample_count,
                             )
                             .await;
-                            if wav_saved {
-                                if let Err(save_err) = hm.save_entry(
-                                    file_name,
-                                    String::new(),
-                                    post_process,
-                                    None,
-                                    None,
-                                ) {
-                                    error!("Failed to save failed history entry: {}", save_err);
-                                }
+                            // The text is what the user keeps: it goes to the history
+                            // even if the recording could not be written. Without the
+                            // entry, the dictation is lost and there is no way back.
+                            if !wav_saved {
+                                warn!("The recording was not written to disk; the history entry has no audio");
+                            }
+                            if let Err(save_err) = hm.save_entry(
+                                file_name,
+                                String::new(),
+                                post_process,
+                                None,
+                                None,
+                            ) {
+                                error!("Failed to save failed history entry: {}", save_err);
                             }
                             crate::latency::mark_since(
                                 crate::latency::Stage::History,
