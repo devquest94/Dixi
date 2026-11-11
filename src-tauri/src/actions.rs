@@ -55,6 +55,25 @@ impl Drop for FinishGuard {
 /// It lives apart from the pipeline because the bookkeeping it belongs to
 /// runs *after* the text has been sent to the destination: the user is
 /// waiting for the text, not for the archive.
+/// Waits for the WAV file to finish being written and removes it.
+///
+/// A cancelled dictation never reaches the history, and the cleanup of the
+/// recordings folder is driven by that history: a file nobody links to would
+/// stay on disk forever. This is the only path that removes it.
+async fn discard_wav(
+    handle: tauri::async_runtime::JoinHandle<Result<(), anyhow::Error>>,
+    path: &std::path::Path,
+) {
+    // The write has to finish before the removal: deleting the name while
+    // the task is still writing it would leave the file behind.
+    let _ = handle.await;
+    match std::fs::remove_file(path) {
+        Ok(()) => debug!("Removed the cancelled recording {}", path.display()),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {},
+        Err(e) => error!("Failed to remove the cancelled recording {}: {}", path.display(), e),
+    }
+}
+
 async fn await_wav_saved(
     handle: tauri::async_runtime::JoinHandle<Result<(), anyhow::Error>>,
     path: &std::path::Path,
@@ -703,6 +722,9 @@ impl ShortcutAction for TranscribeAction {
 
                     if rm.was_cancelled_since(cancel_generation) {
                         debug!("Transcription operation cancelled before output handling");
+                        // The recording has no history entry to link to: without one
+                        // it would stay on disk forever. Remove it with the dictation.
+                        discard_wav(wav_handle, &wav_path_for_verify).await;
                         utils::hide_recording_overlay(&ah);
                         set_tray_state(&ah, TrayIconState::Idle);
                         return;
@@ -731,6 +753,9 @@ impl ShortcutAction for TranscribeAction {
                             .await
                             else {
                                 debug!("Transcription operation cancelled during output handling");
+                                // The recording has no history entry to link to: without one
+                                // it would stay on disk forever. Remove it with the dictation.
+                                discard_wav(wav_handle, &wav_path_for_verify).await;
                                 utils::hide_recording_overlay(&ah);
                                 set_tray_state(&ah, TrayIconState::Idle);
                                 return;
@@ -742,6 +767,9 @@ impl ShortcutAction for TranscribeAction {
 
                             if rm.was_cancelled_since(cancel_generation) {
                                 debug!("Transcription operation cancelled before paste");
+                                // The recording has no history entry to link to: without one
+                                // it would stay on disk forever. Remove it with the dictation.
+                                discard_wav(wav_handle, &wav_path_for_verify).await;
                                 utils::hide_recording_overlay(&ah);
                                 set_tray_state(&ah, TrayIconState::Idle);
                                 return;
@@ -879,6 +907,9 @@ impl ShortcutAction for TranscribeAction {
                                 debug!(
                                     "Transcription operation cancelled after transcription error"
                                 );
+                                // The recording has no history entry to link to: without one
+                                // it would stay on disk forever. Remove it with the dictation.
+                                discard_wav(wav_handle, &wav_path_for_verify).await;
                                 utils::hide_recording_overlay(&ah);
                                 set_tray_state(&ah, TrayIconState::Idle);
                                 return;
