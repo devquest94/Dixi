@@ -1,0 +1,30 @@
+# Guion de validación con voz real — Dixi
+#
+# USO
+# ---
+# Leé estas frases en voz normal, con el atajo de dictado de Dixi (ctrl+space
+# en push-to-talk: apretá, hablá, soltá). Una frase por dictado, con una
+# pausa de dos segundos entre una y otra.
+#
+# Las frases están en español rioplatense (voseo y lunfardo) con la
+# terminología técnica en inglés que usás en el laburo, que es el caso que
+# hay que medir: no alcanza con el español neutro.
+#
+# El texto de la derecha es la referencia contra la que se mide el WER y el
+# CER. No lo mires mientras dictás.
+#
+# La duración de cada grupo importa: el banco compara lo que el usuario
+# espera tras soltar la tecla, y esa espera crece con la voz.
+#
+# Formato:  <id>|<lo que hay que decir>|<lo que el modelo deberia escribir>
+
+V01|Hola, esto es una prueba de dictado en español.|Hola, esto es una prueba de dictado en español.
+V02|Fijate si podés revisar los logs del server antes de hacer el deploy.|Fijate si podés revisar los logs del server antes de hacer el deploy.
+V03|El build me tiró un error, está medio quilombo, lo voy a chequear.|El build me tiró un error, está medio quilombo, lo voy a chequear.
+V04|Hacé un commit, pusheá la branch y corré el deploy en Docker.|Hacé un commit, pusheá la branch y corré el deploy en Docker.
+V05|Che, ¿me pasás el archivo del backup? Lo necesito para el merge.|Che, ¿me pasás el archivo del backup? Lo necesito para el merge.
+V06|El endpoint no responde, me parece que hay un timeout en el API gateway.|El endpoint no responde, me parece que hay un timeout en el API gateway.
+V07|Atención: el deploy falla, no es un problema del código.|Atención: el deploy falla, no es un problema del código.
+V08|Quería preguntarte si el backup del servidor de producción quedó bien, porque ayer el log showed un timeout.|Quería preguntarte si el backup del servidor de producción quedó bien, porque ayer el log showed un timeout.
+V09|Revisá el stack trace del error, así vemos dónde se rompe el endpoint.|Revisá el stack trace del error, así vemos dónde se rompe el endpoint.
+V10|El servidor tenía cuarenta y cinco por ciento de la memoria usada, y el cache sigue en el Redis.|El servidor tenía cuarenta y cinco por ciento de la memoria usada, y el cache sigue en el Redis.
