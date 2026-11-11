@@ -48,6 +48,37 @@ impl Drop for FinishGuard {
     }
 }
 
+/// Waits for the WAV file to finish being written and verifies it.
+///
+/// Returns whether the file is on disk with the expected number of samples.
+///
+/// It lives apart from the pipeline because the bookkeeping it belongs to
+/// runs *after* the text has been sent to the destination: the user is
+/// waiting for the text, not for the archive.
+async fn await_wav_saved(
+    handle: tauri::async_runtime::JoinHandle<Result<(), anyhow::Error>>,
+    path: &std::path::Path,
+    expected_samples: usize,
+) -> bool {
+    match handle.await {
+        Ok(Ok(())) => match crate::audio_toolkit::verify_wav_file(path, expected_samples) {
+            Ok(()) => true,
+            Err(e) => {
+                error!("WAV verification failed: {}", e);
+                false
+            }
+        },
+        Ok(Err(e)) => {
+            error!("Failed to save WAV file: {}", e);
+            false
+        }
+        Err(e) => {
+            error!("WAV save task panicked: {}", e);
+            false
+        }
+    }
+}
+
 // Shortcut Action Trait
 pub trait ShortcutAction: Send + Sync {
     fn start(&self, app: &AppHandle, binding_id: &str, shortcut_str: &str);
@@ -568,6 +599,10 @@ impl ShortcutAction for TranscribeAction {
     }
 
     fn stop(&self, app: &AppHandle, binding_id: &str, _shortcut_str: &str) {
+        // From the moment the user stopped talking to the moment the
+        // pipeline was told to stop: the release grace and the dispatch.
+        crate::latency::mark_from_origin(crate::latency::Stage::Dispatch);
+
         // Prevent a slow microphone from emitting a ready event or start chime
         // after the user has already requested stop.
         app.state::<Arc<AudioRecordingManager>>()
@@ -611,6 +646,11 @@ impl ShortcutAction for TranscribeAction {
 
         tauri::async_runtime::spawn(async move {
             let _guard = FinishGuard(ah.clone(), Arc::clone(&tm));
+            // The task owns the latency trace: it closes and logs it when it
+            // ends, whatever the outcome. Closing it in the paste (on the
+            // main thread) would cut the accounting stage short and lose the
+            // line on every failure or cancellation.
+            let _latency_guard = crate::latency::TraceGuard::new();
             debug!(
                 "Starting async transcription task for binding: {}",
                 binding_id
@@ -623,6 +663,7 @@ impl ShortcutAction for TranscribeAction {
                     stop_recording_time.elapsed(),
                     samples.len()
                 );
+                crate::latency::mark_since(crate::latency::Stage::Audio, stop_recording_time);
 
                 if rm.was_cancelled_since(cancel_generation) {
                     debug!("Transcription operation cancelled after recording stop");
@@ -642,7 +683,10 @@ impl ShortcutAction for TranscribeAction {
                 } else {
                     // Save WAV concurrently with transcription
                     let sample_count = samples.len();
-                    let file_name = format!("dixi-{}.wav", chrono::Utc::now().timestamp());
+                    let file_name = format!(
+                        "dixi-{}.wav",
+                        chrono::Utc::now().timestamp_millis()
+                    );
                     let wav_path = hm.recordings_dir().join(&file_name);
                     let wav_path_for_verify = wav_path.clone();
                     let samples_for_wav = samples.clone();
@@ -656,30 +700,6 @@ impl ShortcutAction for TranscribeAction {
                     // as an error, so it never starts a batch run.
                     let transcription_time = Instant::now();
                     let transcription_result = tm.transcribe_recording(samples);
-
-                    // Await WAV save and verify
-                    let wav_saved = match wav_handle.await {
-                        Ok(Ok(())) => {
-                            match crate::audio_toolkit::verify_wav_file(
-                                &wav_path_for_verify,
-                                sample_count,
-                            ) {
-                                Ok(()) => true,
-                                Err(e) => {
-                                    error!("WAV verification failed: {}", e);
-                                    false
-                                }
-                            }
-                        }
-                        Ok(Err(e)) => {
-                            error!("Failed to save WAV file: {}", e);
-                            false
-                        }
-                        Err(e) => {
-                            error!("WAV save task panicked: {}", e);
-                            false
-                        }
-                    };
 
                     if rm.was_cancelled_since(cancel_generation) {
                         debug!("Transcription operation cancelled before output handling");
@@ -703,6 +723,7 @@ impl ShortcutAction for TranscribeAction {
                                     show_processing_overlay(&ah);
                                 }
                             }
+                            let post_started = Instant::now();
                             let Some(processed) = complete_unless_cancelled(
                                 process_transcription_output(&ah, &transcription, post_process),
                                 || rm.was_cancelled_since(cancel_generation),
@@ -714,6 +735,10 @@ impl ShortcutAction for TranscribeAction {
                                 set_tray_state(&ah, TrayIconState::Idle);
                                 return;
                             };
+                            crate::latency::mark_since(
+                                crate::latency::Stage::PostProcess,
+                                post_started,
+                            );
 
                             if rm.was_cancelled_since(cancel_generation) {
                                 debug!("Transcription operation cancelled before paste");
@@ -722,43 +747,73 @@ impl ShortcutAction for TranscribeAction {
                                 return;
                             }
 
-                            // Save to history if WAV was saved
-                            if wav_saved {
-                                if let Err(err) = hm.save_entry(
-                                    file_name,
-                                    transcription,
-                                    post_process,
-                                    processed.post_processed_text.clone(),
-                                    processed.post_process_prompt.clone(),
-                                ) {
-                                    error!("Failed to save history entry: {}", err);
-                                }
-                            }
+                            // The text is what the user is waiting for, so the
+                            // paste goes FIRST. Writing the WAV file, verifying
+                            // it and saving the history entry are bookkeeping:
+                            // they happen after the text is on its way to the
+                            // destination, not before.
+                            let post_processed_text = processed.post_processed_text.clone();
+                            let post_process_prompt = processed.post_process_prompt.clone();
 
                             if processed.final_text.is_empty() {
+                                // There is nothing to paste; the bookkeeping is
+                                // all that is left to do.
+                                let history_started = Instant::now();
+                                let wav_saved = await_wav_saved(
+                                    wav_handle,
+                                    &wav_path_for_verify,
+                                    sample_count,
+                                )
+                                .await;
+                                if wav_saved {
+                                    if let Err(err) = hm.save_entry(
+                                        file_name,
+                                        transcription,
+                                        post_process,
+                                        post_processed_text,
+                                        post_process_prompt,
+                                    ) {
+                                        error!("Failed to save history entry: {}", err);
+                                    }
+                                }
+                                crate::latency::mark_since(
+                                    crate::latency::Stage::History,
+                                    history_started,
+                                );
                                 utils::hide_recording_overlay(&ah);
                                 set_tray_state(&ah, TrayIconState::Idle);
                             } else {
                                 let ah_clone = ah.clone();
-                                let paste_time = Instant::now();
                                 let final_text = processed.final_text;
                                 let rm_for_paste = Arc::clone(&rm);
+                                // The paste runs on the main thread and reports
+                                // back, so the trace can wait for it: closing
+                                // the trace here would cut the accounting stage
+                                // short, because the main thread usually
+                                // finishes the paste before this task gets to
+                                // the bookkeeping.
+                                let (paste_tx, paste_rx) = std::sync::mpsc::channel();
                                 ah.run_on_main_thread(move || {
                                     if rm_for_paste.was_cancelled_since(cancel_generation) {
                                         debug!("Transcription operation cancelled before paste");
                                         utils::hide_recording_overlay(&ah_clone);
                                         set_tray_state(&ah_clone, TrayIconState::Idle);
+                                        let _ = paste_tx.send(None);
                                         return;
                                     }
 
-                                    match utils::paste(final_text, ah_clone.clone()) {
-                                        Ok(()) => debug!(
-                                            "Text pasted successfully in {:?}",
-                                            paste_time.elapsed()
-                                        ),
+                                    let insertion_started = Instant::now();
+                                    let outcome = utils::paste(final_text, ah_clone.clone());
+                                    let took = insertion_started.elapsed();
+                                    match &outcome {
+                                        Ok(()) => {
+                                            debug!("Text pasted successfully in {:?}", took);
+                                            let _ = paste_tx.send(Some(took));
+                                        }
                                         Err(e) => {
                                             error!("Failed to paste transcription: {}", e);
                                             let _ = ah_clone.emit("paste-error", ());
+                                            let _ = paste_tx.send(Some(took));
                                         }
                                     }
                                     utils::hide_recording_overlay(&ah_clone);
@@ -769,6 +824,54 @@ impl ShortcutAction for TranscribeAction {
                                     utils::hide_recording_overlay(&ah);
                                     set_tray_state(&ah, TrayIconState::Idle);
                                 });
+
+                                // Wait for the paste to report back, so the
+                                // insertion stage is the real one and not the
+                                // time it took to schedule it.
+                                match paste_rx.recv_timeout(Duration::from_secs(5)) {
+                                    Ok(Some(took)) => {
+                                        crate::latency::mark(
+                                            crate::latency::Stage::Insertion,
+                                            took,
+                                        );
+                                        // The text is in the destination: from
+                                        // here on, the latency the user
+                                        // perceives is known.
+                                        crate::latency::mark_text_ready();
+                                    }
+                                    Ok(None) => {
+                                        debug!("The paste was cancelled before it ran");
+                                    }
+                                    Err(_) => {
+                                        warn!("The paste did not report back in time");
+                                    }
+                                }
+
+                                // The bookkeeping, after the paste: the WAV file
+                                // and the history entry no longer sit between
+                                // the transcription and the destination.
+                                let history_started = Instant::now();
+                                let wav_saved = await_wav_saved(
+                                    wav_handle,
+                                    &wav_path_for_verify,
+                                    sample_count,
+                                )
+                                .await;
+                                if wav_saved {
+                                    if let Err(err) = hm.save_entry(
+                                        file_name,
+                                        transcription,
+                                        post_process,
+                                        post_processed_text,
+                                        post_process_prompt,
+                                    ) {
+                                        error!("Failed to save history entry: {}", err);
+                                    }
+                                }
+                                crate::latency::mark_since(
+                                    crate::latency::Stage::History,
+                                    history_started,
+                                );
                             }
                         }
                         Err(err) => {
@@ -786,6 +889,13 @@ impl ShortcutAction for TranscribeAction {
                             // message is also in handy.log via the line above.
                             let _ = ah.emit("transcription-error", err.to_string());
                             // Save entry with empty text so user can retry
+                            let history_started = Instant::now();
+                            let wav_saved = await_wav_saved(
+                                wav_handle,
+                                &wav_path_for_verify,
+                                sample_count,
+                            )
+                            .await;
                             if wav_saved {
                                 if let Err(save_err) = hm.save_entry(
                                     file_name,
@@ -797,6 +907,10 @@ impl ShortcutAction for TranscribeAction {
                                     error!("Failed to save failed history entry: {}", save_err);
                                 }
                             }
+                            crate::latency::mark_since(
+                                crate::latency::Stage::History,
+                                history_started,
+                            );
                             utils::hide_recording_overlay(&ah);
                             set_tray_state(&ah, TrayIconState::Idle);
                         }

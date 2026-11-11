@@ -1,0 +1,37 @@
+﻿[
+    {
+        "Metrica":  "Carga del modelo (ms)",
+        "Media":  201,
+        "P50":  190,
+        "P95":  266,
+        "Max":  266
+    },
+    {
+        "Metrica":  "Inferencia ASR (ms)",
+        "Media":  1234.1,
+        "P50":  1085,
+        "P95":  1782,
+        "Max":  1782
+    },
+    {
+        "Metrica":  "Mejor pasada (ms)",
+        "Media":  1248.4,
+        "P50":  1101,
+        "P95":  1796,
+        "Max":  1796
+    },
+    {
+        "Metrica":  "Reglas de texto (ms)",
+        "Media":  0,
+        "P50":  0,
+        "P95":  0,
+        "Max":  0
+    },
+    {
+        "Metrica":  "Total trazado (ms)",
+        "Media":  1435.5,
+        "P50":  1285,
+        "P95":  1982,
+        "Max":  1982
+    }
+]

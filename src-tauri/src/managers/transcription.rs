@@ -896,7 +896,13 @@ impl TranscriptionManager {
     /// batch run of the whole recording when there is no live result.
     pub fn transcribe_recording(&self, samples: Vec<f32>) -> Result<String> {
         let started = Instant::now();
+        // The decode of the last chunk is the part of the recognition the
+        // user waits for: the rest was decoded live while they spoke. It is
+        // measured apart from the batch inference, which in this path is
+        // almost nothing.
+        let finalize_started = Instant::now();
         let live = self.finalize_live(samples.len())?;
+        crate::latency::mark_since(crate::latency::Stage::Finalize, finalize_started);
         self.complete(started, samples, live)
     }
 
@@ -1030,19 +1036,27 @@ impl TranscriptionManager {
             return Ok(String::new());
         }
 
+        let asr_started = Instant::now();
         let outcome = match live {
             Some(outcome) => outcome,
             None => self.decode_batch(audio)?,
         };
+        // The engine run: feature preparation, inference and decoding,
+        // including the round trip to the worker process that owns the
+        // native code. The worker does not report its internal stages, so
+        // this is the boundary the parent can measure.
+        crate::latency::mark_since(crate::latency::Stage::Asr, asr_started);
         let settings = get_settings(&self.app_handle);
         // The writing profile of the application that has the focus decides
         // how aggressive the cleanup is and which deterministic format rules
         // are applied.
         let effective = self.resolve_writing_profile(&settings);
         let (text, language) = finish_text(outcome, &effective.settings);
+        let rules_started = Instant::now();
         let final_result = self.apply_dictionary_rules(&text, language.as_deref());
         let final_result = self.expand_snippets(&final_result, language.as_deref());
         let final_result = apply_format_rules(&final_result, &effective.format_rules);
+        crate::latency::mark_since(crate::latency::Stage::Rules, rules_started);
 
         let translation_note = if settings.translate_to_english {
             " (translated)"
@@ -1086,11 +1100,17 @@ impl TranscriptionManager {
 
         // Check if model is loaded, if not try to load it
         {
-            // If the model is loading, wait for it to complete.
+            // If the model is loading, wait for it to complete. The load was
+            // kicked off when the recording started, so it normally runs
+            // while the user speaks; what reaches the post-release latency
+            // is only the leftover wait.
+            let wait_started = Instant::now();
             let mut is_loading = self.is_loading.lock().unwrap();
             while *is_loading {
                 is_loading = self.loading_condvar.wait(is_loading).unwrap();
             }
+            drop(is_loading);
+            crate::latency::mark_since(crate::latency::Stage::ModelLoad, wait_started);
 
             if !self.is_model_loaded() {
                 return Err(anyhow::anyhow!("Model is not loaded for transcription."));
