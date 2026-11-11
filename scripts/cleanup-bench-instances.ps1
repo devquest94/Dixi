@@ -38,6 +38,11 @@ $ErrorActionPreference = 'Stop'
 
 if (-not $IncludeMine) {
     $Prefix = @('dixi-latency-')
+} else {
+    # Las de esta sesion: las instancias del banco, los clips y las COPIAS
+    # de las grabaciones del usuario. Estas ultimas son contenido privado:
+    # no deberian quedarse en una carpeta temporal.
+    $Prefix = @('dixi-latency-', 'dixi-bench-', 'dixi-voice', 'dixi-clips')
 }
 
 Write-Host "Inventario de las carpetas del banco en $TempDir" -ForegroundColor Cyan
