@@ -61,14 +61,9 @@ fn paste_via_clipboard(
 ) -> Result<(), String> {
     let clipboard = app_handle.clipboard();
     let saved_text = clipboard.read_text().ok().filter(|t| !t.is_empty());
-    // Only probe for an image when there is no text to restore. Text is by far the
-    // common case, and reading an image decodes the full bitmap, so this keeps the
-    // text path exactly as cheap as it was before.
-    let saved_image = if saved_text.is_none() {
-        clipboard.read_image().ok().map(|image| image.to_owned())
-    } else {
-        None
-    };
+    // The image is probed always: reading it when there is none is cheap, and
+    // reading it when there is one is exactly the case worth preserving.
+    let saved_image = clipboard.read_image().ok().map(|image| image.to_owned());
 
     // Write text to clipboard first
     write_text_to_clipboard(app_handle, text)?;
@@ -111,8 +106,16 @@ fn paste_via_clipboard(
             info!("Restoring image to clipboard");
             let _ = clipboard.write_image(&image);
         } else {
-            // Nothing was there to begin with — don't leave the transcription behind.
-            let _ = clipboard.clear();
+            // The clipboard held something this path cannot restore: a list of
+            // files, a custom format, whatever. Emptying it would destroy what
+            // the user copied, and the transcript is already in the clipboard
+            // history, so the text stays and the loss is reported. The Windows
+            // clipboard history (Win+V) can still bring the files back; an
+            // emptied clipboard leaves nothing to bring back.
+            log::warn!(
+                "The clipboard held content that cannot be restored (files or a \
+                 custom format); the transcript is left in place"
+            );
         }
     })
 }
