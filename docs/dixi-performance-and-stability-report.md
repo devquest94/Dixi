@@ -56,13 +56,13 @@ consistió en **medir antes de tocar**, y esa medición redirigió el esfuerzo.
 | `NOTEPAD_CAPTURE` | `NOT_TESTED` |
 | `NOTEPADPP_CAPTURE` | `NOT_TESTED` |
 | `MREMOTENG_CLIPBOARD` | `FAIL` (el canal de portapapeles del cliente RDP no lo transporta; §8) |
-| `RELEASE_BUILD` | **PASS** |
-| `REGRESSION_TESTS` | **PASS** |
+| `RELEASE_BUILD` | **PASS** (rama integrada `feat/dixi-integration`) |
+| `REGRESSION_TESTS` | **PASS** — 576 pruebas Rust, `tsc`, `eslint`, suites unitarias y los dos validadores de traducciones |
 | `NO_VISIBLE_CONSOLES` | **YES** |
 | `MASTER_UNCHANGED` | **YES** |
 | `MERGED_TO_DEVELOP` | `NO` |
-| `BRANCH` | `feat/dixi-performance` |
-| `FINAL_HEAD` | se completa en §12 |
+| `BRANCH` | `feat/dixi-integration` (desde `develop`; contiene el hotfix, la integración remota y este trabajo) |
+| `FINAL_HEAD` | ver §12 |
 
 ---
 
@@ -474,16 +474,59 @@ Mientras tanto, la recomendación es la inversa de la que se suele dar: con
 
 ---
 
-## 12. Lo que queda pendiente
+## 12. La rama de integración
+
+El trabajo parallelo que había en el repositorio quedó recogido en
+`feat/dixi-integration`, creada desde `develop`:
+
+| Rama integrada | Commits | Conflictos |
+|---|---|---|
+| `fix/dixi-selection-capture` (hotfix de captura) | 18 | **Ninguno** |
+| `feat/dixi-remote-desktop` (escritorio remoto) | 7 | 4 archivos de código + los 26 idiomas |
+| `feat/dixi-performance` (este trabajo) | 3 | **Ninguno** |
+
+Los conflictos se resolvieron **a mano, por significado**, no con la
+herramienta de merge:
+
+- **`actions.rs`**: la acción de captura de la selección y la de preparación
+  para el escritorio remoto son independientes: se quedan **las dos**, con
+  sus dos entradas en el mapa de acciones.
+- **`settings.rs`**: los dos atajos (`capture_selection` y
+  `prepare_remote_paste`) se registran **los dos**.
+- **`shortcut/tauri_impl.rs`**: las dos guardas se conservan: la del atajo que
+  no existe en el sistema y la que exige la integración encendida.
+- **Los 26 idiomas**: **unión** de las claves de las dos ramas, que añadieron
+  claves distintas. Se hizo con un script que fusiona los dos lados del
+  conflicto en memoria, y se comprobó que el resultado es JSON válido y sin
+  marcadores.
+
+**La rama no se ha fusionado en `develop`**, como pedía el encargo: eso es
+decisión del usuario tras revisar los resultados.
+
+### Verificación de la rama integrada
+
+| Comprobación | Resultado |
+|---|---|
+| `cargo test --lib` | **PASS** — **576 pruebas**, 0 fallan, 20 ignoradas |
+| `cargo check --lib` | **PASS** — sin avisos |
+| `tsc --noEmit` | **PASS** |
+| `eslint src` | **PASS** |
+| `npm run test:unit` | **PASS** — las tres suites |
+| `npm run check:translations` | **PASS** — *All 25 languages have complete translations* (806 claves) |
+| `node scripts/check-translation-text.mjs` | **PASS** — 7254 cadenas, sin problemas |
+| `src/bindings.ts` | regenerado desde el binario de la rama |
+
+### Lo que queda pendiente
 
 | Pendiente | Por qué | Quién decide |
 |---|---|---|
 | **La prueba de control del portapapeles de mRemoteNG** | Falta separar "el cliente no lo transporta" de "el servidor lo prohíbe": hay que probar un Ctrl+V normal dentro de la sesión y el cliente RDP de Microsoft sobre la misma conexión. | El usuario (pruebas manuales autorizadas) |
 | **Probar un modelo streaming** (Nemotron Streaming 3.5) | Es la vía con más recorrido: mueve el decode dentro del habla y deja la latencia posterior dominada por los ~166 ms fijos. | El usuario: son 716 MB y cambia el modelo configurado |
 | **Bajar el hold del acorde** (100 ms) | Son 114 de los 196 ms fijos. El recibo de lectura permite verificar que el pegado sigue llegando, pero es un cambio en la fiabilidad del pegado y no se debe hacer a ciegas. | El usuario, con la app en la mano |
+| **Volver a medir la latencia con el instrumento corregido** | La medición de §5.0 se hizo con la instrumentación anterior: las cifras de etapa son correctas, pero las de `finalize`, `text` y `wall` todavía no se han medido. | El usuario, dictando |
 | **`cargo fmt`** | El componente `rustfmt` no está instalado. | El usuario (descarga el componente) |
 | **Limpieza de las instancias del banco** | Cada corrida deja una carpeta en `%TEMP%` con el binario copiado, los recursos y el audio remuestreado. | Fase final, con el usuario |
-| **La rama de integración** | El hotfix (18 commits) y la integración remota (7) se solapan en 37 archivos; las traducciones y los atajos necesitan resolución semántica, no textual. | El usuario, tras revisar los resultados |
+| **El merge a `develop`** | La rama `feat/dixi-integration` está lista y verificada, pero no fusionada. | El usuario |
 
 ### Lo que se ha medido y **no** se ha tocado
 
