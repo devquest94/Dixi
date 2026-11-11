@@ -176,6 +176,10 @@
           "transcribe_with_post_process": {
             "name": "Skrót postprocessingu",
             "description": "Opcjonalnie: Dedykowany skrót klawiszowy, który zawsze stosuje postprocessing AI do transkrypcji."
+          },
+          "capture_selection": {
+            "name": "Przechwyć zaznaczenie",
+            "description": "Przechwytuje tekst zaznaczony w aplikacji z fokusem."
           }
         },
         "errors": {
@@ -946,7 +950,20 @@
         "copied": "Wynik został skopiowany.",
         "captureSelection": "Użyj zaznaczonego tekstu",
         "selectionEmpty": "W aplikacji z fokusem nie zaznaczono tekstu.",
-        "selectionChanged": "Zaznaczony tekst zmienił się w trakcie transformacji, więc nic nie zapisano. Skopiuj zamiast tego wynik."
+        "selectionChanged": "Zaznaczony tekst zmienił się w trakcie transformacji, więc nic nie zapisano. Skopiuj zamiast tego wynik.",
+        "captured": "Przechwycony tekst",
+        "capturedFrom": "Z {{app}}",
+        "hotkeyHint": "Naciśnij {{shortcut}} w aplikacji, w której zaznaczono tekst, a następnie wróć tutaj.",
+        "captureCountdown": "Wróć do aplikacji i zaznacz tekst. Przechwytywanie za {{seconds}}…",
+        "nothingCaptured": "Nie przechwycono jeszcze żadnego tekstu.",
+        "acceptNeedsCapture": "Przechwyć zaznaczenie przed zaakceptowaniem.",
+        "captureInvalidated": "Tekst się zmienił, więc przechwycone zaznaczenie już nie pasuje. Przechwyć zaznaczenie ponownie.",
+        "shortcutNotRegistered": "Nie udało się zarejestrować skrótu {{shortcut}}. Zmień go w skrótach klawiaturowych.",
+        "shortcutConflict": "Nie udało się zarejestrować skrótu {{shortcut}}: inną aplikacja ma już tę kombinację. Zmień go w skrótach klawiaturowych.",
+        "shortcutDuplicate": "Nie udało się zarejestrować skrótu {{shortcut}}: Dixi miał już zarejestrowaną tę kombinację. Uruchom ponownie Dixi albo zmień skrót w skrótach klawiaturowych.",
+        "shortcutInvalidCombination": "Skrót {{shortcut}} nie jest prawidłową kombinacją. Zmień go w skrótach klawiaturowych.",
+        "shortcutNotInitialized": "Nie udało się zarejestrować skrótu {{shortcut}}: silnik skrótów nie był gotowy. Uruchom ponownie Dixi.",
+        "shortcutBackendUnavailable": "Nie udało się zarejestrować skrótu {{shortcut}}: silnik skrótów nie odpowiedział. Uruchom ponownie Dixi."
       },
       "diff": {
         "title": "Zmiany",
@@ -1014,6 +1031,21 @@
       "errors": {
         "load": "Nie udało się wczytać historii tekstu.",
         "action": "Nie udało się cofnąć zmiany."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "W aplikacji z fokusem nie ma zaznaczonego tekstu.",
+        "passwordField": "To pole hasła, więc Dixi go nie odczytuje.",
+        "unsupportedControl": "Dixi nie zna tego elementu sterowania, więc go nie odczytuje.",
+        "clipboardNotPreservable": "Twój schowek zawiera treść, której nie można odtworzyć dokładnie, więc Dixi go nie zmieniał. Wyczyść schowek i spróbuj ponownie.",
+        "clipboard": "Nie udało się użyć schowka.",
+        "selectionChanged": "Zaznaczenie się zmieniło, więc nic nie zostało zapisane.",
+        "destinationUnavailable": "Dixi nie mógł przywrócić aplikacji na wierzch, więc nic nie zostało zapisane.",
+        "destinationGone": "Aplikacja, w której zaznaczono tekst, została zamknięta, więc nic nie zostało zapisane.",
+        "write": "Nie udało się zapisać tekstu.",
+        "focusedApp": "Aplikacja, która miała fokus, to {{app}}.",
+        "focusedAppIsDixi": "Aplikacja, która miała fokus, to sam Dixi: wróć do aplikacji, w której zaznaczono tekst, i naciśnij skrót ponownie."
       }
     }
   },

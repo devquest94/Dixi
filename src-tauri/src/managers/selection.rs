@@ -11,8 +11,22 @@
 //! differ, nothing is written and the caller offers the result as a copy
 //! instead.
 //!
+//! **The focus is the hard part.** The selection only exists in the
+//! application that has the focus, so the capture has to happen while that
+//! application is in front. A button inside Dixi cannot do it: clicking the
+//! button gives Dixi the focus and the selection of the other application is
+//! already lost. That is why the capture is done from a global shortcut,
+//! which does not move the focus, and why the capture keeps the *context*
+//! of the selection — the window, the control and the text — so that the
+//! write can go back to the same place later.
+//!
 //! The feature is Windows only. On the other platforms both functions report
 //! that there is no selection.
+
+use std::sync::Mutex;
+
+use serde::{Deserialize, Serialize};
+use specta::Type;
 
 /// What was selected in the application that had the focus.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -27,6 +41,73 @@ pub struct Selection {
     pub app_name: Option<String>,
 }
 
+/// The context of a captured selection: where it was, and what it said.
+///
+/// Without the context there is no way to write safely: the only thing that
+/// can be done with a text is to paste it into whatever has the focus at
+/// that moment, and that is never what the user meant.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
+pub struct SelectionContext {
+    /// The selected text, as it was read.
+    pub text: String,
+    /// The handle of the window that had the focus.
+    pub window: isize,
+    /// The handle of the focused control.
+    pub control: isize,
+    /// The name of the application, when it could be read.
+    pub app_name: Option<String>,
+    /// When the selection was captured, in milliseconds since the epoch.
+    pub captured_at: i64,
+}
+
+impl SelectionContext {
+    /// The context of a selection, stamped with the current time.
+    pub fn new(selection: Selection) -> Self {
+        Self {
+            text: selection.text,
+            window: selection.window,
+            control: selection.control,
+            app_name: selection.app_name,
+            captured_at: chrono::Utc::now().timestamp_millis(),
+        }
+    }
+}
+
+/// The last captured selection, so that the interface can show it and the
+/// write can go back to the same place.
+#[derive(Default)]
+pub struct SelectionContextStore {
+    inner: Mutex<Option<SelectionContext>>,
+}
+
+impl SelectionContextStore {
+    /// A store with nothing captured yet.
+    pub fn new() -> Self {
+        Self {
+            inner: Mutex::new(None),
+        }
+    }
+
+    /// The captured selection, if there is one.
+    pub fn get(&self) -> Option<SelectionContext> {
+        self.inner.lock().ok().and_then(|context| context.clone())
+    }
+
+    /// Remembers a captured selection.
+    pub fn set(&self, context: SelectionContext) {
+        if let Ok(mut slot) = self.inner.lock() {
+            *slot = Some(context);
+        }
+    }
+
+    /// Forgets the captured selection.
+    pub fn clear(&self) {
+        if let Ok(mut slot) = self.inner.lock() {
+            *slot = None;
+        }
+    }
+}
+
 /// Why a selection could not be read or replaced.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SelectionError {
@@ -34,12 +115,136 @@ pub enum SelectionError {
     NothingSelected,
     /// The focused control is a password field. It is never read.
     PasswordField,
+    /// The focused control is not one of the verified text controls, so its
+    /// content is not read and not written.
+    UnsupportedControl,
+    /// The clipboard holds something that cannot be saved and restored
+    /// exactly, so the operation is refused before anything is modified.
+    ClipboardNotPreservable,
     /// The clipboard could not be used.
     Clipboard(String),
     /// The window or the selection changed while the transformation was running.
     SelectionChanged,
+    /// The application where the selection was read could not be brought
+    /// back to the front.
+    DestinationUnavailable(String),
+    /// The window or the control of the selection no longer exists.
+    DestinationGone,
     /// The text could not be written.
     Write(String),
+    /// The attempt failed, and this is what was known about it.
+    Failed {
+        /// Why it failed.
+        reason: Box<SelectionError>,
+        /// What was known when it failed.
+        diagnostics: CaptureDiagnostics,
+    },
+}
+
+impl SelectionError {
+    /// Adds what was known about the attempt.
+    pub fn with_diagnostics(self, diagnostics: CaptureDiagnostics) -> Self {
+        SelectionError::Failed {
+            reason: Box::new(self),
+            diagnostics,
+        }
+    }
+}
+
+/// What was known about a failed attempt.
+///
+/// Only technical data: the process that had the focus, the class of the
+/// focused control and the step that failed. **The selected text is never
+/// part of it**, and neither is anything that could be private.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, Type)]
+pub struct CaptureDiagnostics {
+    /// The process that had the focus, when it could be read.
+    pub app_name: Option<String>,
+    /// The class of the focused control, when it could be read.
+    pub control_class: Option<String>,
+    /// Which step failed: `focus`, `control` or `copy`.
+    pub step: Option<String>,
+}
+
+/// Why a selection could not be read or written, in a shape the interface
+/// can show.
+///
+/// The code is stable, so the interface can translate the reason; the
+/// message is in English and is meant for the logs.
+#[derive(Clone, Debug, Serialize, Deserialize, Type)]
+pub struct SelectionFailure {
+    /// A stable identifier of the reason.
+    pub code: String,
+    /// The reason in English.
+    pub message: String,
+    /// What was known about the attempt: the process that had the focus, the
+    /// class of the focused control and the step that failed. The interface
+    /// uses it to say *which* application was in front, because "it does not
+    /// work" is not an answer.
+    pub diagnostics: CaptureDiagnostics,
+}
+
+/// Turns an error of the selection manager into a failure the interface can
+/// show.
+pub fn failure(error: SelectionError) -> SelectionFailure {
+    let (code, message, diagnostics) = match error {
+        SelectionError::Failed {
+            reason,
+            diagnostics,
+        } => {
+            let (code, message) = reason_code(*reason);
+            (code, message, diagnostics)
+        }
+        other => {
+            let (code, message) = reason_code(other);
+            (code, message, CaptureDiagnostics::default())
+        }
+    };
+    SelectionFailure {
+        code,
+        message,
+        diagnostics,
+    }
+}
+
+/// The stable code and the English message of a reason.
+fn reason_code(error: SelectionError) -> (String, String) {
+    let (code, message) = match error {
+        SelectionError::NothingSelected => (
+            "nothing_selected".to_string(),
+            "there is no selected text".to_string(),
+        ),
+        SelectionError::PasswordField => (
+            "password_field".to_string(),
+            "the focused control is a password field".to_string(),
+        ),
+        SelectionError::UnsupportedControl => (
+            "unsupported_control".to_string(),
+            "the focused control is not a text control that Dixi knows".to_string(),
+        ),
+        SelectionError::ClipboardNotPreservable => (
+            "clipboard_not_preservable".to_string(),
+            "the clipboard holds content that cannot be restored exactly, so it was not touched"
+                .to_string(),
+        ),
+        SelectionError::Clipboard(message) => {
+            ("clipboard".to_string(), format!("the clipboard failed: {message}"))
+        }
+        SelectionError::SelectionChanged => (
+            "selection_changed".to_string(),
+            "the selection changed since it was read, so nothing was written".to_string(),
+        ),
+        SelectionError::DestinationUnavailable(message) => {
+            ("destination_unavailable".to_string(), message)
+        }
+        SelectionError::DestinationGone => (
+            "destination_gone".to_string(),
+            "the application where the text was read no longer exists".to_string(),
+        ),
+        SelectionError::Write(message) => ("write".to_string(), message),
+        SelectionError::Failed { reason, .. } => reason_code(*reason),
+    };
+    (code, message)
 }
 
 /// The text that is selected right now, if any.
@@ -54,22 +259,44 @@ pub fn current_selection() -> Result<Selection, SelectionError> {
     }
 }
 
-/// Replaces the selection, but only if it is still the one that was validated.
+/// Captures the selection of the application that has the focus, together
+/// with the context needed to write it back later.
 ///
-/// `expected` is the selection that was read before the transformation ran.
-/// When the selection changed, nothing is written and `SelectionChanged` is
-/// returned: the caller then offers to copy the result instead.
-pub fn replace_selection(expected: &Selection, new_text: &str) -> Result<(), SelectionError> {
+/// The application that has the focus must be the one the user selected the
+/// text in: a global shortcut does not move the focus, so this is the only
+/// moment where the selection is still reachable.
+pub fn capture_context() -> Result<SelectionContext, SelectionError> {
     #[cfg(target_os = "windows")]
     {
-        platform::replace_selection(expected, new_text)
+        platform::capture_context()
     }
     #[cfg(not(target_os = "windows"))]
     {
-        let _ = (expected, new_text);
         Err(SelectionError::NothingSelected)
     }
 }
+
+/// Writes text over a selection that was captured before.
+///
+/// The write only happens when everything still matches: the same window,
+/// the same control, the same selected text and a destination that is not a
+/// protected field. When any of that fails, nothing is written.
+pub fn write_to_context(
+    context: &SelectionContext,
+    expected_text: &str,
+    new_text: &str,
+) -> Result<(), SelectionError> {
+    #[cfg(target_os = "windows")]
+    {
+        platform::write_to_context(context, expected_text, new_text)
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = (context, expected_text, new_text);
+        Err(SelectionError::NothingSelected)
+    }
+}
+
 
 /// The `ES_PASSWORD` style bit (`0x0020`): the control masks what is typed.
 ///
@@ -122,30 +349,171 @@ fn is_password_control(class: &str, style: isize) -> bool {
     is_password_class(class) || (is_edit_class(class) && is_password_style(style))
 }
 
+/// The control classes Dixi is willing to read from and to write to.
+///
+/// The list is a whitelist on purpose. Windows offers no reliable way to
+/// tell that a control holds a protected field without Windows UI
+/// Automation, and a control that is not recognized could be anything:
+/// a password field of a third party application, a control that reacts
+/// badly to a synthetic keystroke, a control that is not a text field at
+/// all. Refusing an unknown control costs the user one transformation;
+/// reading or overwriting the wrong control costs much more.
+///
+/// The browser renderers are in the list because the text of a document is
+/// really there, but a masked field inside a renderer is not detectable
+/// from Win32: the browsers themselves refuse to hand out the content of a
+/// masked field, so the read is safe even there.
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+const NATIVE_TEXT_CLASSES: &[&str] = &[
+    // Native text controls.
+    "edit",
+    "tedit",
+    "richedit",
+    "richedit20w",
+    "richedit50w",
+    "richeditd2dpt",
+    "richeditd2dptx",
+];
+
+/// The prefixes of the browser renderers, where the document lives.
+///
+    /// Chromium does not give the keyboard focus to the widget that hosts
+    /// the rendered page: the control that holds the focus is the top level
+    /// window, with the class `Chrome_WidgetWin_1`, and the renderer
+    /// (`Chrome_RenderWidgetHostHWND`) is only its child. The class that is
+    /// read is therefore the top level one, so the family is matched by
+    /// prefix instead of by an exact name: the same rule then covers the
+    /// other browsers and their other classes.
+    ///
+    /// The prefix is enough because the read is made with the clipboard and
+    /// not with the control: a browser only answers the copy with the text
+    /// that is really selected.
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+const BROWSER_RENDERER_PREFIXES: &[&str] = &["chrome_", "mozillawindowclass", "webkit"];
+
+/// Whether the class name is one of the verified text controls.
+///
+/// The helper is `pub(crate)` so that the tests can reach it without a
+/// desktop session.
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+pub(crate) fn is_supported_text_class(class: &str) -> bool {
+    let class = class.trim().to_ascii_lowercase();
+    is_native_text_class(&class) || is_browser_renderer_class(&class)
+}
+
+/// Whether the class is a native text control, the only kind that answers
+/// with its own text.
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+pub(crate) fn is_native_text_class(class: &str) -> bool {
+    let class = class.trim().to_ascii_lowercase();
+    NATIVE_TEXT_CLASSES.contains(&class.as_str())
+}
+
+/// Whether the class belongs to a browser renderer.
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+pub(crate) fn is_browser_renderer_class(class: &str) -> bool {
+    let class = class.trim().to_ascii_lowercase();
+    BROWSER_RENDERER_PREFIXES
+        .iter()
+        .any(|prefix| class.starts_with(prefix))
+}
+
+/// Whether a clipboard format can be saved and put back exactly.
+///
+/// A format can be restored exactly when its content lives in movable
+/// memory: the bytes are copied and written back as they were. That covers
+/// the text, the locale, the HTML and the RTF, and the list of copied
+/// files. What does **not** fit is a format whose content is a handle that
+/// only Windows knows how to interpret —a bitmap, a metafile, a palette—:
+/// those are refused, and the operation is cancelled before anything is
+/// modified.
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+pub(crate) fn clipboard_format_is_restorable(format: u32, is_memory: bool) -> bool {
+    // `CF_BITMAP` (2), `CF_METAFILEPICT` (3), `CF_PALETTE` (9) and
+    // `CF_ENHMETAFILE` (14) hold handles that cannot be copied as bytes.
+    const HANDLE_FORMATS: &[u32] = &[2, 3, 9, 14];
+    !HANDLE_FORMATS.contains(&format) && is_memory
+}
+
+/// The checks that have to pass before anything is written.
+///
+/// The window and the control have to be the same ones that were read, and
+/// the selected text has to be the text that was read. A different text
+/// means the user moved the selection in the meantime, and writing over it
+/// would destroy something the user did not ask to lose.
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+pub(crate) fn verify_destination(
+    expected_window: isize,
+    expected_control: isize,
+    expected_text: &str,
+    observed_window: isize,
+    observed_control: isize,
+    observed_text: &str,
+) -> Result<(), SelectionError> {
+    if expected_window != observed_window || expected_control != observed_control {
+        return Err(SelectionError::SelectionChanged);
+    }
+    if expected_text.trim() != observed_text.trim() {
+        return Err(SelectionError::SelectionChanged);
+    }
+    Ok(())
+}
+
+/// Whether the window of a selection still exists.
+///
+/// A window that was closed cannot be written to, so the operation is
+/// cancelled instead of writing somewhere else.
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+pub(crate) fn window_is_alive(window: isize) -> bool {
+    #[cfg(target_os = "windows")]
+    {
+        use windows::Win32::Foundation::HWND;
+        use windows::Win32::UI::WindowsAndMessaging::IsWindow;
+
+        // SAFETY: the call only asks whether the handle is a window that
+        // still exists; it does not use it.
+        unsafe { IsWindow(Some(HWND(window as *mut std::ffi::c_void))).as_bool() }
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = window;
+        false
+    }
+}
+
 #[cfg(target_os = "windows")]
 mod platform {
     use std::mem::size_of;
+    use std::sync::Mutex;
     use std::time::{Duration, Instant};
 
     use windows::core::PWSTR;
-    use windows::Win32::Foundation::{CloseHandle, GlobalFree, HANDLE, HGLOBAL, HWND};
+    use windows::Win32::Foundation::{
+        CloseHandle, GlobalFree, HANDLE, HGLOBAL, HWND, LPARAM, WPARAM,
+    };
     use windows::Win32::System::DataExchange::{
-        CloseClipboard, EmptyClipboard, GetClipboardData, OpenClipboard, SetClipboardData,
+        CloseClipboard, EmptyClipboard, EnumClipboardFormats, GetClipboardData, OpenClipboard,
+        SetClipboardData,
     };
     use windows::Win32::System::Memory::{
         GlobalAlloc, GlobalLock, GlobalSize, GlobalUnlock, GMEM_MOVEABLE,
     };
-    use windows::Win32::System::Ole::CF_UNICODETEXT;
+    use windows::Win32::System::Ole::{CF_TEXT, CF_UNICODETEXT};
     use windows::Win32::System::Threading::{
         OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_FORMAT,
         PROCESS_QUERY_LIMITED_INFORMATION,
     };
     use windows::Win32::UI::WindowsAndMessaging::{
         GetClassNameW, GetForegroundWindow, GetGUIThreadInfo, GetWindowLongPtrW,
-        GetWindowThreadProcessId, GUITHREADINFO, GWL_STYLE,
+        GetWindowThreadProcessId, IsIconic, SendMessageW, SetForegroundWindow, ShowWindow,
+        GUITHREADINFO, GWL_STYLE, SW_RESTORE,
     };
 
-    use super::{is_password_control, Selection, SelectionError};
+    use super::{
+        clipboard_format_is_restorable, is_native_text_class, is_password_control,
+        is_supported_text_class, verify_destination, window_is_alive, Selection, SelectionContext,
+        SelectionError,
+    };
 
     // `SendInput` lives in the `Win32_UI_Input_KeyboardAndMouse` feature of
     // the `windows` crate, which is not enabled: enabling it would rebuild
@@ -223,9 +591,25 @@ mod platform {
     /// How long the copy waits for the focused application to answer the
     /// `Ctrl+C` chord.
     const COPY_TIMEOUT: Duration = Duration::from_millis(750);
+    /// The clipboard can only be used by one thing at a time.
+    ///
+    /// Reading a selection empties the clipboard, asks for a copy and puts
+    /// the clipboard back. If two of those sequences overlapped —the global
+    /// shortcut and a command from the interface, say— one of them would
+    /// save an already emptied clipboard and the user would end up with an
+    /// empty one. The lock makes the sequences one after the other.
+    static CLIPBOARD_LOCK: Mutex<()> = Mutex::new(());
+
     /// How long the paste waits before the clipboard is restored, so that the
     /// focused application has read the text it is going to paste.
-    const PASTE_SETTLE: Duration = Duration::from_millis(250);
+    ///
+    /// The application reads the clipboard on its own thread, so restoring
+    /// too early would replace the text before it is pasted. The wait is not
+    /// the guarantee: the write is checked afterwards, and if the
+    /// application did not take the text the operation says so.
+    const PASTE_SETTLE: Duration = Duration::from_millis(400);
+    /// How long the wait for a window to come back to the front lasts.
+    const FOCUS_TIMEOUT: Duration = Duration::from_millis(800);
     /// How long the copy waits between two reads of the clipboard.
     const POLL_INTERVAL: Duration = Duration::from_millis(15);
     /// How many times opening the clipboard is retried: another application
@@ -236,11 +620,12 @@ mod platform {
 
     /// The clipboard content captured before Dixi touched it.
     enum SavedClipboard {
-        /// The clipboard held text: it is restored exactly as it was.
-        Text(String),
-        /// The clipboard held something else, or nothing at all. The text
-        /// format is restored as empty.
-        NotText,
+        /// The clipboard was empty.
+        Empty,
+        /// The clipboard held content, and every format of it was saved with
+        /// its exact bytes: the format identifier and the content. The
+        /// content is put back exactly as it was.
+        Formats(Vec<(u32, Vec<u8>)>),
     }
 
     /// Restores the captured clipboard content when it goes out of scope.
@@ -297,20 +682,50 @@ mod platform {
         }
     }
 
+    /// The window and the control that hold the focus, with what was known
+    /// about them.
+    struct Focus {
+        window: HWND,
+        control: HWND,
+        app_name: Option<String>,
+        control_class: String,
+    }
+
+    impl Focus {
+        /// What was known when something failed.
+        fn diagnostics(&self, step: &str) -> super::CaptureDiagnostics {
+            super::CaptureDiagnostics {
+                app_name: self.app_name.clone(),
+                control_class: Some(self.control_class.clone()),
+                step: Some(step.to_string()),
+            }
+        }
+    }
+
     /// The window that has the focus and the control inside it that holds
     /// the keyboard focus.
-    fn focused_control() -> Result<(HWND, HWND), SelectionError> {
+    fn focused_control() -> Result<Focus, SelectionError> {
         // SAFETY: plain Win32 queries on the foreground window. The handles
         // are only read, never stored and never freed.
         unsafe {
             let window = GetForegroundWindow();
+            let app_name = app_name(window);
+
+            let failed = |step: &str| {
+                SelectionError::NothingSelected.with_diagnostics(super::CaptureDiagnostics {
+                    app_name: app_name.clone(),
+                    control_class: None,
+                    step: Some(step.to_string()),
+                })
+            };
+
             if window.0.is_null() {
-                return Err(SelectionError::NothingSelected);
+                return Err(failed("foreground"));
             }
 
             let thread = GetWindowThreadProcessId(window, None);
             if thread == 0 {
-                return Err(SelectionError::NothingSelected);
+                return Err(failed("foreground"));
             }
 
             let mut info = GUITHREADINFO {
@@ -318,7 +733,7 @@ mod platform {
                 ..Default::default()
             };
             if GetGUIThreadInfo(thread, &mut info).is_err() {
-                return Err(SelectionError::NothingSelected);
+                return Err(failed("focus"));
             }
 
             // The focus may be on a control of another thread, in which case
@@ -329,11 +744,17 @@ mod platform {
             } else {
                 info.hwndFocus
             };
+            let control_class = class_name(control);
             if control.0.is_null() {
-                return Err(SelectionError::NothingSelected);
+                return Err(failed("focus"));
             }
 
-            Ok((window, control))
+            Ok(Focus {
+                window,
+                control,
+                app_name,
+                control_class,
+            })
         }
     }
 
@@ -361,6 +782,22 @@ mod platform {
         let style = window_style(control);
         if is_password_control(&class, style) {
             return Err(SelectionError::PasswordField);
+        }
+        Ok(())
+    }
+
+    /// Refuses to touch a control that is not a verified text control.
+    ///
+    /// Windows offers no reliable way to tell that a control holds a
+    /// protected field without Windows UI Automation, so the decision is
+    /// made with the class name: only the controls that are known to carry
+    /// text are read, and everything else is refused.
+    ///
+    /// The focused control is never read and never written: the check runs
+    /// before the copy is asked for and before anything is pasted.
+    unsafe fn refuse_unsupported_control(control: HWND) -> Result<(), SelectionError> {
+        if !is_supported_text_class(&class_name(control)) {
+            return Err(SelectionError::UnsupportedControl);
         }
         Ok(())
     }
@@ -477,24 +914,158 @@ mod platform {
         Ok(())
     }
 
-    /// Reads the current clipboard content, if it is text.
+    /// Writes raw bytes to a clipboard format. The clipboard must already be
+    /// open and empty.
+    unsafe fn set_clipboard_bytes(format: u32, bytes: &[u8]) -> Result<(), SelectionError> {
+        let global = GlobalAlloc(GMEM_MOVEABLE, bytes.len().max(1)).map_err(|error| {
+            SelectionError::Clipboard(format!("could not allocate the clipboard: {error}"))
+        })?;
+
+        let pointer = GlobalLock(global) as *mut u8;
+        if pointer.is_null() {
+            let _ = GlobalFree(Some(global));
+            return Err(SelectionError::Clipboard(
+                "could not lock the clipboard memory".to_string(),
+            ));
+        }
+        // SAFETY: the buffer holds the whole content and the lock is held
+        // for the write.
+        unsafe {
+            std::ptr::copy_nonoverlapping(bytes.as_ptr(), pointer, bytes.len());
+        }
+        let _ = GlobalUnlock(global);
+
+        if SetClipboardData(format, Some(HANDLE(global.0))).is_err() {
+            let _ = GlobalFree(Some(global));
+            return Err(SelectionError::Clipboard(
+                "could not set the clipboard content".to_string(),
+            ));
+        }
+        Ok(())
+    }
+
+    /// Checks that the clipboard can be used without damaging it.
+    ///
+    /// The clipboard is only used when everything it holds can be put back
+    /// exactly. A clipboard with an image, a metafile or a palette is
+    /// refused here, before anything is modified.
+    unsafe fn ensure_clipboard_is_usable() -> Result<(), SelectionError> {
+        // Only one sequence at a time may touch the clipboard.
+        let _lock = CLIPBOARD_LOCK.lock().map_err(|_| {
+            SelectionError::Clipboard("the clipboard lock is poisoned".to_string())
+        })?;
+        let _ = snapshot_clipboard()?;
+        Ok(())
+    }
+
+    /// The formats the clipboard holds right now.
+    ///
+    /// The clipboard has to be open.
+    unsafe fn clipboard_formats() -> Vec<u32> {
+        let mut formats = Vec::new();
+        let mut current = 0_u32;
+        loop {
+            // SAFETY: the clipboard is open and the call only enumerates the
+            // formats it holds.
+            current = EnumClipboardFormats(current);
+            if current == 0 {
+                break;
+            }
+            formats.push(current);
+        }
+        formats
+    }
+
+    /// The raw bytes of a clipboard format, when it is available.
+    ///
+    /// The clipboard has to be open. `None` means the content is not in
+    /// memory that can be copied, so it cannot be put back.
+    unsafe fn read_clipboard_bytes(format: u32) -> Option<Vec<u8>> {
+        let Ok(handle) = GetClipboardData(format) else {
+            return None;
+        };
+
+        let global = HGLOBAL(handle.0);
+        let pointer = GlobalLock(global) as *const u8;
+        if pointer.is_null() {
+            return None;
+        }
+        let size = GlobalSize(global);
+        // SAFETY: the pointer is the locked buffer and the size is the size
+        // of that buffer, so the slice stays inside it.
+        let mut bytes = unsafe { std::slice::from_raw_parts(pointer, size) }.to_vec();
+        let _ = GlobalUnlock(global);
+
+        // `CF_TEXT` is a string terminated with a null, and the allocation
+        // can be bigger than the string: the bytes after the terminator are
+        // padding and are not part of the content.
+        if format == CF_TEXT.0 as u32 {
+            if let Some(end) = bytes.iter().position(|byte| *byte == 0) {
+                bytes.truncate(end + 1);
+            }
+        }
+
+        Some(bytes)
+    }
+
+    /// Reads the current clipboard content, format by format.
+    ///
+    /// Every format whose content lives in movable memory is saved **with
+    /// its exact bytes**: the text, the locale, the HTML, the RTF, the list
+    /// of copied files. That is what makes the restore faithful, and it is
+    /// why a user who copied a paragraph from a web page does not lose it
+    /// because Dixi read a selection.
+    ///
+    /// A format whose content is a handle that only Windows can interpret —
+    /// a bitmap, a metafile, a palette— is refused here, **before** anything
+    /// is modified: emptying the clipboard would destroy it and it could
+    /// not be put back.
     unsafe fn snapshot_clipboard() -> Result<SavedClipboard, SelectionError> {
         let _clipboard = Clipboard::open()?;
-        match read_clipboard_text() {
-            Ok(Some(text)) => Ok(SavedClipboard::Text(text)),
-            Ok(None) => Ok(SavedClipboard::NotText),
-            Err(error) => Err(error),
+
+        let mut formats = Vec::new();
+        for format in clipboard_formats() {
+            let Some(bytes) = read_clipboard_bytes(format) else {
+                // The format is there but its content is not in memory that
+                // can be copied: the operation is refused.
+                return Err(SelectionError::ClipboardNotPreservable);
+            };
+            if !clipboard_format_is_restorable(format, true) {
+                return Err(SelectionError::ClipboardNotPreservable);
+            }
+            formats.push((format, bytes));
         }
+
+        if formats.is_empty() {
+            return Ok(SavedClipboard::Empty);
+        }
+        Ok(SavedClipboard::Formats(formats))
     }
 
     /// Puts the captured clipboard content back.
+    ///
+    /// A failure to restore is not silent: it is written to the log, because
+    /// losing the clipboard of the user is exactly the thing this module
+    /// promises not to do.
     unsafe fn restore_clipboard(saved: &SavedClipboard) {
         let Ok(_clipboard) = Clipboard::open() else {
+            log::warn!(
+                "The clipboard could not be opened to restore it: the content of the user may be lost"
+            );
             return;
         };
         let _ = EmptyClipboard();
-        if let SavedClipboard::Text(text) = saved {
-            let _ = set_clipboard_text(text);
+        match saved {
+            SavedClipboard::Empty => {}
+            SavedClipboard::Formats(formats) => {
+                for (format, bytes) in formats {
+                    if let Err(error) = set_clipboard_bytes(*format, bytes) {
+                        log::warn!(
+                            "The clipboard format {format} could not be restored: {error:?}"
+                        );
+                    }
+                }
+            }
         }
     }
 
@@ -547,6 +1118,11 @@ mod platform {
     /// Copies the current selection with `Ctrl+C` and returns the copied
     /// text. The clipboard is left exactly as it was found.
     fn copy_selection() -> Result<String, SelectionError> {
+        // Only one sequence at a time may touch the clipboard.
+        let _lock = CLIPBOARD_LOCK.lock().map_err(|_| {
+            SelectionError::Clipboard("the clipboard lock is poisoned".to_string())
+        })?;
+
         // SAFETY: the clipboard is opened and closed inside the snapshot.
         let saved = unsafe { snapshot_clipboard() }?;
         let _guard = ClipboardGuard { saved };
@@ -588,7 +1164,17 @@ mod platform {
 
     /// Pastes text over the current selection with `Ctrl+V`. The clipboard
     /// is left exactly as it was found.
-    fn paste_text(text: &str) -> Result<(), SelectionError> {
+    ///
+    /// The wait is not a fixed guess when the control can answer: the
+    /// control's text is watched until it changes, which is the moment the
+    /// application has taken what was pasted. When the control does not
+    /// answer —the browser renderers— a bounded wait is used instead.
+    fn paste_text(text: &str, control: HWND, before: Option<&str>) -> Result<(), SelectionError> {
+        // Only one sequence at a time may touch the clipboard.
+        let _lock = CLIPBOARD_LOCK.lock().map_err(|_| {
+            SelectionError::Clipboard("the clipboard lock is poisoned".to_string())
+        })?;
+
         // SAFETY: the clipboard is opened and closed inside the snapshot.
         let saved = unsafe { snapshot_clipboard() }?;
         let _guard = ClipboardGuard { saved };
@@ -611,56 +1197,268 @@ mod platform {
         // The focused application reads the clipboard when it handles the
         // paste, so the text is left in place for a moment before the
         // clipboard is restored.
-        std::thread::sleep(PASTE_SETTLE);
+        let deadline = Instant::now() + PASTE_SETTLE;
+        loop {
+            if let Some(before) = before {
+                // SAFETY: the control is the one that holds the focus; it is
+                // only asked for its text.
+                if let Some(after) = unsafe { read_control_text(control) } {
+                    if after != before {
+                        return Ok(());
+                    }
+                }
+            }
+            if Instant::now() >= deadline {
+                break;
+            }
+            std::thread::sleep(POLL_INTERVAL);
+        }
         Ok(())
     }
 
     /// The text that is selected right now, if any.
     pub fn current_selection() -> Result<Selection, SelectionError> {
-        let (window, control) = focused_control()?;
+        let focus = focused_control()?;
 
         // SAFETY: the control is the one that holds the keyboard focus and
         // is only queried for its class name and its style.
-        unsafe { refuse_password_field(control)? };
+        unsafe {
+            refuse_password_field(focus.control)
+                .map_err(|error| error.with_diagnostics(focus.diagnostics("control")))?;
+            refuse_unsupported_control(focus.control)
+                .map_err(|error| error.with_diagnostics(focus.diagnostics("control")))?;
+        }
 
-        let text = copy_selection()?;
+        let text = copy_selection()
+            .map_err(|error| error.with_diagnostics(focus.diagnostics("copy")))?;
 
         Ok(Selection {
             text,
-            window: window.0 as isize,
-            control: control.0 as isize,
-            app_name: app_name(window),
+            window: focus.window.0 as isize,
+            control: focus.control.0 as isize,
+            app_name: focus.app_name,
         })
     }
 
-    /// Replaces the selection, but only if it is still the one that was
-    /// validated.
-    pub fn replace_selection(expected: &Selection, new_text: &str) -> Result<(), SelectionError> {
-        let (window, control) = focused_control()?;
+    /// Captures the selection of the application that has the focus, together
+    /// with the context needed to write it back later.
+    pub fn capture_context() -> Result<SelectionContext, SelectionError> {
+        let selection = current_selection()?;
 
-        // The same window has to have the focus, and the same control has to
-        // hold the selection inside it.
-        if window.0 as isize != expected.window || control.0 as isize != expected.control {
-            return Err(SelectionError::SelectionChanged);
+        // El log tecnico del intento: que aplicacion tenia el foco y que
+        // clase de control era. **Nunca** el texto capturado.
+        log::info!(
+            "Capture: app={} result=ok",
+            selection.app_name.as_deref().unwrap_or("?")
+        );
+
+        Ok(SelectionContext::new(selection))
+    }
+
+    /// Brings a window back to the front and waits until it has the focus.
+    ///
+    /// The write is made with synthetic keystrokes, and those go to
+    /// whatever has the focus, so the window where the text was read has to
+    /// be the one in front before anything is written.
+    fn focus_window(window: HWND) -> Result<(), SelectionError> {
+        // SAFETY: the window is only queried, shown and brought to the
+        // front. No handle is stored and none is freed.
+        unsafe {
+            if !window_is_alive(window.0 as isize) {
+                return Err(SelectionError::DestinationGone);
+            }
+            if IsIconic(window).as_bool() {
+                let _ = ShowWindow(window, SW_RESTORE);
+            }
+            let _ = SetForegroundWindow(window);
         }
+
+        // The foreground change is not immediate, so it is waited for.
+        let deadline = Instant::now() + FOCUS_TIMEOUT;
+        while Instant::now() < deadline {
+            // SAFETY: the call only reads the foreground window.
+            if unsafe { GetForegroundWindow() } == window {
+                return Ok(());
+            }
+            std::thread::sleep(POLL_INTERVAL);
+        }
+
+        Err(SelectionError::DestinationUnavailable(
+            "the application could not be brought back to the front".to_string(),
+        ))
+    }
+
+    /// Writes text over a selection that was captured before.
+    ///
+    /// Nothing is written unless everything still matches: the same window,
+    /// the same control, the same selected text and a destination that is
+    /// not a protected field.
+    ///
+    /// Every failure carries the same diagnostics as a failed capture: the
+    /// application that was in front, and the step that failed. The user is
+    /// told *where* it failed, not just that it failed.
+    pub fn write_to_context(
+        context: &SelectionContext,
+        expected_text: &str,
+        new_text: &str,
+    ) -> Result<(), SelectionError> {
+        // Nothing to write: the result is the text that was already there.
+        if new_text.trim() == expected_text.trim() {
+            return Ok(());
+        }
+
+        // The clipboard is checked before anything else: if it holds
+        // something that cannot be restored exactly, the operation is
+        // refused here, without bringing the application of the user to
+        // the front for nothing.
+        unsafe { ensure_clipboard_is_usable() }
+            .map_err(|error| error.with_diagnostics(write_diagnostics(context, None, "clipboard")))?;
+
+        let window = HWND(context.window as *mut std::ffi::c_void);
+        focus_window(window)
+            .map_err(|error| error.with_diagnostics(write_diagnostics(context, None, "focus")))?;
+
+        let focus = focused_control()
+            .map_err(|error| error.with_diagnostics(write_diagnostics(context, None, "focus")))?;
+        let control = focus.control;
 
         // SAFETY: the control is the one that holds the keyboard focus and
         // is only queried for its class name and its style.
-        unsafe { refuse_password_field(control)? };
-
-        // The selection is read again and compared with the one that was
-        // validated: the user may have typed or moved the selection while
-        // the transformation was running. A selection that can no longer be
-        // read is a changed selection, not a clipboard failure.
-        let current = copy_selection().map_err(|error| match error {
-            SelectionError::NothingSelected => SelectionError::SelectionChanged,
-            other => other,
-        })?;
-        if current != expected.text {
-            return Err(SelectionError::SelectionChanged);
+        unsafe {
+            refuse_password_field(control).map_err(|error| {
+                error.with_diagnostics(write_diagnostics(context, Some(focus.control_class.clone()), "control"))
+            })?;
+            refuse_unsupported_control(control).map_err(|error| {
+                error.with_diagnostics(write_diagnostics(context, Some(focus.control_class.clone()), "control"))
+            })?;
         }
 
-        paste_text(new_text)
+        // The text of the control before the paste, to be able to tell
+        // afterwards that the application really took the new text.
+        let before = unsafe { read_control_text(control) };
+
+        // The selection is read again and compared with the one that was
+        // captured: the user may have typed or moved the selection in the
+        // meantime.
+        let current = copy_selection().map_err(|error| {
+            error.with_diagnostics(write_diagnostics(context, Some(focus.control_class.clone()), "copy"))
+        })?;
+
+        verify_destination(
+            context.window,
+            context.control,
+            expected_text,
+            focus.window.0 as isize,
+            control.0 as isize,
+            &current,
+        )
+        .map_err(|error| {
+            error.with_diagnostics(write_diagnostics(context, Some(focus.control_class.clone()), "verify"))
+        })?;
+
+        paste_text(new_text, control, before.as_deref()).map_err(|error| {
+            error.with_diagnostics(write_diagnostics(context, Some(focus.control_class.clone()), "paste"))
+        })?;
+
+        // The write is checked afterwards: the destination has to hold the
+        // new text, or —in the controls that do not answer with their text,
+        // like the browser renderers— the selection has to be gone, which
+        // is what a paste leaves behind.
+        if !write_took_effect(control, before.as_deref(), expected_text, new_text) {
+            return Err(SelectionError::Write(
+                "the application did not take the new text".to_string(),
+            )
+            .with_diagnostics(write_diagnostics(
+                context,
+                Some(focus.control_class.clone()),
+                "write",
+            )));
+        }
+
+        Ok(())
+    }
+
+    /// The diagnostics of a failed write.
+    ///
+    /// The application is known from the captured context; the class of the
+    /// control is only known once the focus has been read.
+    fn write_diagnostics(
+        context: &SelectionContext,
+        control_class: Option<String>,
+        step: &str,
+    ) -> super::CaptureDiagnostics {
+        super::CaptureDiagnostics {
+            app_name: context.app_name.clone(),
+            control_class,
+            step: Some(step.to_string()),
+        }
+    }
+
+    /// The whole text of a control, when the control answers with it.
+    ///
+    /// Only the native text controls answer with `WM_GETTEXT`. A browser
+    /// renderer does not, and the `0` it returns cannot be told apart from
+    /// the answer of an empty control, so the decision is made with the
+    /// class of the control.
+    unsafe fn read_control_text(control: HWND) -> Option<String> {
+        /// The `WM_GETTEXT` message.
+        const WM_GETTEXT: u32 = 0x000D;
+        /// The `WM_GETTEXTLENGTH` message.
+        const WM_GETTEXTLENGTH: u32 = 0x000E;
+
+        if !is_native_text_class(&class_name(control)) {
+            return None;
+        }
+
+        // SAFETY: the messages are sent to a control that exists, and the
+        // buffer is sized with the length the control reports.
+        unsafe {
+            let length = SendMessageW(control, WM_GETTEXTLENGTH, None, None).0 as usize;
+            if length == 0 {
+                return Some(String::new());
+            }
+
+            let mut buffer = vec![0_u16; length + 1];
+            let copied = SendMessageW(
+                control,
+                WM_GETTEXT,
+                Some(WPARAM(buffer.len())),
+                Some(LPARAM(buffer.as_mut_ptr() as isize)),
+            )
+            .0 as usize;
+            if copied == 0 {
+                return None;
+            }
+            buffer.truncate(copied);
+            Some(String::from_utf16_lossy(&buffer))
+        }
+    }
+
+    /// Whether the destination took the text that was written.
+    fn write_took_effect(
+        control: HWND,
+        before: Option<&str>,
+        expected_text: &str,
+        new_text: &str,
+    ) -> bool {
+        // SAFETY: the control is the one that holds the focus; it is only
+        // asked for its text.
+        if let Some(text) = unsafe { read_control_text(control) } {
+            // The text has to have changed AND to hold the new text. Looking
+            // for the new text alone would give a false "yes" when it was
+            // already somewhere else in the document.
+            let changed = before.map(|before| before != text).unwrap_or(true);
+            return changed && text.contains(new_text.trim());
+        }
+
+        // The control does not answer with its text, so the only thing that
+        // can be checked is that the selection is gone: a paste replaces the
+        // selection and leaves the caret behind it.
+        match copy_selection() {
+            Ok(text) => text.trim() != expected_text.trim(),
+            Err(SelectionError::NothingSelected) => true,
+            Err(_) => false,
+        }
     }
 
     #[cfg(test)]
@@ -686,90 +1484,6 @@ mod platform {
     }
 }
 
+
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn the_password_style_bit_is_detected() {
-        assert!(is_password_style(0x0020));
-        assert!(is_password_style(0x0020 | 0x1000_0000));
-        assert!(!is_password_style(0));
-        assert!(!is_password_style(0x1000_0000));
-    }
-
-    #[test]
-    fn a_plain_style_word_is_not_a_password_style() {
-        // `ES_AUTOHSCROLL` (0x0080) and the plain window styles do not
-        // carry the `ES_PASSWORD` bit.
-        assert!(!is_password_style(0x0080));
-        assert!(!is_password_style(0x5000_0000 | 0x0080));
-        assert!(!is_password_style(0x5000_0000 | 0x1000_0000));
-    }
-
-    #[test]
-    fn the_password_class_is_detected() {
-        assert!(is_password_class("Password"));
-        assert!(is_password_class("password"));
-        assert!(is_password_class("PASSWORD"));
-        assert!(is_password_class("PasswordBox"));
-        assert!(!is_password_class("Edit"));
-        assert!(!is_password_class("TEdit"));
-        assert!(!is_password_class("Button"));
-        assert!(!is_password_class(""));
-    }
-
-    #[test]
-    fn the_edit_classes_are_recognized() {
-        assert!(is_edit_class("Edit"));
-        assert!(is_edit_class("edit"));
-        assert!(is_edit_class("EDIT"));
-        assert!(is_edit_class("TEdit"));
-        assert!(!is_edit_class("RichEdit"));
-        assert!(!is_edit_class(""));
-    }
-
-    #[test]
-    fn an_edit_control_with_the_password_style_is_refused() {
-        assert!(is_password_control("Edit", 0x0020));
-        assert!(is_password_control("TEdit", 0x0020));
-        assert!(is_password_control("Edit", 0x0020 | 0x1000_0000));
-    }
-
-    #[test]
-    fn a_plain_edit_control_is_not_refused() {
-        assert!(!is_password_control("Edit", 0));
-        assert!(!is_password_control("TEdit", 0x1000_0000));
-        assert!(!is_password_control("RichEdit", 0));
-    }
-
-    #[test]
-    fn a_password_class_is_refused_even_without_the_style() {
-        assert!(is_password_control("Password", 0));
-        assert!(is_password_control("PasswordBox", 0));
-    }
-
-    #[test]
-    fn the_style_bit_alone_does_not_refuse_other_controls() {
-        // The same bit means something else on a button or a list box.
-        assert!(!is_password_control("Button", 0x0020));
-        assert!(!is_password_control("ListBox", 0x0020));
-    }
-
-    #[cfg(not(target_os = "windows"))]
-    #[test]
-    fn there_is_no_selection_outside_windows() {
-        assert_eq!(current_selection(), Err(SelectionError::NothingSelected));
-
-        let selection = Selection {
-            text: "hola".to_string(),
-            window: 0,
-            control: 0,
-            app_name: None,
-        };
-        assert_eq!(
-            replace_selection(&selection, "adios"),
-            Err(SelectionError::NothingSelected)
-        );
-    }
-}
+mod tests;

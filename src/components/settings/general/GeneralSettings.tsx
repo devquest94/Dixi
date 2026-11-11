@@ -17,6 +17,8 @@ export const GeneralSettings: React.FC = () => {
   const { t } = useTranslation();
   const { audioFeedbackEnabled } = useSettings();
   const isLinux = type() === "linux";
+  // Capturing the selection of another application only exists on Windows.
+  const isWindows = type() === "windows";
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
       <SettingsGroup title={t("settings.general.title")}>
@@ -24,6 +26,15 @@ export const GeneralSettings: React.FC = () => {
         <ShortcutActivationSetting descriptionMode="tooltip" grouped={true} />
         {/* Cancel shortcut remains hidden on Linux because of dynamic shortcut instability. */}
         {!isLinux && <ShortcutInput shortcutId="cancel" grouped={true} />}
+        {/* The capture shortcut only works where the selection of another
+        application can be read, which is Windows. */}
+        {isWindows && (
+          <ShortcutInput
+            shortcutId="capture_selection"
+            descriptionMode="tooltip"
+            grouped={true}
+          />
+        )}
       </SettingsGroup>
       <ModelSettingsCard />
       <SettingsGroup title={t("settings.sound.title")}>

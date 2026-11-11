@@ -831,6 +831,57 @@ impl ShortcutAction for CancelAction {
     }
 }
 
+// Capture Selection Action
+//
+// The selection of another application only exists while that application has
+// the focus, and a global shortcut is the only thing that does not take the
+// focus away: this is why the capture is done here and not from a button of
+// Dixi, where the click would give Dixi the focus and the selection of the
+// other application would already be lost.
+struct CaptureSelectionAction;
+
+impl ShortcutAction for CaptureSelectionAction {
+    fn start(&self, app: &AppHandle, _binding_id: &str, _shortcut_str: &str) {
+        match crate::managers::selection::capture_context() {
+            Ok(context) => {
+                log::info!(
+                    "CaptureSelectionAction: captured {} characters from {}",
+                    context.text.chars().count(),
+                    context.app_name.as_deref().unwrap_or("an unknown application")
+                );
+                app.state::<crate::managers::selection::SelectionContextStore>()
+                    .set(context.clone());
+
+                // The interface shows the captured text, so it is told about
+                // it even when the window of Dixi was not in front.
+                if let Err(error) = app.emit("selection-captured", &context) {
+                    log::warn!("CaptureSelectionAction: could not notify the interface: {error}");
+                }
+            }
+            Err(error) => {
+                let failure = crate::managers::selection::failure(error);
+                // El log tecnico del intento fallido: que aplicacion tenia
+                // el foco, que clase de control era y en que paso fallo.
+                // Nunca el texto.
+                log::warn!(
+                    "CaptureSelectionAction: app={} class={} step={} result=error code={}",
+                    failure.diagnostics.app_name.as_deref().unwrap_or("?"),
+                    failure.diagnostics.control_class.as_deref().unwrap_or("?"),
+                    failure.diagnostics.step.as_deref().unwrap_or("?"),
+                    failure.code
+                );
+                if let Err(error) = app.emit("selection-capture-failed", &failure) {
+                    log::warn!("CaptureSelectionAction: could not notify the interface: {error}");
+                }
+            }
+        }
+    }
+
+    fn stop(&self, _app: &AppHandle, _binding_id: &str, _shortcut_str: &str) {
+        // Nothing to do on stop.
+    }
+}
+
 // Test Action
 struct TestAction;
 
@@ -874,6 +925,10 @@ pub static ACTION_MAP: Lazy<HashMap<String, Arc<dyn ShortcutAction>>> = Lazy::ne
     map.insert(
         "test".to_string(),
         Arc::new(TestAction) as Arc<dyn ShortcutAction>,
+    );
+    map.insert(
+        "capture_selection".to_string(),
+        Arc::new(CaptureSelectionAction) as Arc<dyn ShortcutAction>,
     );
     map
 });

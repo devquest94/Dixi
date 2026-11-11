@@ -1594,9 +1594,31 @@ async diffText(original: string, result: string) : Promise<Result<TextDiffInfo, 
 }
 },
 /**
- * The text that is selected in the application that has the focus.
+ * Puts back the original text of a change, in the place where it was made.
+ * 
+ * The place is the window and the control that were stored with the change.
+ * The application is brought back to the front, the control and the text are
+ * checked, and only then is the original text written. When any of that
+ * fails, nothing is written: the result is `false` when the selection moved
+ * and an error when the application is gone or refuses the write.
  */
-async captureSelection() : Promise<Result<SelectionInfo, string>> {
+async revertTextHistoryEntry(id: number) : Promise<Result<boolean, SelectionFailure>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("revert_text_history_entry", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Captures the selection of the application that has the focus.
+ * 
+ * The application that has the focus has to be the one the text was
+ * selected in. A click on a button of Dixi gives Dixi the focus, so from
+ * the interface this only works when Dixi does not have the focus; the
+ * reliable way is the global shortcut, which leaves the focus where it is.
+ */
+async captureSelection() : Promise<Result<SelectionContext, SelectionFailure>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("capture_selection") };
 } catch (e) {
@@ -1605,17 +1627,53 @@ async captureSelection() : Promise<Result<SelectionInfo, string>> {
 }
 },
 /**
- * Replaces the selection, but only if it is still the one that was read.
- * 
- * When the selection changed while the transformation was running, nothing
- * is written: the caller offers to copy the result instead.
- * 
- * The control that holds the selection is part of the identity of the
- * selection: the same text in another control is not the same selection.
+ * The selection captured the last time, if there is one.
  */
-async replaceTextSelection(expectedText: string, expectedWindow: number, expectedControl: number, newText: string) : Promise<Result<boolean, string>> {
+async getCapturedSelection() : Promise<Result<SelectionContext | null, SelectionFailure>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("replace_text_selection", { expectedText, expectedWindow, expectedControl, newText }) };
+    return { status: "ok", data: await TAURI_INVOKE("get_captured_selection") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Forgets the captured selection.
+ */
+async clearCapturedSelection() : Promise<Result<null, SelectionFailure>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("clear_captured_selection") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Writes text over the captured selection.
+ * 
+ * Nothing is written unless the window, the control and the selected text
+ * are still the ones that were captured, and the destination is not a
+ * protected field. When the selection moved, the failure says so and
+ * nothing is written: the caller then offers the text as a copy instead of
+ * writing it somewhere else.
+ * 
+ * The change is recorded in the history with the place where it was made,
+ * so that it can be put back later.
+ */
+async applyToCapturedSelection(newText: string, sourceId: string | null) : Promise<Result<number | null, SelectionFailure>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("apply_to_captured_selection", { newText, sourceId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The state of the capture shortcut.
+ */
+async getCaptureShortcutState() : Promise<Result<CaptureShortcutState, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_capture_shortcut_state") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -1744,6 +1802,88 @@ export type AudioDevice = { index: string; name: string; is_default: boolean }
 export type AutoSubmitKey = "enter" | "ctrl_enter" | "cmd_enter"
 export type AvailableAccelerators = { transcribe: string[]; gpu_devices: GpuDeviceOption[] }
 export type BindingResponse = { success: boolean; binding: ShortcutBinding | null; error: string | null }
+/**
+ * What was known about a failed attempt.
+ * 
+ * Only technical data: the process that had the focus, the class of the
+ * focused control and the step that failed. **The selected text is never
+ * part of it**, and neither is anything that could be private.
+ */
+export type CaptureDiagnostics = { 
+/**
+ * The process that had the focus, when it could be read.
+ */
+app_name: string | null; 
+/**
+ * The class of the focused control, when it could be read.
+ */
+control_class: string | null; 
+/**
+ * Which step failed: `focus`, `control` or `copy`.
+ */
+step: string | null }
+/**
+ * The state of the capture shortcut.
+ * 
+ * The state says what really happened, not just whether the shortcut
+ * works: a global shortcut that another application already holds does not
+ * fire, and the user would have no way of knowing why. It also says **why**
+ * it failed, so that the interface does not accuse another application of
+ * something it did not do.
+ */
+export type CaptureShortcutState = { 
+/**
+ * The state of the registration.
+ */
+status: CaptureShortcutStatus }
+/**
+ * What is known about the capture shortcut right now.
+ */
+export type CaptureShortcutStatus = { 
+/**
+ * Whether the shortcut is registered and in effect.
+ */
+registered: boolean; 
+/**
+ * Whether there was an attempt to register it at all.
+ * 
+ * Before the first attempt there is nothing to report: the interface
+ * must not accuse anybody of anything.
+ */
+attempted: boolean; 
+/**
+ * The combination that is in effect, or the one that was tried.
+ */
+binding: string; 
+/**
+ * The backend that was used.
+ */
+backend: string; 
+/**
+ * The stable code of the failure, when there was one.
+ */
+error_code: RegistrationErrorCode | null; 
+/**
+ * The message the backend gave.
+ */
+error: string | null; 
+/**
+ * Whether the failure is another application's doing.
+ */
+conflicts_with_another_application: boolean; 
+/**
+ * When the last attempt happened, in milliseconds since the epoch.
+ */
+attempted_at: number | null; 
+/**
+ * Whether this system can capture the selection of another application
+ * at all.
+ * 
+ * The capture of a selection only exists on Windows. On the other
+ * platforms the shortcut is not registered on purpose, and the
+ * interface must not offer it.
+ */
+available: boolean }
 /**
  * Script applied to Mandarin and Cantonese output. Other languages are never
  * converted.
@@ -2010,6 +2150,44 @@ style_id: string | null;
 cleanup_level: CleanupLevel | null; created_at: number; updated_at: number }
 export type RecordingRetentionPeriod = "never" | "preserve_limit" | "days_3" | "weeks_2" | "months_3"
 /**
+ * Why the last attempt to register the capture shortcut failed.
+ * 
+ * The codes are `snake_case`, like the rest of the codes the backend sends
+ * to the interface.
+ */
+export type RegistrationErrorCode = 
+/**
+ * Another application holds the same combination.
+ * 
+ * Only the Tauri backend can produce this: it asks the system to
+ * reserve the combination, and the system refuses when somebody else
+ * already has it.
+ */
+"conflict" | 
+/**
+ * Dixi itself had already registered the same combination.
+ * 
+ * This is a duplicate inside Dixi, not a conflict with another
+ * application.
+ */
+"duplicate" | 
+/**
+ * The combination could not be interpreted.
+ */
+"invalid_combination" | 
+/**
+ * The backend was not ready: its state was never initialized.
+ */
+"not_initialized" | 
+/**
+ * The backend did not answer.
+ */
+"backend_unavailable" | 
+/**
+ * Anything else.
+ */
+"unknown"
+/**
  * A retired ONNX model found on disk.
  */
 export type RetiredModel = { id: string; name: string; size_mb: number; replacement_repo: string }
@@ -2047,11 +2225,15 @@ uncovered_bindings: string[];
  */
 recorder_blocked: boolean }
 /**
- * A selection, ready to be shown.
+ * The context of a captured selection: where it was, and what it said.
+ * 
+ * Without the context there is no way to write safely: the only thing that
+ * can be done with a text is to paste it into whatever has the focus at
+ * that moment, and that is never what the user meant.
  */
-export type SelectionInfo = { 
+export type SelectionContext = { 
 /**
- * The selected text. Empty when nothing was selected.
+ * The selected text, as it was read.
  */
 text: string; 
 /**
@@ -2063,9 +2245,36 @@ window: number;
  */
 control: number; 
 /**
- * The name of the executable, when it could be read.
+ * The name of the application, when it could be read.
  */
-app_name: string | null }
+app_name: string | null; 
+/**
+ * When the selection was captured, in milliseconds since the epoch.
+ */
+captured_at: number }
+/**
+ * Why a selection could not be read or written, in a shape the interface
+ * can show.
+ * 
+ * The code is stable, so the interface can translate the reason; the
+ * message is in English and is meant for the logs.
+ */
+export type SelectionFailure = { 
+/**
+ * A stable identifier of the reason.
+ */
+code: string; 
+/**
+ * The reason in English.
+ */
+message: string; 
+/**
+ * What was known about the attempt: the process that had the focus, the
+ * class of the focused control and the step that failed. The interface
+ * uses it to say *which* application was in front, because "it does not
+ * work" is not an answer.
+ */
+diagnostics: CaptureDiagnostics }
 /**
  * How the transcribe shortcut's key events drive a recording.
  */
@@ -2282,6 +2491,14 @@ original_text: string;
  * The text after the change.
  */
 result_text: string; 
+/**
+ * The window where the change was made, when it is known.
+ */
+window_handle: number | null; 
+/**
+ * The control where the change was made, when it is known.
+ */
+control_handle: number | null; 
 /**
  * Whether the change was already reverted.
  */

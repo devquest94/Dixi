@@ -176,6 +176,10 @@
           "transcribe_with_post_process": {
             "name": "Phím tắt xử lý sau",
             "description": "Tùy chọn: Phím tắt chuyên dụng luôn áp dụng xử lý sau bằng AI cho bản chuyển đổi của bạn."
+          },
+          "capture_selection": {
+            "name": "Chụp vùng chọn",
+            "description": "Lấy văn bản được chọn trong ứng dụng đang có tiêu điểm."
           }
         },
         "errors": {
@@ -946,7 +950,20 @@
         "copied": "Đã sao chép kết quả.",
         "captureSelection": "Dùng văn bản đã chọn",
         "selectionEmpty": "Không có văn bản nào được chọn trong ứng dụng đang được đưa vào tiêu điểm.",
-        "selectionChanged": "Văn bản đã chọn thay đổi trong khi chuyển đổi chạy, nên không có gì được ghi. Hãy sao chép kết quả thay thế."
+        "selectionChanged": "Văn bản đã chọn thay đổi trong khi chuyển đổi chạy, nên không có gì được ghi. Hãy sao chép kết quả thay thế.",
+        "captured": "Văn bản đã chụp",
+        "capturedFrom": "Từ {{app}}",
+        "hotkeyHint": "Nhấn {{shortcut}} trong ứng dụng đang chọn văn bản, rồi quay lại đây.",
+        "captureCountdown": "Quay lại ứng dụng và chọn văn bản. Chụp sau {{seconds}}…",
+        "nothingCaptured": "Chưa chụp văn bản nào.",
+        "acceptNeedsCapture": "Chụp vùng chọn trước khi chấp nhận.",
+        "captureInvalidated": "Văn bản đã thay đổi nên vùng chọn đã chụp không còn đúng. Hãy chụp lại vùng chọn.",
+        "shortcutNotRegistered": "Không thể đăng ký phím tắt {{shortcut}}. Hãy đổi trong phím tắt bàn phím.",
+        "shortcutConflict": "Không thể đăng ký phím tắt {{shortcut}}: ứng dụng khác đã có tổ hợp đó. Hãy đổi trong phím tắt bàn phím.",
+        "shortcutDuplicate": "Không thể đăng ký phím tắt {{shortcut}}: Dixi đã đăng ký tổ hợp đó. Hãy khởi động lại Dixi, hoặc đổi trong phím tắt bàn phím.",
+        "shortcutInvalidCombination": "Phím tắt {{shortcut}} không phải là tổ hợp hợp lệ. Hãy đổi trong phím tắt bàn phím.",
+        "shortcutNotInitialized": "Không thể đăng ký phím tắt {{shortcut}}: bộ máy phím tắt chưa sẵn sàng. Hãy khởi động lại Dixi.",
+        "shortcutBackendUnavailable": "Không thể đăng ký phím tắt {{shortcut}}: bộ máy phím tắt không phản hồi. Hãy khởi động lại Dixi."
       },
       "diff": {
         "title": "Thay đổi",
@@ -1014,6 +1031,21 @@
       "errors": {
         "load": "Không thể tải lịch sử văn bản.",
         "action": "Không thể hoàn tác thay đổi."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "Không có văn bản nào được chọn trong ứng dụng đang có tiêu điểm.",
+        "passwordField": "Đó là trường mật khẩu, nên Dixi không đọc nội dung đó.",
+        "unsupportedControl": "Dixi không nhận ra điều khiển đó, nên không đọc nội dung đó.",
+        "clipboardNotPreservable": "Bảng nhớ tạm của bạn chứa nội dung không thể khôi phục nguyên vẹn, nên Dixi không thay đổi nó. Xóa bảng nhớ tạm rồi thử lại.",
+        "clipboard": "Không thể sử dụng bảng nhớ tạm.",
+        "selectionChanged": "Vùng chọn đã thay đổi, nên không có gì được ghi.",
+        "destinationUnavailable": "Dixi không thể đưa ứng dụng trở lại phía trước, nên không có gì được ghi.",
+        "destinationGone": "Ứng dụng đang chọn văn bản đã đóng, nên không có gì được ghi.",
+        "write": "Không thể ghi văn bản.",
+        "focusedApp": "Ứng dụng đang có tiêu điểm là {{app}}.",
+        "focusedAppIsDixi": "Ứng dụng đang có tiêu điểm chính là Dixi: quay lại ứng dụng đang chọn văn bản rồi nhấn phím tắt lần nữa."
       }
     }
   },

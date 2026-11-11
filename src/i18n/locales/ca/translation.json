@@ -149,6 +149,10 @@
           "transcribe_with_post_process": {
             "name": "Drecera de postprocessament",
             "description": "Opcional: una drecera específica que sempre aplica postprocessament amb IA a la transcripció."
+          },
+          "capture_selection": {
+            "name": "Captura la selecció",
+            "description": "Agafa el text seleccionat a l'aplicació amb el focus."
           }
         },
         "errors": {
@@ -946,7 +950,20 @@
         "copied": "El resultat es va copiar.",
         "captureSelection": "Utilitza el text seleccionat",
         "selectionEmpty": "No hi ha cap text seleccionat a l'aplicació amb el focus.",
-        "selectionChanged": "El text seleccionat va canviar mentre s'executava la transformació, així que no s'ha escrit res. Copieu el resultat en comptes d'això."
+        "selectionChanged": "El text seleccionat va canviar mentre s'executava la transformació, així que no s'ha escrit res. Copieu el resultat en comptes d'això.",
+        "captured": "Text capturat",
+        "capturedFrom": "De {{app}}",
+        "hotkeyHint": "Premeu {{shortcut}} a l'aplicació on està seleccionat el text i torneu aquí.",
+        "captureCountdown": "Torneu a l'aplicació i seleccioneu el text. Capturant en {{seconds}}…",
+        "nothingCaptured": "Encara no s'ha capturat cap text.",
+        "acceptNeedsCapture": "Captureu una selecció abans d'acceptar.",
+        "captureInvalidated": "El text ha canviat, de manera que la selecció capturada ja no serveix. Captureu la selecció de nou.",
+        "shortcutNotRegistered": "L'atall {{shortcut}} no s'ha pogut registrar. Canvieu-lo a les dreceres de teclat.",
+        "shortcutConflict": "L'atall {{shortcut}} no s'ha pogut registrar: una altra aplicació ja té aquesta combinació. Canvieu-lo a les dreceres de teclat.",
+        "shortcutDuplicate": "L'atall {{shortcut}} no s'ha pogut registrar: Dixi ja tenia aquesta combinació registrada. Reinicieu Dixi, o canvieu-lo a les dreceres de teclat.",
+        "shortcutInvalidCombination": "L'atall {{shortcut}} no és una combinació vàlida. Canvieu-lo a les dreceres de teclat.",
+        "shortcutNotInitialized": "L'atall {{shortcut}} no s'ha pogut registrar: el motor d'atalts no estava preparat. Reinicieu Dixi.",
+        "shortcutBackendUnavailable": "L'atall {{shortcut}} no s'ha pogut registrar: el motor d'atalts no va respondre. Reinicieu Dixi."
       },
       "diff": {
         "title": "Canvis",
@@ -1014,6 +1031,21 @@
       "errors": {
         "load": "No s'ha pogut carregar l'historial de text.",
         "action": "No es pot desfer el canvi."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "No hi ha cap text seleccionat a l'aplicació amb el focus.",
+        "passwordField": "És un camp de contrasenya, així que Dixi no el llegeix.",
+        "unsupportedControl": "Dixi no coneix aquest control, així que no el llegeix.",
+        "clipboardNotPreservable": "El teu porta-retalls conté contingut que no es pot restaurar exactament, així que Dixi no l'ha tocat. Buida el porta-retalls i torna-ho a provar.",
+        "clipboard": "No es va poder fer servir el porta-retalls.",
+        "selectionChanged": "La selecció ha canviat, així que no s'ha escrit res.",
+        "destinationUnavailable": "Dixi no va poder portar l'aplicació al davant, així que no s'ha escrit res.",
+        "destinationGone": "L'aplicació on estava seleccionat el text està tancada, així que no s'ha escrit res.",
+        "write": "No es va poder escriure el text.",
+        "focusedApp": "L'aplicació que tenia el focus era {{app}}.",
+        "focusedAppIsDixi": "L'aplicació que tenia el focus era el mateix Dixi: torneu a l'aplicació on està seleccionat el text i premeu de nou l'atall."
       }
     }
   },

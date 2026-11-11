@@ -25,13 +25,21 @@ pub fn init_shortcuts(app: &AppHandle) {
         if id == "transcribe_with_post_process" && !user_settings.post_process_enabled {
             continue;
         }
+        // The shortcuts that do not exist in this system.
+        if !super::binding_is_available(&id) {
+            continue;
+        }
         let binding = user_settings
             .bindings
             .get(&id)
             .cloned()
             .unwrap_or(default_binding);
 
-        if let Err(e) = register_shortcut(app, binding) {
+        // The registration goes through the common route, so that the state
+        // of the capture shortcut is written here too: this is the route
+        // that runs at startup, and it is the one that decides whether the
+        // shortcut is in effect.
+        if let Err(e) = super::register_shortcut(app, binding) {
             error!("Failed to register shortcut {} during init: {}", id, e);
         }
     }

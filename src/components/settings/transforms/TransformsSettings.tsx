@@ -1,10 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { listen } from "@tauri-apps/api/event";
 import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
+import { useOsType } from "@/hooks/useOsType";
+import { describeFailure } from "../selectionErrors";
+import { describeShortcutProblem } from "../captureShortcut";
 import {
   commands,
-  type SelectionInfo,
+  type CaptureShortcutStatus,
+  type SelectionContext,
+  type SelectionFailure,
   type TextDiffInfo,
   type Transform,
 } from "@/bindings";
@@ -22,6 +28,10 @@ import Badge from "@/components/ui/Badge";
 import { useSettings } from "@/hooks/useSettings";
 
 const NONE = "";
+
+// La cuenta atras le da al usuario tiempo para volver a la aplicacion de
+// origen y seleccionar el texto antes de que Dixi lo capture.
+const CAPTURE_COUNTDOWN_SECONDS = 4;
 
 interface TransformFormState {
   name: string;
@@ -45,7 +55,10 @@ const EMPTY_TRANSFORM_FORM: TransformFormState = {
 
 export const TransformsSettings: React.FC = () => {
   const { t } = useTranslation();
-  const { settings } = useSettings();
+  const { settings, getSetting } = useSettings();
+  const osType = useOsType();
+  // La captura de la seleccion de otra aplicacion solo existe en Windows.
+  const canCaptureSelection = osType === "windows";
 
   const [transforms, setTransforms] = useState<Transform[]>([]);
   const [providerLabels, setProviderLabels] = useState<Record<string, string>>(
@@ -62,8 +75,30 @@ export const TransformsSettings: React.FC = () => {
   const [runnerResult, setRunnerResult] = useState<string | null>(null);
   const [diff, setDiff] = useState<TextDiffInfo | null>(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [selection, setSelection] = useState<SelectionInfo | null>(null);
+  const [captured, setCaptured] = useState<SelectionContext | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
   const [selectionChanged, setSelectionChanged] = useState(false);
+  // Una captura deja de valer en cuanto se escribe en el texto: la
+  // identidad de la seleccion original ya no esta, y no se puede aceptar.
+  const [captureInvalid, setCaptureInvalid] = useState(false);
+  // Lo que el backend sabe del atajo global de captura: si esta registrado,
+  // con que backend, y si fallo, por que. El aviso sale de ahi, para que no
+  // acuse a otra aplicacion de algo que no ha hecho.
+  const [shortcutStatus, setShortcutStatus] = useState<CaptureShortcutStatus | null>(
+    null,
+  );
+
+  // El atajo global de captura: es la via principal, porque no le quita el
+  // foco a la aplicacion de origen.
+  const captureShortcut = getSetting("bindings")?.capture_selection?.current_binding;
+
+  // Lo que hay que decir del atajo, o nada. El mensaje sale del estado real
+  // del backend, y distingue un conflicto con otra aplicacion de un fallo
+  // interno de Dixi.
+  const shortcutProblem = useMemo(
+    () => describeShortcutProblem(t, shortcutStatus),
+    [t, shortcutStatus],
+  );
 
   const loadTransforms = useCallback(async () => {
     setIsLoading(true);
@@ -229,27 +264,137 @@ export const TransformsSettings: React.FC = () => {
     }
   };
 
-  const handleCaptureSelection = async () => {
+  /**
+   * A capture arrives from outside: the global shortcut does not take the
+   * focus away from the source application, so the text is read there and
+   * then told to the interface. Here it is only reflected.
+   */
+  const applyCapture = useCallback((context: SelectionContext) => {
+    setCaptured(context);
+    setCaptureInvalid(false);
+    setSelectionChanged(false);
+    setRunnerText(context.text);
+    setRunnerResult(null);
+    setDiff(null);
+  }, []);
+
+  /**
+   * The alternative to the global shortcut: capture after a countdown, so
+   * the user has time to go back to the source application and select the
+   * text before Dixi reads it.
+   */
+  const performCapture = useCallback(async () => {
     try {
       const result = await commands.captureSelection();
       if (result.status === "ok") {
         if (!result.data.text) {
-          toast.error(t("settings.transforms.runner.selectionEmpty"));
+          toast.error(t("settings.selection.errors.nothingSelected"));
           return;
         }
-        setSelection(result.data);
-        setSelectionChanged(false);
-        setRunnerText(result.data.text);
-        setRunnerResult(null);
-        setDiff(null);
+        applyCapture(result.data);
       } else {
-        toast.error(result.error);
+        toast.error(describeFailure(t, result.error));
       }
     } catch (error) {
       console.error("Failed to capture the selection:", error);
       toast.error(t("settings.transforms.errors.action"));
     }
-  };
+  }, [t, applyCapture]);
+
+  // What was captured the last time, so the panel is not empty when it is
+  // opened after a capture done from the global shortcut.
+  useEffect(() => {
+    let mounted = true;
+
+    // El estado del atajo global: si no se pudo registrar, el usuario tiene
+    // que saberlo, porque si no el atajo simplemente nunca se dispara. Y
+    // tiene que saber **por que** fallo, no una suposicion.
+    void commands.getCaptureShortcutState().then((result) => {
+      if (!mounted) return;
+      if (result.status === "ok") {
+        setShortcutStatus(result.data.status);
+        return;
+      }
+      console.error(
+        "Failed to read the state of the capture shortcut:",
+        result.error,
+      );
+    });
+
+    void commands.getCapturedSelection().then((result) => {
+      if (!mounted) return;
+      if (result.status === "ok") {
+        if (result.data) applyCapture(result.data);
+        return;
+      }
+      console.error(
+        "Failed to read the captured selection:",
+        result.error.message,
+      );
+      toast.error(describeFailure(t, result.error));
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, [applyCapture]);
+
+  // El estado del atajo cambia sin que el panel se entere: al arrancar
+  // Dixi, al cambiar la combinacion, al grabarla. El backend lo avisa, y el
+  // panel se entera: si no, el aviso se queda en lo que se leyo al abrirlo.
+  useEffect(() => {
+    const unlistenStatus = listen<CaptureShortcutStatus>(
+      "capture-shortcut-status",
+      (event) => {
+        setShortcutStatus(event.payload);
+      },
+    );
+
+    return () => {
+      void unlistenStatus.then((unlisten) => unlisten());
+    };
+  }, []);
+
+  // The shortcut captures and tells the interface; a failure is a message
+  // the user has to see, because nothing else will happen.
+  useEffect(() => {
+    const unlistenCaptured = listen<SelectionContext>(
+      "selection-captured",
+      (event) => {
+        applyCapture(event.payload);
+      },
+    );
+
+    const unlistenFailed = listen<SelectionFailure>(
+      "selection-capture-failed",
+      (event) => {
+        toast.error(describeFailure(t, event.payload));
+      },
+    );
+
+    return () => {
+      void unlistenCaptured.then((unlisten) => unlisten());
+      void unlistenFailed.then((unlisten) => unlisten());
+    };
+  }, [t, applyCapture]);
+
+  // The countdown: every second it goes down one, and at zero the capture
+  // happens.
+  useEffect(() => {
+    if (countdown === null) return;
+
+    if (countdown <= 0) {
+      setCountdown(null);
+      void performCapture();
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setCountdown((current) => (current === null ? null : current - 1));
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [countdown, performCapture]);
 
   const handleRun = async () => {
     if (!runnerText.trim()) {
@@ -305,34 +450,47 @@ export const TransformsSettings: React.FC = () => {
   const handleAccept = async () => {
     if (runnerResult === null) return;
 
-    if (!selection) {
-      setRunnerText(runnerResult);
-      toast.success(t("settings.transforms.runner.accepted"));
+    if (!captured) {
+      toast.error(t("settings.transforms.runner.acceptNeedsCapture"));
       return;
     }
 
+    // El backend escribe sobre la seleccion capturada y deja el cambio en el
+    // historial, con el sitio donde se hizo: por eso la interfaz no
+    // registra nada por su cuenta.
+    // El identificador del transform aplicado es el del ultimo de la cadena,
+    // que es el que produjo el texto que se escribe.
+    const sourceId =
+      selectedTransformIds.length > 0
+        ? selectedTransformIds[selectedTransformIds.length - 1]
+        : null;
+
     try {
-      const result = await commands.replaceTextSelection(
-        selection.text,
-        selection.window,
-        selection.control,
+      const result = await commands.applyToCapturedSelection(
         runnerResult,
+        sourceId,
       );
-      if (result.status !== "ok") {
-        toast.error(result.error);
-        return;
-      }
-      if (result.data) {
+      if (result.status === "ok") {
         setSelectionChanged(false);
         toast.success(t("settings.transforms.runner.accepted"));
-      } else {
-        // The selection changed while the transformation was running: nothing
-        // is written, the result is offered to be copied instead.
-        setSelectionChanged(true);
-        toast.error(t("settings.transforms.runner.selectionChanged"));
+        return;
       }
+
+      const failure = result.error;
+      if (failure.code === "selection_changed") {
+        // No se escribio nada en ninguna parte: el texto se ofrece para
+        // copiar, no se escribe en otro sitio.
+        setSelectionChanged(true);
+      }
+
+      // Con la aplicacion que tenia el foco: sin eso el aviso no dice nada
+      // de por que no se pudo escribir.
+      toast.error(describeFailure(t, failure));
     } catch (error) {
-      console.error("Failed to replace the selection:", error);
+      console.error(
+        "Failed to apply the result to the captured selection:",
+        error,
+      );
       toast.error(t("settings.transforms.errors.action"));
     }
   };
@@ -341,6 +499,11 @@ export const TransformsSettings: React.FC = () => {
     if (runnerResult === null) return;
     try {
       await navigator.clipboard.writeText(runnerResult);
+      if (selectionChanged) {
+        // El texto no llego a escribirse en la aplicacion: el usuario tiene
+        // que pegarlo a mano, y el aviso lo dice.
+        toast.warning(t("settings.selection.errors.selectionChanged"));
+      }
       toast.success(t("settings.transforms.runner.copied"));
     } catch (error) {
       console.error("Failed to copy the result:", error);
@@ -484,6 +647,16 @@ export const TransformsSettings: React.FC = () => {
         title={t("settings.transforms.runner.title")}
         description={t("settings.transforms.runner.description")}
       >
+        {canCaptureSelection && captureShortcut && (
+          <div className="px-4 py-3">
+            <p className="text-sm text-mid-gray">
+              {t("settings.transforms.runner.hotkeyHint", {
+                shortcut: captureShortcut,
+              })}
+            </p>
+          </div>
+        )}
+
         <SettingContainer
           title={t("settings.transforms.runner.input")}
           description={t("settings.transforms.runner.description")}
@@ -493,21 +666,74 @@ export const TransformsSettings: React.FC = () => {
           <div className="flex flex-col items-end gap-2">
             <Textarea
               value={runnerText}
-              onChange={(e) => setRunnerText(e.target.value)}
+              onChange={(e) => {
+                setRunnerText(e.target.value);
+                // Escribir en el texto invalida la captura: la seleccion
+                // original ya no es la que se va a escribir.
+                if (captured) setCaptureInvalid(true);
+              }}
               placeholder={t("settings.transforms.runner.inputPlaceholder")}
               variant="compact"
               className="min-w-[320px]"
             />
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => void handleCaptureSelection()}
-              disabled={isRunning}
-            >
-              {t("settings.transforms.runner.captureSelection")}
-            </Button>
+            {canCaptureSelection && (
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={() => setCountdown(CAPTURE_COUNTDOWN_SECONDS)}
+                  disabled={isRunning || countdown !== null}
+                >
+                  {t("settings.transforms.runner.captureSelection")}
+                </Button>
+                {countdown !== null && (
+                  <span className="text-sm text-mid-gray">
+                    {t("settings.transforms.runner.captureCountdown", {
+                      seconds: countdown,
+                    })}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </SettingContainer>
+
+        {canCaptureSelection && (
+          <div className="px-4 py-3 space-y-1">
+            {captured ? (
+              <>
+                <p className="text-xs text-mid-gray">
+                  {t("settings.transforms.runner.captured")}
+                </p>
+                <pre className="text-sm text-text whitespace-pre-wrap break-words bg-mid-gray/5 border border-mid-gray/20 rounded-lg p-3">
+                  {captured.text}
+                </pre>
+                {captured.app_name && (
+                  <p className="text-xs text-mid-gray">
+                    {t("settings.transforms.runner.capturedFrom", {
+                      app: captured.app_name,
+                    })}
+                  </p>
+                )}
+                {captureInvalid && (
+                  <p className="text-xs text-error">
+                    {t("settings.transforms.runner.captureInvalidated")}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-mid-gray">
+                {t("settings.transforms.runner.nothingCaptured")}
+              </p>
+            )}
+          </div>
+        )}
+
+        {canCaptureSelection && shortcutProblem && (
+          <div className="px-4 py-3">
+            <p className="text-sm text-error">{shortcutProblem}</p>
+          </div>
+        )}
 
         <SettingContainer
           title={t("settings.transforms.runner.selectTransform")}
@@ -550,7 +776,14 @@ export const TransformsSettings: React.FC = () => {
                 variant="secondary"
                 size="md"
                 onClick={() => void handleAccept()}
-                disabled={isRunning}
+                disabled={isRunning || !captured || captureInvalid}
+                title={
+                  !captured
+                    ? t("settings.transforms.runner.acceptNeedsCapture")
+                    : captureInvalid
+                      ? t("settings.transforms.runner.captureInvalidated")
+                      : undefined
+                }
               >
                 {t("settings.transforms.runner.accept")}
               </Button>
@@ -568,10 +801,18 @@ export const TransformsSettings: React.FC = () => {
           )}
         </div>
 
+        {runnerResult !== null && !captured && (
+          <div className="px-4 py-3">
+            <p className="text-sm text-mid-gray">
+              {t("settings.transforms.runner.acceptNeedsCapture")}
+            </p>
+          </div>
+        )}
+
         {selectionChanged && (
           <div className="px-4 py-3">
             <p className="text-sm text-error">
-              {t("settings.transforms.runner.selectionChanged")}
+              {t("settings.selection.errors.selectionChanged")}
             </p>
           </div>
         )}

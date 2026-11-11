@@ -176,6 +176,10 @@
           "transcribe_with_post_process": {
             "name": "Raccourci de post-traitement",
             "description": "Facultatif : Un raccourci dédié qui applique toujours le post-traitement IA à votre transcription."
+          },
+          "capture_selection": {
+            "name": "Capturer la sélection",
+            "description": "Prend le texte sélectionné dans l'application active."
           }
         },
         "errors": {
@@ -946,7 +950,20 @@
         "copied": "Le résultat a été copié.",
         "captureSelection": "Utiliser le texte sélectionné",
         "selectionEmpty": "Aucun texte n'est sélectionné dans l'application active.",
-        "selectionChanged": "Le texte sélectionné a changé pendant l'exécution de la transformation, rien n'a donc été écrit. Copiez le résultat à la place."
+        "selectionChanged": "Le texte sélectionné a changé pendant l'exécution de la transformation, rien n'a donc été écrit. Copiez le résultat à la place.",
+        "captured": "Texte capturé",
+        "capturedFrom": "Depuis {{app}}",
+        "hotkeyHint": "Appuyez sur {{shortcut}} dans l'application où le texte est sélectionné, puis revenez ici.",
+        "captureCountdown": "Revenez dans l'application et sélectionnez le texte. Capture dans {{seconds}}…",
+        "nothingCaptured": "Aucun texte capturé pour le moment.",
+        "acceptNeedsCapture": "Capturez une sélection avant d'accepter.",
+        "captureInvalidated": "Le texte a changé, la sélection capturée ne correspond donc plus. Capturez à nouveau la sélection.",
+        "shortcutNotRegistered": "Le raccourci {{shortcut}} n'a pas pu être enregistré. Modifiez-le dans les raccourcis clavier.",
+        "shortcutConflict": "Le raccourci {{shortcut}} n'a pas pu être enregistré : une autre application a déjà cette combinaison. Modifiez-le dans les raccourcis clavier.",
+        "shortcutDuplicate": "Le raccourci {{shortcut}} n'a pas pu être enregistré : Dixi avait déjà cette combinaison enregistrée. Redémarrez Dixi, ou modifiez-le dans les raccourcis clavier.",
+        "shortcutInvalidCombination": "Le raccourci {{shortcut}} n'est pas une combinaison valide. Modifiez-le dans les raccourcis clavier.",
+        "shortcutNotInitialized": "Le raccourci {{shortcut}} n'a pas pu être enregistré : le moteur de raccourcis n'était pas prêt. Redémarrez Dixi.",
+        "shortcutBackendUnavailable": "Le raccourci {{shortcut}} n'a pas pu être enregistré : le moteur de raccourcis n'a pas répondu. Redémarrez Dixi."
       },
       "diff": {
         "title": "Modifications",
@@ -1014,6 +1031,21 @@
       "errors": {
         "load": "Impossible de charger l'historique du texte.",
         "action": "Impossible d'annuler la modification."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "Il n'y a pas de texte sélectionné dans l'application active.",
+        "passwordField": "C'est un champ de mot de passe, donc Dixi ne le lit pas.",
+        "unsupportedControl": "Dixi ne connaît pas ce contrôle, il ne le lit donc pas.",
+        "clipboardNotPreservable": "Votre presse-papiers contient des données qui ne peuvent pas être remises exactement en place, donc Dixi n'y a pas touché. Videz le presse-papiers et réessayez.",
+        "clipboard": "Le presse-papiers n'a pas pu être utilisé.",
+        "selectionChanged": "La sélection a changé, rien n'a donc été écrit.",
+        "destinationUnavailable": "Dixi n'a pas pu ramener l'application au premier plan, rien n'a donc été écrit.",
+        "destinationGone": "L'application où le texte était sélectionné est fermée, rien n'a donc été écrit.",
+        "write": "Le texte n'a pas pu être écrit.",
+        "focusedApp": "L'application qui avait le focus était {{app}}.",
+        "focusedAppIsDixi": "L'application qui avait le focus était Dixi lui-même : revenez à l'application où le texte est sélectionné et appuyez de nouveau sur le raccourci."
       }
     }
   },

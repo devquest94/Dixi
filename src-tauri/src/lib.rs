@@ -264,6 +264,9 @@ fn initialize_core_logic(app_handle: &AppHandle) {
         app_handle.manage(manager);
     }
     app_handle.manage(tray::TrayState::new());
+    // The context of the last captured selection, so that the interface can
+    // show it and the write can go back to the same place.
+    app_handle.manage(managers::selection::SelectionContextStore::new());
 
     // Note: Shortcuts are NOT initialized here.
     // The frontend is responsible for calling the `initialize_shortcuts` command
@@ -874,8 +877,12 @@ pub fn run(cli_args: CliArgs) {
             commands::text_history::set_text_history_retention,
             commands::text_history::purge_text_history,
             commands::text_history::diff_text,
+            commands::text_history::revert_text_history_entry,
             commands::selection::capture_selection,
-            commands::selection::replace_text_selection,
+            commands::selection::get_captured_selection,
+            commands::selection::clear_captured_selection,
+            commands::selection::apply_to_captured_selection,
+            commands::selection::get_capture_shortcut_state,
             helpers::clamshell::is_laptop,
         ])
         .events(collect_events![

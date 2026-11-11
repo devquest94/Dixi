@@ -149,6 +149,10 @@
           "transcribe_with_post_process": {
             "name": "Sneltoets voor naverwerking",
             "description": "Optioneel: Een specifieke sneltoets die altijd AI-naverwerking toepast op je transcriptie."
+          },
+          "capture_selection": {
+            "name": "Selectie vastleggen",
+            "description": "Neemt de tekst over die in de app met focus is geselecteerd."
           }
         },
         "errors": {
@@ -946,7 +950,20 @@
         "copied": "Het resultaat is gekopieerd.",
         "captureSelection": "Geselecteerde tekst gebruiken",
         "selectionEmpty": "Er is geen tekst geselecteerd in de app met focus.",
-        "selectionChanged": "De geselecteerde tekst is gewijzigd tijdens de transformatie, dus er is niets geschreven. Kopieer in plaats daarvan het resultaat."
+        "selectionChanged": "De geselecteerde tekst is gewijzigd tijdens de transformatie, dus er is niets geschreven. Kopieer in plaats daarvan het resultaat.",
+        "captured": "Vastgelegde tekst",
+        "capturedFrom": "Uit {{app}}",
+        "hotkeyHint": "Druk op {{shortcut}} in de app waarin de tekst is geselecteerd en kom daarna terug naar hier.",
+        "captureCountdown": "Ga terug naar de app en selecteer de tekst. De tekst wordt over {{seconds}}… vastgelegd.",
+        "nothingCaptured": "Nog geen tekst vastgelegd.",
+        "acceptNeedsCapture": "Leg een selectie vast voordat u accepteert.",
+        "captureInvalidated": "De tekst is gewijzigd, dus de vastgelegde selectie klopt niet meer. Leg de selectie opnieuw vast.",
+        "shortcutNotRegistered": "De sneltoets {{shortcut}} kon niet worden geregistreerd. Wijzig hem bij de sneltoetsen.",
+        "shortcutConflict": "De sneltoets {{shortcut}} kon niet worden geregistreerd: een andere app heeft die combinatie al. Wijzig hem bij de sneltoetsen.",
+        "shortcutDuplicate": "De sneltoets {{shortcut}} kon niet worden geregistreerd: Dixi had die combinatie al geregistreerd. Start Dixi opnieuw, of wijzig hem bij de sneltoetsen.",
+        "shortcutInvalidCombination": "De sneltoets {{shortcut}} is geen geldige combinatie. Wijzig hem bij de sneltoetsen.",
+        "shortcutNotInitialized": "De sneltoets {{shortcut}} kon niet worden geregistreerd: de sneltoetsengine was niet klaar. Start Dixi opnieuw.",
+        "shortcutBackendUnavailable": "De sneltoets {{shortcut}} kon niet worden geregistreerd: de sneltoetsengine gaf geen antwoord. Start Dixi opnieuw."
       },
       "diff": {
         "title": "Wijzigingen",
@@ -1014,6 +1031,21 @@
       "errors": {
         "load": "De tekstgeschiedenis kon niet worden geladen.",
         "action": "De wijziging kon niet worden teruggedraaid."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "Er is geen tekst geselecteerd in de app met focus.",
+        "passwordField": "Dat is een wachtwoordveld, dus Dixi leest het niet.",
+        "unsupportedControl": "Dixi kent dat besturingselement niet en leest het dus niet.",
+        "clipboardNotPreservable": "Je klembord bevat inhoud die niet exact kan worden teruggezet, dus Dixi heeft het niet aangeraakt. Wis het klembord en probeer het opnieuw.",
+        "clipboard": "Het klembord kon niet worden gebruikt.",
+        "selectionChanged": "De selectie is gewijzigd, dus er is niets geschreven.",
+        "destinationUnavailable": "Dixi kon de app niet naar de voorgrond brengen, dus er is niets geschreven.",
+        "destinationGone": "De app waarin de tekst was geselecteerd is gesloten, dus er is niets geschreven.",
+        "write": "De tekst kon niet worden geschreven.",
+        "focusedApp": "De app die de focus had, was {{app}}.",
+        "focusedAppIsDixi": "De app die de focus had, was Dixi zelf: ga terug naar de app waarin de tekst is geselecteerd en druk nogmaals op de sneltoets."
       }
     }
   },

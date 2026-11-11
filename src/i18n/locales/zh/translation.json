@@ -176,6 +176,10 @@
           "transcribe_with_post_process": {
             "name": "后处理快捷键",
             "description": "可选：一个专用快捷键，始终对您的转录应用 AI 后处理。"
+          },
+          "capture_selection": {
+            "name": "捕获选区",
+            "description": "获取获得焦点的应用中选中的文本。"
           }
         },
         "errors": {
@@ -946,7 +950,20 @@
         "copied": "已复制结果。",
         "captureSelection": "使用选中的文本",
         "selectionEmpty": "获得焦点的应用中没有选中的文本。",
-        "selectionChanged": "转换运行时选中的文本发生了变化，因此没有写入任何内容。请改为复制结果。"
+        "selectionChanged": "转换运行时选中的文本发生了变化，因此没有写入任何内容。请改为复制结果。",
+        "captured": "已捕获的文本",
+        "capturedFrom": "来自 {{app}}",
+        "hotkeyHint": "在选中文本的应用中按 {{shortcut}}，然后返回这里。",
+        "captureCountdown": "返回应用并选中文本。将在 {{seconds}} 秒后捕获…",
+        "nothingCaptured": "尚未捕获任何文本。",
+        "acceptNeedsCapture": "请先捕获选区，再接受。",
+        "captureInvalidated": "文本已更改，因此捕获的选区不再适用。请重新捕获选区。",
+        "shortcutNotRegistered": "快捷键 {{shortcut}} 无法注册。请在键盘快捷键中更改。",
+        "shortcutConflict": "快捷键 {{shortcut}} 无法注册：另一个应用已经占用该组合。请在键盘快捷键中更改。",
+        "shortcutDuplicate": "快捷键 {{shortcut}} 无法注册：Dixi 已经注册过该组合。请重新启动 Dixi，或在键盘快捷键中更改。",
+        "shortcutInvalidCombination": "快捷键 {{shortcut}} 不是有效的组合。请在键盘快捷键中更改。",
+        "shortcutNotInitialized": "快捷键 {{shortcut}} 无法注册：快捷键引擎尚未就绪。请重新启动 Dixi。",
+        "shortcutBackendUnavailable": "快捷键 {{shortcut}} 无法注册：快捷键引擎没有响应。请重新启动 Dixi。"
       },
       "diff": {
         "title": "更改",
@@ -1014,6 +1031,21 @@
       "errors": {
         "load": "无法加载文本历史。",
         "action": "无法回退该改动。"
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "获得焦点的应用中没有选中的文本。",
+        "passwordField": "这是密码字段，Dixi 不会读取它。",
+        "unsupportedControl": "Dixi 不认识该控件，因此不会读取它。",
+        "clipboardNotPreservable": "剪贴板中的内容无法完全还原，因此 Dixi 没有改动它。请清空剪贴板后重试。",
+        "clipboard": "无法使用剪贴板。",
+        "selectionChanged": "选区发生了变化，因此没有写入任何内容。",
+        "destinationUnavailable": "Dixi 无法将应用切回前台，因此没有写入任何内容。",
+        "destinationGone": "选中文本的应用已关闭，因此没有写入任何内容。",
+        "write": "无法写入文本。",
+        "focusedApp": "拥有焦点的应用是 {{app}}。",
+        "focusedAppIsDixi": "拥有焦点的应用就是 Dixi 本身：请回到选中文本的应用，再次按快捷键。"
       }
     }
   },

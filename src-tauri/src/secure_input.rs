@@ -533,6 +533,12 @@ mod imp {
                 continue;
             }
 
+            // The shadow goes straight to the Tauri implementation, and not
+            // through the common route of the shortcuts, on purpose: a shadow
+            // is a *different* combination —a wider one— that covers the
+            // shortcut while the secure input has the keyboard. The state of
+            // the capture shortcut describes the shortcut that was
+            // configured, and that one keeps its own registration.
             match crate::shortcut::tauri_impl::register_shortcut(app, shadow.clone()) {
                 Ok(()) => {
                     info!(

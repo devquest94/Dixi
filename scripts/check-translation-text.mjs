@@ -23,6 +23,19 @@ import { join } from "node:path";
 const repo = process.cwd();
 const localesDir = join(repo, "src", "i18n", "locales");
 
+/** Los codigos de fallo que el backend puede devolver, en camelCase. */
+const SELECTION_ERROR_KEYS = [
+  "nothingSelected",
+  "passwordField",
+  "unsupportedControl",
+  "clipboardNotPreservable",
+  "clipboard",
+  "selectionChanged",
+  "destinationUnavailable",
+  "destinationGone",
+  "write",
+];
+
 /** Componentes de la fase 2C y las claves dinamicas que usan. */
 const COMPONENTS = [
   {
@@ -55,6 +68,8 @@ const COMPONENTS = [
     file: "src/components/settings/textHistory/TextHistorySettings.tsx",
     templates: {
       "settings.textHistory.kind.${kind}": ["transform", "snippet", "cleanup"],
+      "settings.selection.errors.${selectionErrorKey(failure.code)}":
+        SELECTION_ERROR_KEYS,
     },
   },
 ];
@@ -124,6 +139,14 @@ function collectKeys() {
     }
     for (const match of source.matchAll(/\bt\(\s*`([^`]+)`/g)) {
       const template = match[1];
+      // El codigo de los fallos de la seleccion se busca por prefijo: la
+      // expresion que lo convierte a camelCase cambia segun el sitio.
+      if (template.startsWith("settings.selection.errors.${")) {
+        for (const value of SELECTION_ERROR_KEYS) {
+          keys.add(template.replace(/\$\{[^}]*\}/, value));
+        }
+        continue;
+      }
       const values = component.templates[template];
       if (!values) {
         throw new Error(

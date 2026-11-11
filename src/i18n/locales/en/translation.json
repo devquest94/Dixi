@@ -149,6 +149,10 @@
           "transcribe_with_post_process": {
             "name": "Post-Processing Hotkey",
             "description": "Optional: A dedicated hotkey that always applies AI post-processing to your transcription."
+          },
+          "capture_selection": {
+            "name": "Capture the selection",
+            "description": "Takes the text selected in the app that has the focus."
           }
         },
         "errors": {
@@ -946,7 +950,20 @@
         "copied": "The result was copied.",
         "captureSelection": "Use the selected text",
         "selectionEmpty": "There is no text selected in the focused application.",
-        "selectionChanged": "The selected text changed while the transform was running, so nothing was written. Copy the result instead."
+        "selectionChanged": "The selected text changed while the transform was running, so nothing was written. Copy the result instead.",
+        "captured": "Captured text",
+        "capturedFrom": "From {{app}}",
+        "hotkeyHint": "Press {{shortcut}} in the app where the text is selected, then come back here.",
+        "captureCountdown": "Go back to the app and select the text. Capturing in {{seconds}}…",
+        "nothingCaptured": "No text captured yet.",
+        "acceptNeedsCapture": "Capture a selection before accepting.",
+        "captureInvalidated": "The text was changed, so the captured selection no longer applies. Capture the selection again.",
+        "shortcutNotRegistered": "The shortcut {{shortcut}} could not be registered. Change it in the keyboard shortcuts.",
+        "shortcutConflict": "The shortcut {{shortcut}} could not be registered: another application already has that combination. Change it in the keyboard shortcuts.",
+        "shortcutDuplicate": "The shortcut {{shortcut}} could not be registered: Dixi already had that combination registered. Restart Dixi, or change it in the keyboard shortcuts.",
+        "shortcutInvalidCombination": "The shortcut {{shortcut}} is not a valid combination. Change it in the keyboard shortcuts.",
+        "shortcutNotInitialized": "The shortcut {{shortcut}} could not be registered: the shortcut engine was not ready. Restart Dixi.",
+        "shortcutBackendUnavailable": "The shortcut {{shortcut}} could not be registered: the shortcut engine did not answer. Restart Dixi."
       },
       "diff": {
         "title": "Changes",
@@ -1014,6 +1031,21 @@
       "errors": {
         "load": "The text history could not be loaded.",
         "action": "The change could not be reverted."
+      }
+    },
+    "selection": {
+      "errors": {
+        "nothingSelected": "There is no selected text in the app that has the focus.",
+        "passwordField": "That is a password field, so Dixi does not read it.",
+        "unsupportedControl": "Dixi does not know that control, so it does not read it.",
+        "clipboardNotPreservable": "Your clipboard holds content that cannot be put back exactly, so Dixi did not touch it. Clear the clipboard and try again.",
+        "clipboard": "The clipboard could not be used.",
+        "selectionChanged": "The selection changed, so nothing was written.",
+        "destinationUnavailable": "Dixi could not bring the app back to the front, so nothing was written.",
+        "destinationGone": "The app where the text was selected is closed, so nothing was written.",
+        "write": "The text could not be written.",
+        "focusedApp": "The application that had the focus was {{app}}.",
+        "focusedAppIsDixi": "The application that had the focus was Dixi itself: go back to the application where the text is selected and press the shortcut again."
       }
     }
   },
