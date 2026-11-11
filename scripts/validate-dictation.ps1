@@ -197,6 +197,18 @@ $ownership = Find-Event 'clipboard ownership lost'
 $asrSeconds = $null
 if ($asrEnd -and $asrEnd.line -match 'completed in ([0-9.]+)s') { $asrSeconds = [double]$matches[1] }
 
+# La traza de latencia lleva las duraciones exactas por etapa, calculadas con
+# un reloj monotonico dentro de la app. El log solo tiene resolucion de 1
+# segundo, asi que sin esta linea los tiempos por etapa no se podrian
+# distinguir.
+$latencyLine = Find-Event '\[latency\]'
+$latency = @{}
+if ($latencyLine) {
+    foreach ($m in [regex]::Matches($latencyLine.line, '([a-z_]+)=(\d+)ms')) {
+        $latency[$m.Groups[1].Value] = [int]$m.Groups[2].Value
+    }
+}
+
 Write-Output ""
 Write-Output "================= RESULTADO ================="
 Write-Output ""
@@ -216,6 +228,30 @@ $latKey   = if ($keyReleasedAt -and $chord) { [math]::Round(($chord.t - $keyRele
 "  >> captura_fin -> restaurado: {0} ms" -f $(if ($latRest -ne $null) { $latRest } else { 'n/d' })
 "  >> soltura_tecla -> ctrl+V  : {0} ms" -f $(if ($latKey -ne $null) { $latKey } else { 'n/d' })
 "  >> duracion del ASR (log)   : {0} ms" -f $(if ($asrSeconds -ne $null) { [math]::Round($asrSeconds * 1000) } else { 'n/d' })
+
+Write-Output ""
+Write-Output "--- DESGLOSE POR ETAPA (traza de latencia) ---"
+if ($latency.Count -gt 0) {
+    $stageNames = @{
+        dispatch = 'soltura -> pipeline'
+        audio    = 'cierre del buffer de audio'
+        model_load = 'carga del modelo'
+        asr      = 'inferencia ASR (hilo -> worker)'
+        rules    = 'diccionario + snippets + perfil'
+        post     = 'posprocesado LLM'
+        history  = 'escritura del historial'
+        insert   = 'envio del texto al destino'
+    }
+    foreach ($key in @('dispatch','audio','model_load','asr','rules','post','history','insert')) {
+        if ($latency.ContainsKey($key)) {
+            "  {0,-26}: {1,6} ms" -f $stageNames[$key], $latency[$key]
+        }
+    }
+    "  {0,-26}: {1,6} ms" -f 'TOTAL', $latency['total']
+} else {
+    "  (sin traza de latencia: la app en ejecucion no la emite; hace falta la"
+    " version con la instrumentacion)"
+}
 
 Write-Output ""
 Write-Output "--- PORTAPAPELES ---"

@@ -359,7 +359,11 @@ impl CoordinatorState {
                     // hold mode (the setting changed mid-recording) — otherwise
                     // nothing but Escape could stop it.
                     if self.is_locked() || input.mode == ShortcutActivation::Toggle {
-                        return Some(self.begin_processing(input.binding_id, input.hotkey_string));
+                        return Some(self.begin_processing(
+                            input.binding_id,
+                            input.hotkey_string,
+                            now,
+                        ));
                     }
                     // The key is still held (its release will end this
                     // recording), so a repeated press means nothing.
@@ -449,7 +453,7 @@ impl CoordinatorState {
             // stopping is the safe reading (it is what push-to-talk always did).
             .unwrap_or(Duration::MAX);
         if held >= threshold {
-            return Some(self.begin_processing(binding_id, hotkey_string));
+            return Some(self.begin_processing(binding_id, hotkey_string, released_at));
         }
         if let Some(hold) = &mut self.hold {
             debug!("Tap ({held:?}) for '{binding_id}': recording locked on until the next press");
@@ -515,9 +519,19 @@ impl CoordinatorState {
         }
     }
 
-    fn begin_processing(&mut self, binding_id: String, hotkey_string: String) -> Effect {
+    fn begin_processing(
+        &mut self,
+        binding_id: String,
+        hotkey_string: String,
+        released_at: Instant,
+    ) -> Effect {
         self.stage = Stage::Processing;
         self.hold = None;
+        // The latency trace starts at the moment the user stopped talking,
+        // which is not the moment the pipeline is told to stop: the release
+        // is deferred by the grace window, and that window is part of the
+        // latency the user perceives.
+        crate::latency::begin_at(released_at);
         Effect::Stop {
             binding_id,
             hotkey_string,

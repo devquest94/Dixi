@@ -13,6 +13,7 @@ mod commands;
 pub mod engine_supervisor;
 mod helpers;
 mod input;
+mod latency;
 mod llm_client;
 // The managers are part of the crate's public surface: several of their
 // methods (the constructors that take an explicit path, for instance) exist
@@ -600,6 +601,10 @@ fn run_headless_transcription(app: &AppHandle, args: &CliArgs) -> i32 {
         None => "settings".to_string(),
     };
 
+    // The trace starts before the cold load, so the load is part of the
+    // measurement instead of hiding in front of it.
+    latency::begin_at(Instant::now());
+
     // Cold load (timed).
     let load_start = Instant::now();
     if let Err(e) = tm.load_model_with_device(&model_id, device_index) {
@@ -612,6 +617,10 @@ fn run_headless_transcription(app: &AppHandle, args: &CliArgs) -> i32 {
     let runs = args.repeat.unwrap_or(1).max(1);
     let mut times_ms: Vec<u64> = Vec::new();
     let mut text = String::new();
+    // The stages of every run: the harness takes the fastest one per stage,
+    // because a run that competes with the rest of the machine says more
+    // about the machine than about the model.
+    let mut run_stages: Vec<serde_json::Value> = Vec::new();
     for i in 0..runs {
         // If the model's unload-timeout is "Immediately", transcribe() unloads
         // the engine after each run; reload (untimed) so repeats keep working
@@ -631,6 +640,9 @@ fn run_headless_transcription(app: &AppHandle, args: &CliArgs) -> i32 {
             }
         }
         times_ms.push(t.elapsed().as_millis() as u64);
+        if let Some(snapshot) = latency::snapshot() {
+            run_stages.push(snapshot.to_json());
+        }
     }
     let best_ms = times_ms.iter().copied().min().unwrap_or(0);
     let rtf = if best_ms > 0 {
@@ -638,6 +650,7 @@ fn run_headless_transcription(app: &AppHandle, args: &CliArgs) -> i32 {
     } else {
         0.0
     };
+    latency::finish();
 
     if args.json {
         println!(
@@ -651,6 +664,7 @@ fn run_headless_transcription(app: &AppHandle, args: &CliArgs) -> i32 {
                 "transcribe_ms": times_ms,
                 "best_ms": best_ms,
                 "rtf": rtf,
+                "runs": run_stages,
                 "text": text,
             })
         );

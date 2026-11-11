@@ -657,6 +657,9 @@ impl TranscriptionManager {
         );
 
         let load_duration = load_start.elapsed();
+        // The load is part of the latency only when it happens during a
+        // dictation. Outside one there is no trace and the mark is dropped.
+        crate::latency::mark(crate::latency::Stage::ModelLoad, load_duration);
         debug!(
             "Successfully loaded transcription model: {} (took {}ms)",
             model_id,
@@ -1030,19 +1033,27 @@ impl TranscriptionManager {
             return Ok(String::new());
         }
 
+        let asr_started = Instant::now();
         let outcome = match live {
             Some(outcome) => outcome,
             None => self.decode_batch(audio)?,
         };
+        // The engine run: feature preparation, inference and decoding,
+        // including the round trip to the worker process that owns the
+        // native code. The worker does not report its internal stages, so
+        // this is the boundary the parent can measure.
+        crate::latency::mark_since(crate::latency::Stage::Asr, asr_started);
         let settings = get_settings(&self.app_handle);
         // The writing profile of the application that has the focus decides
         // how aggressive the cleanup is and which deterministic format rules
         // are applied.
         let effective = self.resolve_writing_profile(&settings);
         let (text, language) = finish_text(outcome, &effective.settings);
+        let rules_started = Instant::now();
         let final_result = self.apply_dictionary_rules(&text, language.as_deref());
         let final_result = self.expand_snippets(&final_result, language.as_deref());
         let final_result = apply_format_rules(&final_result, &effective.format_rules);
+        crate::latency::mark_since(crate::latency::Stage::Rules, rules_started);
 
         let translation_note = if settings.translate_to_english {
             " (translated)"
