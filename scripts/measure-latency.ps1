@@ -40,6 +40,13 @@ param(
     [int]$Repeat = 3,
     [string]$Label = 'medicion',
     [string]$InstanceDir = "",
+    # Idioma de reconocimiento forzado. Vacio = el valor por defecto de la app
+    # ('auto'), que deja que el modelo detecte el idioma. Un codigo ('es',
+    # 'es-US') lo fija, que es lo que hay que comparar.
+    [string]$Language = "",
+    # No guarda el texto transcrito. OBLIGATORIO con audio de voz real: la
+    # transcripcion es contenido privado y no debe quedar en un informe.
+    [switch]$NoText,
     [string]$ModelsDir = "$env:APPDATA\com.dixi.app\models"
 )
 
@@ -66,6 +73,9 @@ if (-not (Test-Path $Exe)) {
 if (-not (Test-Path $FixturesDir)) {
     Write-Error "No se encuentra el corpus de audio: $FixturesDir"
 }
+
+# El modelo pedido, guardado antes de que ningun bucle lo pueda pisar.
+$selectedModel = $Model
 
 # ---------------------------------------------------------------------------
 # Instancia aislada
@@ -97,14 +107,18 @@ $instanceModels = Join-Path $InstanceDir 'Data\models'
 if (Test-Path $ModelsDir) {
     New-Item -ItemType Directory -Force -Path $instanceModels | Out-Null
     $linked = 0
-    foreach ($model in (Get-ChildItem $ModelsDir -File -ErrorAction SilentlyContinue)) {
-        $target = Join-Path $instanceModels $model.Name
+    # OJO: la variable del bucle NO puede llamarse `$model`: PowerShell no
+    # distingue mayusculas, asi que pisaria el parametro `-Model` con el
+    # ultimo fichero del directorio y el banco mediria un modelo distinto del
+    # pedido, en silencio.
+    foreach ($modelFile in (Get-ChildItem $ModelsDir -File -ErrorAction SilentlyContinue)) {
+        $target = Join-Path $instanceModels $modelFile.Name
         if (Test-Path $target) { continue }
         try {
-            New-Item -ItemType HardLink -Path $target -Target $model.FullName -ErrorAction Stop | Out-Null
+            New-Item -ItemType HardLink -Path $target -Target $modelFile.FullName -ErrorAction Stop | Out-Null
             $linked++
         } catch {
-            Write-Warning "No se pudo enlazar $($model.Name): $_"
+            Write-Warning "No se pudo enlazar $($modelFile.Name): $_"
         }
     }
     Write-Host "[setup] $linked modelo(s) enlazados por hard link (sin copia, sin junction)"
@@ -117,15 +131,20 @@ if (Test-Path $ModelsDir) {
 
 # El modelo se queda en memoria durante la medicion: interesa la inferencia,
 # no lapolitica de descarga.
+# El idioma de reconocimiento. Vacio deja el valor por defecto de la app
+# ('auto'), que deja que el modelo detecte el idioma; un codigo lo fija.
+$instanceSettings = @{
+    selected_model        = $selectedModel
+    model_unload_timeout  = 'never'
+    debug_mode            = $true
+    start_hidden          = $true
+    show_tray_icon        = $false
+    transcribe_accelerator = 'auto'
+}
+if ($Language) { $instanceSettings['selected_language'] = $Language }
+
 @{
-    settings = @{
-        selected_model        = $Model
-        model_unload_timeout  = 'never'
-        debug_mode            = $true
-        start_hidden          = $true
-        show_tray_icon        = $false
-        transcribe_accelerator = 'auto'
-    }
+    settings = $instanceSettings
 } | ConvertTo-Json -Depth 5 | Set-Content -Path (Join-Path $InstanceDir 'Data\settings_store.json') -Encoding UTF8
 
 $instanceBinary = Join-Path $InstanceDir 'dixi.exe'
@@ -173,7 +192,16 @@ function Invoke-Transcription {
     foreach ($line in ($stdout -split "`r?`n")) {
         $t = $line.Trim()
         if ($t.StartsWith('{')) {
-            try { return $t | ConvertFrom-Json } catch { }
+            $data = $null
+            try { $data = $t | ConvertFrom-Json } catch { }
+            if ($null -eq $data) { continue }
+            # El modelo medido tiene que ser el pedido. Un banco que mide otra
+            # cosa y lo anota en la columna equivocada no sirve: el fallo es
+            # silencioso y el informe sale verde.
+            if ($ModelId -and $data.model -ne $ModelId) {
+                throw "El banco pidio '$ModelId' pero se midio '$($data.model)'"
+            }
+            return $data
         }
     }
     throw "La transcripcion de $Fixture no devolvio JSON: $stdout"
@@ -237,7 +265,7 @@ foreach ($fixture in (Get-ChildItem $benchAudioDir -Filter '*.wav' | Sort-Object
         AsrMs      = $asrMin
         RulesMs    = $rulesMin
         TotalMs    = $totalMin
-        Text       = $data.text
+        Text       = $(if ($NoText) { '' } else { $data.text })
     }
 }
 
