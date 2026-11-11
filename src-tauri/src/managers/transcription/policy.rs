@@ -46,12 +46,25 @@ pub enum BatchDecode {
     Whole,
 }
 
+/// Whether a model that handles long audio in one run may still be cut into
+/// fragments while the user speaks.
+///
+/// Cutting is a *latency* decision, not an accuracy one: the fragments are cut
+/// at pauses and joined afterwards, but each one costs its own inference, and
+/// the accuracy of the joined text is not the accuracy of a single run.
+fn chunk_long_form() -> bool {
+    crate::utils::env_flag_enabled("DIXI_CHUNK_LONG_FORM")
+}
+
 /// Streaming wins: a streaming model handles long audio itself. Otherwise
 /// long audio is chunked unless the model keeps its accuracy on it.
+///
+/// A model that keeps its accuracy on long audio is only chunked when
+/// `DIXI_CHUNK_LONG_FORM` asks for it.
 pub fn live_decode(model: ModelTraits, long_form_chunking: bool) -> LiveDecode {
     if model.streaming {
         LiveDecode::Stream
-    } else if long_form_chunking && !model.long_form {
+    } else if long_form_chunking && (!model.long_form || chunk_long_form()) {
         LiveDecode::Chunked
     } else {
         LiveDecode::None

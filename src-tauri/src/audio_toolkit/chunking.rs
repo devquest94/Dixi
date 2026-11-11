@@ -20,14 +20,54 @@ use super::vad::SpeechScorer;
 
 const RATE: usize = constants::WHISPER_SAMPLE_RATE as usize;
 
-const TARGET_SECONDS: f64 = 30.0;
-/// Audio up to this many samples is decoded in one piece; longer audio is cut.
-const MAX_CHUNK_SAMPLES: usize = 40 * RATE;
-const MIN_CHUNK_SAMPLES: usize = 5 * RATE;
-/// Live, a cut is only final once this much audio past its window is scored:
-/// then no cut it allows can leave a short rest, so live cuts match the plan
-/// for the whole clip.
-const LOOKAHEAD_SAMPLES: usize = MIN_CHUNK_SAMPLES;
+/// How the audio is cut into fragments.
+///
+/// The defaults are the ones the app has always used. The environment
+/// variables let the benchmark sweep them without rebuilding the engine, and
+/// let a user whose dictations are short ask for shorter fragments: a shorter
+/// fragment is decoded while the user is still speaking, so less audio is left
+/// to decode after they let go.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ChunkPolicy {
+    /// Where a cut is preferred, in seconds.
+    pub target_seconds: f64,
+    /// The longest a fragment may be, in seconds.
+    pub max_seconds: f64,
+    /// The shortest a fragment may be, in seconds.
+    pub min_seconds: f64,
+}
+
+impl Default for ChunkPolicy {
+    fn default() -> Self {
+        Self {
+            target_seconds: 30.0,
+            max_seconds: 40.0,
+            min_seconds: 5.0,
+        }
+    }
+}
+
+impl ChunkPolicy {
+    /// The policy in force: the defaults, overridden by the environment.
+    pub fn current() -> Self {
+        static POLICY: Lazy<ChunkPolicy> = Lazy::new(|| ChunkPolicy {
+            target_seconds: crate::utils::env_seconds("DIXI_CHUNK_TARGET_SECONDS", 30.0),
+            max_seconds: crate::utils::env_seconds("DIXI_CHUNK_MAX_SECONDS", 40.0),
+            min_seconds: crate::utils::env_seconds("DIXI_CHUNK_MIN_SECONDS", 5.0),
+        });
+        *POLICY
+    }
+
+    /// The longest fragment, in samples.
+    pub fn max_samples(&self) -> usize {
+        (self.max_seconds * RATE as f64).round() as usize
+    }
+
+    /// The shortest fragment, in samples.
+    pub fn min_samples(&self) -> usize {
+        (self.min_seconds * RATE as f64).round() as usize
+    }
+}
 
 // Silero's `get_speech_timestamps` defaults, as `VadSession::run` applies them.
 const THRESHOLD: f32 = 0.5;
@@ -122,13 +162,20 @@ fn cut_candidates(segments: &[Range<usize>], samples: usize) -> Vec<CutCandidate
 /// that leave at least 5 s after them. With no pause, it is a hard cut at 40 s,
 /// or halfway when that would leave under 5 s. Audio of 40 s or less is never
 /// cut. `candidates` must be in order.
-fn plan_cuts(candidates: &[CutCandidate], samples: usize, from: usize) -> Vec<usize> {
+fn plan_cuts(
+    policy: &ChunkPolicy,
+    candidates: &[CutCandidate],
+    samples: usize,
+    from: usize,
+) -> Vec<usize> {
+    let max_chunk = policy.max_samples();
+    let min_chunk = policy.min_samples();
     let mut cuts = Vec::new();
     let mut start = from;
     // Each window starts after the last, so earlier candidates never return.
     let mut first = 0;
-    while samples - start > MAX_CHUNK_SAMPLES {
-        while first < candidates.len() && candidates[first].cut < start + MIN_CHUNK_SAMPLES {
+    while samples - start > max_chunk {
+        while first < candidates.len() && candidates[first].cut < start + min_chunk {
             first += 1;
         }
         // A pause that leaves under 5 s is only used when no other pause will do.
@@ -136,28 +183,26 @@ fn plan_cuts(candidates: &[CutCandidate], samples: usize, from: usize) -> Vec<us
         let mut fallback: Option<(usize, f64)> = None;
         for candidate in candidates[first..]
             .iter()
-            .take_while(|candidate| candidate.cut <= start + MAX_CHUNK_SAMPLES)
+            .take_while(|candidate| candidate.cut <= start + max_chunk)
         {
             let position = (candidate.cut - start) as f64 / RATE as f64;
-            let off_target = if position > TARGET_SECONDS {
-                0.1 * (position - TARGET_SECONDS)
+            let off_target = if position > policy.target_seconds {
+                0.1 * (position - policy.target_seconds)
             } else {
-                0.05 * (TARGET_SECONDS - position)
+                0.05 * (policy.target_seconds - position)
             };
             let score = candidate.gap_seconds.min(1.0) - off_target;
-            if samples - candidate.cut >= MIN_CHUNK_SAMPLES
-                && best.is_none_or(|(_, best)| score > best)
-            {
+            if samples - candidate.cut >= min_chunk && best.is_none_or(|(_, best)| score > best) {
                 best = Some((candidate.cut, score));
             }
             if fallback.is_none_or(|(_, fallback)| score > fallback) {
                 fallback = Some((candidate.cut, score));
             }
         }
-        let hard_cut = if samples - start < MAX_CHUNK_SAMPLES + MIN_CHUNK_SAMPLES {
+        let hard_cut = if samples - start < max_chunk + min_chunk {
             start + (samples - start) / 2
         } else {
-            start + MAX_CHUNK_SAMPLES
+            start + max_chunk
         };
         start = best.or(fallback).map_or(hard_cut, |(cut, _)| cut);
         cuts.push(start);
@@ -178,6 +223,9 @@ pub type MakeScorer = Box<dyn Fn() -> Result<Box<dyn SpeechScorer>> + Send>;
 /// audio is still decoded, as it would be without chunking.
 pub struct Chunker {
     make_scorer: MakeScorer,
+    /// How the audio is cut. Taken from the environment at construction, so
+    /// the benchmark can sweep it without rebuilding.
+    policy: ChunkPolicy,
     /// Made the first time audio has to be scored, so a clip short enough to
     /// be one chunk never loads a VAD.
     scorer: Option<Box<dyn SpeechScorer>>,
@@ -201,6 +249,7 @@ impl Chunker {
     pub fn new(make_scorer: MakeScorer) -> Self {
         Self {
             make_scorer,
+            policy: ChunkPolicy::current(),
             scorer: None,
             frame_samples: 0,
             uncut: false,
@@ -227,7 +276,9 @@ impl Chunker {
         } else {
             self.pending.extend_from_slice(&pcm);
         }
-        if self.uncut || self.len - self.start <= MAX_CHUNK_SAMPLES + LOOKAHEAD_SAMPLES {
+        if self.uncut
+            || self.len - self.start <= self.policy.max_samples() + self.policy.min_samples()
+        {
             return Vec::new();
         }
         // Plan over whole frames only; a partial one waits for the rest.
@@ -246,10 +297,15 @@ impl Chunker {
         }
         // One plan, committed while each cut's whole window plus the lookahead
         // is scored.
-        let cuts = plan_cuts(&cut_candidates(&segments, scored), scored, self.start);
+        let cuts = plan_cuts(
+            &self.policy,
+            &cut_candidates(&segments, scored),
+            scored,
+            self.start,
+        );
         let mut chunks = Vec::new();
         for cut in cuts {
-            if scored - self.start <= MAX_CHUNK_SAMPLES + LOOKAHEAD_SAMPLES {
+            if scored - self.start <= self.policy.max_samples() + self.policy.min_samples() {
                 break;
             }
             chunks.push(self.take_until(cut));
@@ -261,12 +317,16 @@ impl Chunker {
     /// more is pushed after.
     pub fn finish(&mut self) -> Vec<Vec<f32>> {
         let mut chunks = Vec::new();
-        if !self.uncut && self.len - self.start > MAX_CHUNK_SAMPLES {
+        if !self.uncut && self.len - self.start > self.policy.max_samples() {
             match self.score(true) {
                 Ok(_) => {
                     let segments = speech_segments(&self.probs, self.frame_samples, self.len);
-                    let cuts =
-                        plan_cuts(&cut_candidates(&segments, self.len), self.len, self.start);
+                    let cuts = plan_cuts(
+                        &self.policy,
+                        &cut_candidates(&segments, self.len),
+                        self.len,
+                        self.start,
+                    );
                     for cut in cuts {
                         chunks.push(self.take_until(cut));
                     }
@@ -400,7 +460,12 @@ mod tests {
     fn plan(seconds: f64, pauses: &[(f64, f64)]) -> Vec<f64> {
         let samples = s(seconds);
         let segments = speech_segments(&probs_with_pauses(seconds, pauses), FRAME, samples);
-        plan_cuts(&cut_candidates(&segments, samples), samples, 0)
+        plan_cuts(
+            &ChunkPolicy::default(),
+            &cut_candidates(&segments, samples),
+            samples,
+            0,
+        )
             .into_iter()
             .map(|cut| (cut as f64 / RATE as f64 * 10.0).round() / 10.0)
             .collect()

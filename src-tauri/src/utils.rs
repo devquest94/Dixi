@@ -169,6 +169,23 @@ pub fn env_flag_enabled(name: &str) -> bool {
     }
 }
 
+/// A positive number from the environment, or `fallback` when the variable is
+/// not set, does not parse, or is not a positive finite number.
+///
+/// Used for the tunables the benchmark sweeps: a wrong value has to fall back
+/// to the default instead of making the engine do something absurd.
+pub fn env_seconds(name: &str, fallback: f64) -> f64 {
+    match std::env::var(name) {
+        Ok(v) => v
+            .trim()
+            .parse::<f64>()
+            .ok()
+            .filter(|n| n.is_finite() && *n > 0.0)
+            .unwrap_or(fallback),
+        Err(_) => fallback,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
