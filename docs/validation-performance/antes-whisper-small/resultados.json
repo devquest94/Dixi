@@ -1,0 +1,122 @@
+﻿[
+    {
+        "Fixture":  "F1.wav",
+        "AudioSecs":  4.0829375,
+        "Model":  "handy-computer/whisper-small-gguf/whisper-small-Q8_0.gguf",
+        "Backend":  "CPU",
+        "LoadMs":  1303,
+        "BestMs":  11178,
+        "Rtf":  0.36526547682948646,
+        "AsrMs":  11153,
+        "RulesMs":  0,
+        "TotalMs":  12457
+    },
+    {
+        "Fixture":  "F10.wav",
+        "AudioSecs":  5.402125,
+        "Model":  "handy-computer/whisper-small-gguf/whisper-small-Q8_0.gguf",
+        "Backend":  "CPU",
+        "LoadMs":  1099,
+        "BestMs":  25610,
+        "Rtf":  0.21093811011323704,
+        "AsrMs":  25594,
+        "RulesMs":  0,
+        "TotalMs":  26694
+    },
+    {
+        "Fixture":  "F2.wav",
+        "AudioSecs":  5.3865625,
+        "Model":  "handy-computer/whisper-small-gguf/whisper-small-Q8_0.gguf",
+        "Backend":  "CPU",
+        "LoadMs":  479,
+        "BestMs":  3998,
+        "Rtf":  1.3473142821410704,
+        "AsrMs":  3984,
+        "RulesMs":  0,
+        "TotalMs":  4463
+    },
+    {
+        "Fixture":  "F3.wav",
+        "AudioSecs":  5.30375,
+        "Model":  "handy-computer/whisper-small-gguf/whisper-small-Q8_0.gguf",
+        "Backend":  "CPU",
+        "LoadMs":  597,
+        "BestMs":  5137,
+        "Rtf":  1.03246058010512,
+        "AsrMs":  5119,
+        "RulesMs":  0,
+        "TotalMs":  5716
+    },
+    {
+        "Fixture":  "F4.wav",
+        "AudioSecs":  4.680125,
+        "Model":  "handy-computer/whisper-small-gguf/whisper-small-Q8_0.gguf",
+        "Backend":  "CPU",
+        "LoadMs":  445,
+        "BestMs":  5679,
+        "Rtf":  0.82411075893643249,
+        "AsrMs":  5664,
+        "RulesMs":  0,
+        "TotalMs":  6110
+    },
+    {
+        "Fixture":  "F5.wav",
+        "AudioSecs":  8.2625,
+        "Model":  "handy-computer/whisper-small-gguf/whisper-small-Q8_0.gguf",
+        "Backend":  "CPU",
+        "LoadMs":  438,
+        "BestMs":  14386,
+        "Rtf":  0.574343111358265,
+        "AsrMs":  14372,
+        "RulesMs":  0,
+        "TotalMs":  14810
+    },
+    {
+        "Fixture":  "F6.wav",
+        "AudioSecs":  5.0916875,
+        "Model":  "handy-computer/whisper-small-gguf/whisper-small-Q8_0.gguf",
+        "Backend":  "CPU",
+        "LoadMs":  521,
+        "BestMs":  3732,
+        "Rtf":  1.3643321275455518,
+        "AsrMs":  3718,
+        "RulesMs":  0,
+        "TotalMs":  4239
+    },
+    {
+        "Fixture":  "F7.wav",
+        "AudioSecs":  5.0218125,
+        "Model":  "handy-computer/whisper-small-gguf/whisper-small-Q8_0.gguf",
+        "Backend":  "CPU",
+        "LoadMs":  423,
+        "BestMs":  3718,
+        "Rtf":  1.3506757665411513,
+        "AsrMs":  3703,
+        "RulesMs":  0,
+        "TotalMs":  4126
+    },
+    {
+        "Fixture":  "F8.wav",
+        "AudioSecs":  5.3588125,
+        "Model":  "handy-computer/whisper-small-gguf/whisper-small-Q8_0.gguf",
+        "Backend":  "CPU",
+        "LoadMs":  409,
+        "BestMs":  3588,
+        "Rtf":  1.49353748606466,
+        "AsrMs":  3571,
+        "RulesMs":  0,
+        "TotalMs":  3981
+    },
+    {
+        "Fixture":  "F9.wav",
+        "AudioSecs":  5.37275,
+        "Model":  "handy-computer/whisper-small-gguf/whisper-small-Q8_0.gguf",
+        "Backend":  "CPU",
+        "LoadMs":  482,
+        "BestMs":  3489,
+        "Rtf":  1.5399111493264546,
+        "AsrMs":  3475,
+        "RulesMs":  0,
+        "TotalMs":  3958
+    }
+]

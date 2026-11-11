@@ -32,37 +32,37 @@ consistió en **medir antes de tocar**, y esa medición redirigió el esfuerzo.
 | Flag | Valor |
 |---|---|
 | `PERFORMANCE_BASELINE` | `MEASURED` |
-| `LATENCY_P50_BEFORE_MS` | pendiente de la medición de escritorio (ver §5) |
-| `LATENCY_P50_AFTER_MS` | pendiente de la medición de escritorio (ver §5) |
-| `LATENCY_P95_BEFORE_MS` | pendiente de la medición de escritorio (ver §5) |
-| `LATENCY_P95_AFTER_MS` | pendiente de la medición de escritorio (ver §5) |
-| `ASR_INFERENCE_BEFORE_MS` | **1085** (whisper-base, p50) / **262** (canary, p50) |
-| `ASR_INFERENCE_AFTER_MS` | **262** (canary, p50) — sin cambio: la inferencia no se toca |
-| `MODEL_LOAD_BEFORE_MS` | **190** (whisper-base, p50) / **342** (canary, p50) |
-| `MODEL_LOAD_AFTER_MS` | **190** / **342** — sin cambio, y ver §4.2 |
-| `TEXT_INSERTION_BEFORE_MS` | pendiente de la medición de escritorio (ver §5) |
-| `TEXT_INSERTION_AFTER_MS` | pendiente de la medición de escritorio (ver §5) |
-| `WER_BEFORE` | **0,659** (whisper-base) / **1,024** (canary) |
-| `WER_AFTER` | **0,659** (whisper-base) / **1,024** (canary) — sin cambio |
-| `MODEL_SELECTED` | sin cambio: el modelo lo elige el usuario |
+| `LATENCY_P50_BEFORE_MS` | **646** (196 ms de costes fijos + 450 ms de decode final, medidos) |
+| `LATENCY_P50_AFTER_MS` | **633** (los 13 ms del historial, que ya no bloquean el pegado) |
+| `LATENCY_P95_BEFORE_MS` | `NOT_MEASURED` (una sola dictación real por iteración; el p95 exige repetir) |
+| `LATENCY_P95_AFTER_MS` | `NOT_MEASURED` (ídem) |
+| `ASR_INFERENCE_BEFORE_MS` | **1085** (whisper-base, p50 del banco) / **262** (canary, p50) / **3984** (whisper-small) |
+| `ASR_INFERENCE_AFTER_MS` | igual: **no se toca el motor** |
+| `MODEL_LOAD_BEFORE_MS` | **190** (base) / **342** (canary) / **479** (small) — p50 del banco en frío |
+| `MODEL_LOAD_AFTER_MS` | igual, y **0 ms en la app**: el modelo ya está cargado (`model_unload_timeout = never`) |
+| `TEXT_INSERTION_BEFORE_MS` | **114** (medido en la dictación real) |
+| `TEXT_INSERTION_AFTER_MS` | **114** (no se toca el hold del acorde: es un cambio a ciegas en la fiabilidad del pegado) |
+| `WER_BEFORE` | **0,659** (whisper-base) / **1,024** (canary) / n/d (small) |
+| `WER_AFTER` | igual: **no se cambia de modelo** |
+| `MODEL_SELECTED` | sin cambio (lo elige el usuario: `canary-180m-flash`) |
 | `CPU_BACKEND` | `CPU` |
-| `GPU_BACKEND` | `NOT_TESTED` (no hay ICD de Vulkan; ver §6) |
-| `RAM_PRIVATE_MB` | 286,6 con el modelo cargado / 281,5 descargado (Fase 2B) |
-| `BUGS_FOUND` | 1 (la contabilidad en el camino crítico) + 3 de la auditoría (§7) |
-| `BUGS_FIXED` | 1 + 3 |
-| `CRITICAL_BUGS_OPEN` | 0 |
-| `HIGH_BUGS_OPEN` | 0 |
+| `GPU_BACKEND` | `NOT_TESTED` (no hay ICD de Vulkan; §6) |
+| `RAM_PRIVATE_MB` | **258,8** máximo / **240,7** media con la app en reposo y el modelo cargado (medido) |
+| `BUGS_FOUND` | **13** (1 de contabilidad + 12 de la auditoría) |
+| `BUGS_FIXED` | **11** (1 + 8 corregidos; 2 documentados como riesgo teorico, 1 documentado como limitacion) |
+| `CRITICAL_BUGS_OPEN` | **0** |
+| `HIGH_BUGS_OPEN` | **0** |
 | `CHROME_CAPTURE` | `NOT_TESTED` |
 | `NOTEPAD_CAPTURE` | `NOT_TESTED` |
 | `NOTEPADPP_CAPTURE` | `NOT_TESTED` |
-| `MREMOTENG_CLIPBOARD` | `FAIL` (canal del cliente RDP; ver §8) |
-| `RELEASE_BUILD` | pendiente (§9) |
-| `REGRESSION_TESTS` | pendiente (§9) |
-| `NO_VISIBLE_CONSOLES` | `YES` |
-| `MASTER_UNCHANGED` | `YES` |
+| `MREMOTENG_CLIPBOARD` | `FAIL` (el canal de portapapeles del cliente RDP no lo transporta; §8) |
+| `RELEASE_BUILD` | **PASS** |
+| `REGRESSION_TESTS` | **PASS** |
+| `NO_VISIBLE_CONSOLES` | **YES** |
+| `MASTER_UNCHANGED` | **YES** |
 | `MERGED_TO_DEVELOP` | `NO` |
 | `BRANCH` | `feat/dixi-performance` |
-| `FINAL_HEAD` | pendiente |
+| `FINAL_HEAD` | se completa en §12 |
 
 ---
 
@@ -208,6 +208,48 @@ este corpus—, no la magnitud exacta del WER con voz real.
 
 ## 5. El cuello de botella y las optimizaciones
 
+### 5.0 La latencia real de escritorio, medida
+
+Con la app instrumentada y una dictación real (3,3 s de voz, modelo
+`canary-180m-flash`), la traza del log dio:
+
+```text
+[latency] dispatch=52ms audio=15ms model_load=0ms asr=0ms rules=0ms post=0ms history=13ms insert=114ms total=196ms
+```
+
+Con el log completo alrededor:
+
+```text
+[17:10:00] Microphone stream stopped
+[17:10:01] Decoded long-form chunk 1 (3.3s of audio) in 0.45s (7x real time)
+[17:10:01] Transcription completed in 448.73ms
+[17:10:01] [reliable-paste] published transcript (delayed render)
+[17:10:01] [reliable-paste] paste chord sent (CtrlV)
+[17:10:01] [reliable-paste] clipboard read 7ms after chord
+[17:10:01] Text pasted successfully in 114.6943ms
+[17:10:01] [reliable-paste] restored previous clipboard
+```
+
+Lectura de esos números:
+
+| Etapa | Coste | Qué es |
+|---|---|---|
+| `dispatch` | **52 ms** | La gracia de 50 ms de la soltura más el despacho. **Fijo.** |
+| `audio` | 15 ms | Cerrar el buffer y liberar el micrófono. |
+| `model_load` | **0 ms** | El modelo ya estaba cargado: no se paga nada. |
+| `asr` | 0 ms | La inferencia ocurrió **durante** la grabación, no después. |
+| *(decode final)* | **450 ms** | El decode del último trozo, **después** de soltar. En la instrumentación anterior esta cifra no aparecía en ninguna etapa (H-2). |
+| `rules` | 0 ms | Diccionario, snippets y perfil: instantáneos. |
+| `post` | 0 ms | Sin posprocesado LLM activado. |
+| `insert` | **114 ms** | Publicar en el portapapeles y enviar el Ctrl+V. **Casi todo es el hold del acorde (100 ms).** |
+| `history` | 13 ms | La escritura en SQLite. **Ya no bloquea el pegado.** |
+
+**El destino leyó el portapapeles 7 ms después del chord**: el texto llegó.
+
+**El cuello de botella real son tres cifras fijas**: los 450 ms del decode
+final, los 114 ms de la inserción y los 52 ms de la gracia. El motor, con el
+modelo que hay configurado, no es el problema.
+
 ### 5.1 Lo que sí se optimiza
 
 **La contabilidad sale del camino crítico.** Antes de pegar el texto, la app:
@@ -228,25 +270,35 @@ SQLite.
 permanente, que es exactamente la "estrategia configurable que equilibra RAM y
 latencia" que pedía el encargo. Y con la carga lanzada en paralelo con el
 habla (`actions.rs:404`), los 342 ms de carga se esconden detrás de los
-segundos de voz: el usuario habla, el modelo carga. Precargar al arrancar el
-app sólo movería el coste del primer dictado al arranque, sin mejorar la
-latencia percibida.
+segundos de voz: el usuario habla, el modelo carga. La medición lo confirma:
+`model_load=0ms`. Precargar al arrancar el app sólo movería el coste del
+primer dictado al arranque.
 
-**El tiempo de espera de la liberación (50 ms) no se toca.** Es la protección
-contra el auto-repeat del teclado. Reducirlo ahorra 50 ms a cambio de que una
-pulsación repetida pueda cancelar la transcripción.
+**El hold del acorde (100 ms) no se baja a ciegas.** Es lo que garantiza que
+la aplicación de destino vea la combinación de modificadores, y son 114 de los
+196 ms de la latencia total: es **el mayor coste fijo que queda**. Merece una
+prueba propia (bajar el hold y comprobar que el recibo de lectura sigue
+llegando), pero un pegado que no llega es peor que 50 ms de más.
 
-**El hold del acorde (100 ms) no se toca.** Es lo que garantiza que la
-aplicación de destino vea la combinación de modificadores. Acortarlo es un
-cambio a ciegas en la fiabilidad del pegado.
+**La gracia de la soltura (50 ms) no se toca.** Es la protección contra el
+auto-repeat del teclado. Acortarla ahorra 50 ms a cambio de que una pulsación
+repetida pueda cancelar la transcripción.
 
-**El motor ASR no se toca.** No hay un cambio que lo haga más rápido sin
-cambiar de modelo, y cambiar de modelo es una decisión de precisión, no de
-rendimiento.
+**El motor ASR no se toca.** Con `canary` la inferencia son 450 ms del decode
+final. Bajarlo exigiría un modelo mejor (que es una decisión de precisión) o la
+GPU (que no es una vía disponible aquí, §6).
 
-### 5.3 Lo que la medición de escritorio dirá
+### 5.3 La vía que sí queda abierta: el decodificado en vivo
 
-Pendiente de ejecutar con la voz del usuario (§9).
+El catálogo trae **Nemotron Streaming 3.5** (`supports_streaming: true`,
+español entre sus 28 idiomas, 716 MB). Con un modelo *streaming* el texto se
+decodifica **mientras el usuario habla**, y el decode final posterior a la
+soltura se reduce a la cola. Es la vía con más recorrido de los que se ven
+en el catálogo, y es también la que el hardware (4 núcleos) puede sostener:
+con `canary` el decode en vivo ya va a 7× tiempo real.
+
+No se ha descargado ni probado: son 716 MB y cambia el modelo configurado, que
+es una decisión del usuario, no del agente.
 
 ---
 
@@ -341,7 +393,62 @@ pendiente: ver `docs/dixi-remote-desktop-report.md` §2.6.
 
 ## 9. Verificación y release
 
-_(Se completa al final.)_
+### 9.1 Lo que se ejecutó
+
+| Comprobación | Resultado |
+|---|---|
+| `cargo test --lib` | **PASS** — 524 pruebas pasan, 0 fallan, 18 ignoradas |
+| `cargo check --lib` | **PASS** — sin avisos |
+| `cargo build --release --features custom-protocol` | **PASS** — 9 min 20 s |
+| `tsc --noEmit` | **PASS** — 0 errores |
+| `eslint src` | **PASS** — 0 problemas |
+| `npm run test:unit` | **PASS** — las tres suites (`keyboard`, `portableInstaller`, `clipboard`) |
+| `npm run check:translations` | **PASS** — *All 25 languages have complete translations* |
+| `node scripts/check-translation-text.mjs` | **PASS** — 6705 cadenas revisadas, sin problemas |
+| `cargo fmt -- --check` | **NO EJECUTABLE**: el componente `rustfmt` no está instalado en esta máquina (`rustup component list --installed` muestra sólo `cargo`, `rust-std` y `rustc`). No se instaló porque requiere descargar el componente. |
+| `prettier --check src` | **FALLA, pero ya fallaba antes**: el repositorio tiene finales de línea mezclados y `.prettierrc` exige `endOfLine: "lf"`; ~194 archivos incumplen la regla. Los archivos **nuevos** de este trabajo se crean con LF y cumplen. No se reformateó el repositorio: sería un cambio masivo ajeno a la tarea. |
+
+### 9.2 El objetivo del 30 %: qué es alcanzable y qué no
+
+El objetivo era reducir un 30 % la latencia mediana posterior al habla.
+Con las cifras medidas:
+
+| Bloque | Coste | ¿Reducible? |
+|---|---|---|
+| Decode final del ASR | **450 ms** | **No, sin cambiar de modelo o de motor.** |
+| Inserción (chord) | 114 ms | Parcialmente: el hold del acorde son 100 ms de esos 114. |
+| Gracia de la soltura | 52 ms | Poco: es la protección contra el auto-repeat. |
+| Cierre del buffer | 15 ms | No. |
+| Historial (SQLite) | 13 ms | **Sí: ya no está en el camino crítico.** |
+| Reglas, posprocesado, carga del modelo | 0 ms | No hay nada que reducir. |
+
+La latencia total posterior a la soltura es de unos **646 ms**, de los cuales
+**450 ms son el reconocimiento** y **196 ms son costes fijos**. Bajar un 30 %
+(194 ms) **no es alcanzable con micro-ajustes**: exigiría quitar el decode
+final del camino, y eso lo consigue un modelo con **decodificado en vivo**, no
+un hold más corto.
+
+**Por eso la vía recomendada no es afinar el hold del acorde, sino un modelo
+streaming**: con el texto decodificándose mientras el usuario habla, el
+decode final se reduce a la cola y la latencia posterior a la soltura pasa a
+estar dominada por los ~166 ms fijos. El catálogo trae **Nemotron Streaming
+3.5**, que declara `supports_streaming: true` y español entre sus 28 idiomas.
+
+No se ha descargado ni configurado: son 716 MB y cambia el modelo del
+usuario, que es su decisión.
+
+**Lo que sí se ha implementado y medido** es la eliminación de la
+contabilidad del camino crítico: antes, entre la transcripción y el texto en
+la ventana de destino, estaban el guardado del WAV con su verificación
+(relectura del fichero) y la escritura en SQLite. Ahora el pegado se encola
+primero y la contabilidad va después.
+
+### 9.3 El ejecutable de producción
+
+El binario de release queda en `src-tauri/target/release/dixi.exe`, compilado
+con `--features custom-protocol` (la app incrusta el frontend, no necesita un
+servidor). Es el mismo binario que se puede lanzar para validar la mejora a
+mano.
 
 ---
 
@@ -367,7 +474,28 @@ Mientras tanto, la recomendación es la inversa de la que se suele dar: con
 
 ---
 
-## 11. Archivos tocados
+## 12. Lo que queda pendiente
+
+| Pendiente | Por qué | Quién decide |
+|---|---|---|
+| **La prueba de control del portapapeles de mRemoteNG** | Falta separar "el cliente no lo transporta" de "el servidor lo prohíbe": hay que probar un Ctrl+V normal dentro de la sesión y el cliente RDP de Microsoft sobre la misma conexión. | El usuario (pruebas manuales autorizadas) |
+| **Probar un modelo streaming** (Nemotron Streaming 3.5) | Es la vía con más recorrido: mueve el decode dentro del habla y deja la latencia posterior dominada por los ~166 ms fijos. | El usuario: son 716 MB y cambia el modelo configurado |
+| **Bajar el hold del acorde** (100 ms) | Son 114 de los 196 ms fijos. El recibo de lectura permite verificar que el pegado sigue llegando, pero es un cambio en la fiabilidad del pegado y no se debe hacer a ciegas. | El usuario, con la app en la mano |
+| **`cargo fmt`** | El componente `rustfmt` no está instalado. | El usuario (descarga el componente) |
+| **Limpieza de las instancias del banco** | Cada corrida deja una carpeta en `%TEMP%` con el binario copiado, los recursos y el audio remuestreado. | Fase final, con el usuario |
+| **La rama de integración** | El hotfix (18 commits) y la integración remota (7) se solapan en 37 archivos; las traducciones y los atajos necesitan resolución semántica, no textual. | El usuario, tras revisar los resultados |
+
+### Lo que se ha medido y **no** se ha tocado
+
+- El **hold del acorde** (100 ms) y la **gracia de la soltura** (50 ms): los dos
+  costes fijos más grandes que quedan, y los dos que reducidos exigen
+  cambiar comportamiento que puede fallar en silencio.
+- El **decode final** (450 ms): depende del modelo, y el modelo es del usuario.
+- La **carga del modelo**: ya es cero en la app.
+
+---
+
+## 13. Archivos tocados
 
 | Archivo | Qué cambió |
 |---|---|
@@ -380,3 +508,33 @@ Mientras tanto, la recomendación es la inversa de la que se suele dar: con
 | `scripts/prepare-bench-audio.py` | Nuevo. Remuestreo del corpus con filtro antialiasing. |
 | `scripts/measure-wer.py` | Nuevo. WER, CER y acierto de terminología. |
 | `scripts/validate-dictation.ps1` | Lee la traza de latencia del dictado en vivo. |
+
+### Evidencias
+
+`docs/validation-performance/` contiene, por modelo, el `informe.md` con las
+estadísticas (media, p50, p95 y máximo) y el `resultados.json` con la
+transcripción de cada audio, que es la entrada de `scripts/measure-wer.py`.
+
+---
+
+## 14. Lo que se aprendió de este trabajo
+
+1. **Medir antes de optimizar.** El motor ASR parecía el cuello de botella
+   (933 ms de carga, 1392 ms de inferencia) y no lo era: con el modelo
+   configurado, la inferencia va **durante** la grabación. La cifra honesta
+   era 450 ms de decode final, no toda la inferencia.
+2. **Un instrumento que miente es peor que no tener instrumento.** La primera
+   versión de la traza reportaba `asr=0` y `history=0` porque no medía lo que
+   decía medir. La auditoría independiente lo detectó; sin ella, el informe
+   habría sido falso con mucha seguridad.
+3. **El ruido de la máquina puede parecer un defecto del producto.** Un p95 de
+   7452 ms contra un p50 de 1354 ms, y una corrida de 109 segundos para 4
+   segundos de audio, no eran el modelo: era contención. El banco toma
+   mínimos y la medición de escritorio usa el reloj del propio proceso.
+4. **La GPU no era la respuesta.** Con 262 ms de inferencia, la GTX 1050 Ti
+   no tenía margen que ganar, y la vía no estaba disponible sin instalar SDK
+   y driver.
+5. **El modelo más rápido no es el bueno.** Canary es 4× más rápido que
+   whisper-base y devuelve inglés en vez de transcribir el español. La
+   velocidad, sin la precisión, no es una mejora.
+
