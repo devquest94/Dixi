@@ -35,6 +35,18 @@ pub struct CliArgs {
     #[arg(short = 'f', long, value_name = "WAV")]
     pub transcribe_file: Option<PathBuf>,
 
+    /// Transcribe this WAV through the LIVE path: the one the app uses while
+    /// the user speaks. The audio is fed at the speed of a recording and the
+    /// report says what was decoded before the release and how much was still
+    /// pending when the user let go. No paste, no download.
+    #[arg(long, value_name = "WAV")]
+    pub live_file: Option<PathBuf>,
+
+    /// Feed the live bench faster than real time. Development only: the
+    /// latency it reports is only meaningful at 1x.
+    #[arg(long)]
+    pub fast_feed: bool,
+
     /// Model id to load for --transcribe-file (default: the selected model).
     #[arg(long)]
     pub model: Option<String>,

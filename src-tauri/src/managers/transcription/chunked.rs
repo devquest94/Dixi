@@ -124,6 +124,15 @@ impl<'a> ChunkedDecode<'a> {
                     // wall clock. Floored so a near-instant decode reports a
                     // large factor instead of infinity.
                     let elapsed_secs = started.elapsed().as_secs_f64().max(1e-6);
+                    // The fragment trace: it says which fragments were decoded
+                    // while the user was still speaking, and which one the
+                    // user actually waited for.
+                    crate::latency::record_chunk(
+                        self.transcripts.len(),
+                        audio_secs,
+                        started.elapsed().as_millis() as u64,
+                        Instant::now(),
+                    );
                     info!(
                         "Decoded long-form chunk {} ({:.1}s of audio) in {:.2}s ({:.0}x real time)",
                         self.transcripts.len(),

@@ -146,8 +146,13 @@ impl LatencyTrace {
             Stage::History,
             Stage::Insertion,
         ] {
-            let took = self.stages.get(&stage).copied().unwrap_or_default();
-            parts.push(format!("{}={}ms", stage.name(), took.as_millis()));
+            // A stage that was never measured is not the same as a stage that
+            // took no time. Printing 0 for both makes the trace lie: the
+            // reader cannot tell "this did not happen" from "this was free".
+            match self.stages.get(&stage) {
+                Some(took) => parts.push(format!("{}={}ms", stage.name(), took.as_millis())),
+                None => parts.push(format!("{}=-", stage.name())),
+            }
         }
         parts.push(format!("total={}ms", self.total().as_millis()));
         if let Some(text) = self.text_latency() {
@@ -278,4 +283,51 @@ impl Drop for TraceGuard {
             log::info!("[latency] {}", trace.summary());
         }
     }
+}
+
+// ---------------------------------------------------------------------------
+// La traza de los fragmentos
+// ---------------------------------------------------------------------------
+
+/// One fragment the long-form chunker decoded.
+#[derive(Debug, Clone, Copy)]
+pub struct ChunkRecord {
+    /// The fragment's position in the recording, from 1.
+    pub index: usize,
+    /// The fragment's audio length, in seconds.
+    pub audio_secs: f64,
+    /// How long the decode took.
+    pub decode_ms: u64,
+    /// When the decode ended.
+    pub ended_at: Instant,
+}
+
+/// The fragments decoded so far, in order.
+///
+/// A dictation is the only one in flight, so a process-wide slot is enough —
+/// the same reason the latency trace above lives in one.
+static CHUNKS: Mutex<Vec<ChunkRecord>> = Mutex::new(Vec::new());
+
+/// Records a fragment the chunker decoded.
+pub fn record_chunk(index: usize, audio_secs: f64, decode_ms: u64, ended_at: Instant) {
+    if let Ok(mut chunks) = CHUNKS.lock() {
+        chunks.push(ChunkRecord {
+            index,
+            audio_secs,
+            decode_ms,
+            ended_at,
+        });
+    }
+}
+
+/// Empties the fragment trace: a new dictation starts with none.
+pub fn reset_chunks() {
+    if let Ok(mut chunks) = CHUNKS.lock() {
+        chunks.clear();
+    }
+}
+
+/// The fragments decoded so far, in order.
+pub fn chunks() -> Vec<ChunkRecord> {
+    CHUNKS.lock().map(|chunks| chunks.clone()).unwrap_or_default()
 }

@@ -14,6 +14,7 @@ pub mod engine_supervisor;
 mod helpers;
 mod input;
 mod latency;
+mod live_bench;
 mod llm_client;
 // The managers are part of the crate's public surface: several of their
 // methods (the constructors that take an explicit path, for instance) exist
@@ -512,7 +513,7 @@ fn run_headless_transcription(app: &AppHandle, args: &CliArgs) -> i32 {
                 println!("  {}", d);
             }
         }
-        if args.transcribe_file.is_none() {
+        if args.transcribe_file.is_none() && args.live_file.is_none() {
             return 0;
         }
     }
@@ -553,9 +554,31 @@ fn run_headless_transcription(app: &AppHandle, args: &CliArgs) -> i32 {
                 );
             }
         }
-        if args.transcribe_file.is_none() {
+        if args.transcribe_file.is_none() && args.live_file.is_none() {
             return 0;
         }
+    }
+
+    // --live-file: the live path, the one the app uses while the user speaks.
+    // It reports what was decoded before the release and what was left
+    // pending when the user let go, which is the latency the user perceives.
+    if let Some(wav) = args.live_file.clone() {
+        let model_id = args
+            .model
+            .clone()
+            .unwrap_or_else(|| get_settings(app).selected_model);
+        if model_id.is_empty() {
+            eprintln!("error: no model selected (pass --model or pick one in the app)");
+            return 2;
+        }
+        return crate::live_bench::run(
+            app,
+            &wav,
+            &model_id,
+            args.device_index,
+            args.repeat.unwrap_or(1),
+            !args.fast_feed,
+        );
     }
 
     let Some(wav) = args.transcribe_file.clone() else {
@@ -950,8 +973,10 @@ pub fn run(cli_args: CliArgs) {
 
     // The headless path must run as its own instance (see the single-instance
     // note below), not forward to an already-running app.
-    let headless_mode =
-        cli_args.transcribe_file.is_some() || cli_args.list_devices || cli_args.list_models;
+    let headless_mode = cli_args.transcribe_file.is_some()
+        || cli_args.live_file.is_some()
+        || cli_args.list_devices
+        || cli_args.list_models;
 
     #[allow(unused_mut)]
     let mut builder = tauri::Builder::default()
