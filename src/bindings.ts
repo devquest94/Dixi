@@ -899,6 +899,141 @@ async unloadModelManually() : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * What the integration sees in the environment: whether the remote client is
+ * installed, whether it runs, how many RDP sessions it has open and which
+ * window has the focus.
+ * 
+ * Nothing sensitive is read: no saved connection, no server address, no
+ * credential.
+ */
+async detectRemoteDesktop() : Promise<RemoteDesktopDetection> {
+    return await TAURI_INVOKE("detect_remote_desktop");
+},
+/**
+ * Prepares the last transcription so the user can paste it in the remote
+ * session.
+ * 
+ * The transcript goes to the local clipboard and stays there: the RDP
+ * redirection carries it to the remote machine when the user presses Ctrl+V
+ * there. Nothing is typed and nothing is sent.
+ */
+async prepareRemotePaste() : Promise<Result<RemoteTransferStatus, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("prepare_remote_paste") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The user confirmed that the text was pasted in the remote session.
+ * 
+ * The previous clipboard content is restored, when the setting asks for it.
+ */
+async confirmRemotePaste() : Promise<RemoteTransferStatus> {
+    return await TAURI_INVOKE("confirm_remote_paste");
+},
+/**
+ * The user cancelled the transfer.
+ */
+async cancelRemoteTransfer() : Promise<RemoteTransferStatus> {
+    return await TAURI_INVOKE("cancel_remote_transfer");
+},
+/**
+ * The state of the transfer.
+ */
+async remoteTransferStatus() : Promise<RemoteTransferStatus> {
+    return await TAURI_INVOKE("remote_transfer_status");
+},
+/**
+ * Inserts the transcript in the remote session by itself.
+ * 
+ * It only acts when every condition is verified: the integration and the
+ * automatic mode are on, the remote client runs, a single RDP session is
+ * open and it holds the focus. Otherwise it refuses and the manual mode
+ * takes over.
+ */
+async insertRemoteTranscription() : Promise<Result<RemoteTransferStatus, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("insert_remote_transcription") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Enables or disables the integration with the remote desktop.
+ * 
+ * The shortcut that prepares the transcription follows the switch: it is
+ * registered while the integration is on and unregistered while it is off.
+ */
+async changeRemoteDesktopEnabledSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_remote_desktop_enabled_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Turns the manual paste on or off.
+ */
+async changeRemoteDesktopManualModeSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_remote_desktop_manual_mode_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Turns the automatic insertion on or off.
+ * 
+ * It is off by default and it only acts when every condition is verified.
+ */
+async changeRemoteDesktopAutoModeSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_remote_desktop_auto_mode_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Restores the previous clipboard content when the transfer settles.
+ */
+async changeRemoteDesktopRestoreClipboardSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_remote_desktop_restore_clipboard_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The notification that tells the user the text is ready to paste.
+ */
+async changeRemoteDesktopNotifySetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_remote_desktop_notify_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * How long the transcript may stay on the clipboard waiting for the paste,
+ * in milliseconds.
+ */
+async changeRemoteDesktopTimeoutSetting(ms: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_remote_desktop_timeout_setting", { ms }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async getHistoryEntries(cursor: number | null, limit: number | null) : Promise<Result<PaginatedHistory, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_history_entries", { cursor, limit }) };
@@ -1770,7 +1905,45 @@ post_process_efforts?: Partial<{ [key in string]: string }>; post_process_prompt
  * after the target app actually reads the transcript, instead of after a
  * fixed delay. See `paste_tx`. macOS and Windows only.
  */
-reliable_paste?: boolean; typing_tool?: TypingTool; external_script_path?: string | null; filler_word_removal_enabled?: boolean; custom_filler_words?: string[] | null; 
+reliable_paste?: boolean; 
+/**
+ * The integration with a remote desktop reached through clipboard
+ * redirection (mRemoteNG over RDP) is enabled.
+ * 
+ * It is off by default: the integration only makes sense on the
+ * machines where that remote client is actually used.
+ */
+remote_desktop_enabled?: boolean; 
+/**
+ * The user pastes the transcript by hand inside the remote session.
+ * 
+ * This is the only mode that can be validated without touching the
+ * remote machine, so it is the one that is available.
+ */
+remote_desktop_manual_mode?: boolean; 
+/**
+ * Dixi pastes the transcript into the remote session by itself.
+ * 
+ * It is off by default and it only acts when every condition is
+ * verified: the remote client, a single destination session, the
+ * clipboard redirection and the focus. When any of them cannot be
+ * confirmed, the transfer falls back to the manual mode.
+ */
+remote_desktop_auto_mode?: boolean; 
+/**
+ * The previous clipboard content is restored when the remote transfer
+ * settles.
+ */
+remote_desktop_restore_clipboard?: boolean; 
+/**
+ * How long the transcript may stay on the clipboard waiting for the
+ * paste, in milliseconds.
+ */
+remote_desktop_timeout_ms?: number; 
+/**
+ * The app tells the user that the text is ready to paste.
+ */
+remote_desktop_notify?: boolean; typing_tool?: TypingTool; external_script_path?: string | null; filler_word_removal_enabled?: boolean; custom_filler_words?: string[] | null; 
 /**
  * Fresh installs default from the OS locale; existing stores are migrated
  * in `apply_settings_migrations`.
@@ -1799,6 +1972,35 @@ long_form_chunking?: boolean;
  */
 overlay_style?: OverlayStyle }
 export type AudioDevice = { index: string; name: string; is_default: boolean }
+/**
+ * Why the automatic insertion is not allowed.
+ */
+export type AutoBlock = 
+/**
+ * The integration is disabled.
+ */
+"integration_disabled" | 
+/**
+ * The automatic mode is off.
+ */
+"automatic_mode_off" | 
+/**
+ * The remote client is not running.
+ */
+"client_not_running" | 
+/**
+ * The remote client has no RDP client loaded.
+ */
+"no_rdp_client" | 
+/**
+ * More than one remote client has an RDP client: the destination is
+ * ambiguous.
+ */
+"ambiguous_destination" | 
+/**
+ * The remote client does not have the focus.
+ */
+"session_not_focused"
 export type AutoSubmitKey = "enter" | "ctrl_enter" | "cmd_enter"
 export type AvailableAccelerators = { transcribe: string[]; gpu_devices: GpuDeviceOption[] }
 export type BindingResponse = { success: boolean; binding: ShortcutBinding | null; error: string | null }
@@ -2187,6 +2389,116 @@ export type RegistrationErrorCode =
  * Anything else.
  */
 "unknown"
+/**
+ * What the integration sees in the environment.
+ */
+export type RemoteDesktopDetection = { 
+/**
+ * Whether this platform supports the integration at all.
+ */
+supported: boolean; 
+/**
+ * The remote client is installed on this machine.
+ */
+client_installed: boolean; 
+/**
+ * The version the installer reports.
+ */
+client_version: string | null; 
+/**
+ * The folder it is installed in.
+ */
+client_location: string | null; 
+/**
+ * The remote client is running right now.
+ */
+client_running: boolean; 
+/**
+ * How many RDP sessions the remote client has open.
+ */
+rdp_sessions: number; 
+/**
+ * The focus is inside an open RDP session of the remote client.
+ */
+remote_session_focused: boolean; 
+/**
+ * The process that owns the focused window.
+ */
+foreground_process: string | null; 
+/**
+ * Whether the transcript could be inserted automatically right now.
+ */
+can_insert_automatically: boolean; 
+/**
+ * Why it could not, when it could not.
+ * 
+ * It is a technical code, not a sentence: the panel shows it next to
+ * a translated label, and a sentence in one language inside a
+ * translated interface would be a lie.
+ */
+blocked_reason: AutoBlock | null }
+/**
+ * The phase of a transfer to the remote desktop.
+ */
+export type RemoteTransferPhase = 
+/**
+ * Nothing is pending.
+ */
+"idle" | 
+/**
+ * The transcript is on the local clipboard, waiting for the user to
+ * paste it in the remote session.
+ */
+"ready_to_paste" | 
+/**
+ * Something read the clipboard after the publication: the RDP client
+ * picked the text up.
+ */
+"remote_read" | 
+/**
+ * The user confirmed the paste.
+ */
+"pasted" | 
+/**
+ * The user cancelled the transfer.
+ */
+"cancelled" | 
+/**
+ * The transfer expired without a confirmation.
+ */
+"expired" | 
+/**
+ * The transfer could not be started.
+ */
+"failed"
+/**
+ * The state of the transfer, as the UI sees it.
+ */
+export type RemoteTransferStatus = { 
+/**
+ * Where the transfer stands.
+ */
+phase: RemoteTransferPhase; 
+/**
+ * Whether a transcript is still waiting to be pasted.
+ */
+pending: boolean; 
+/**
+ * The length of the pending transcript.
+ * 
+ * The text itself never travels through the status: it would end up in
+ * the UI state and in the logs.
+ */
+char_count: number; 
+/**
+ * Whether something already read the clipboard after the publication.
+ */
+remote_read: boolean; 
+/**
+ * A non-sensitive technical note, e.g. the clipboard formats that
+ * cannot be restored without loss.
+ */
+warning: string | null }
 /**
  * A retired ONNX model found on disk.
  */
