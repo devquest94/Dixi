@@ -27,11 +27,18 @@ final y se decodifica de una pasada, **despues** de soltar la tecla.
 
 Medido con el banco en vivo (voz real, ruta `batch`, 5 repeticiones):
 
-| Audio | Espera tras soltar | Fragmentos decodificados durante la grabacion | Audio pendiente al soltar |
+| Audio | Espera tras soltar (min / p50) | Fragmentos durante la grabacion | Audio pendiente al soltar |
 |---|---|---|---|
-| 3,30 s | 799 ms | 0 | 3,30 s (todo) |
-| 22,34 s | 1 405 ms | 0 | 22,34 s (todo) |
-| 37,44 s | 3 819 ms | 0 | 37,44 s (todo) |
+| 3,30 s | 966 ms / 1 773 ms | 0 | 3,30 s (todo) |
+| 22,34 s | 1 299 ms / 1 447 ms | 0 | 22,34 s (todo) |
+| 37,44 s | 3 202 ms / 18 179 ms | 0 | 37,44 s (todo) |
+
+El banco toma el **minimo** por etapa de las repeticiones: es el estimador
+menos ruidoso del tiempo real del motor. Los percentiles altos de esta
+tabla (p95 de 20 s en la dictacion de 37 s) son ruido de la maquina, no del
+modelo: durante la corrida estaban compilando en paralelo los builds de
+esta misma rama. Por eso la comparacion entre configuraciones se hace
+sobre el minimo.
 
 La traza de la app sobre la dictacion real del usuario (22,34 s de voz,
 modelo canary) lo dice igual, con las etapas de la traza ahora honestas:
@@ -109,13 +116,18 @@ dictacion de 22,34 s, mejor corrida):
 | 5 | 4,0 s | 960 ms | 961 ms **despues** de soltar |
 | 6 | 2,3 s | 1 112 ms | 2 074 ms despues |
 
-Resultado (minimo de 3 repeticiones, voz real):
+Resultado (minimo de 3 repeticiones, voz real, las tres configuraciones
+con el mismo numero de repeticiones y en la misma sesion):
 
 | Audio | A: sin cambios | B: fragmentos de 8 s | C: fragmentos de 4 s |
 |---|---|---|---|
 | 3,30 s | **799 ms** | 960 ms | 1 013 ms |
 | 22,34 s | **1 405 ms** | 2 251 ms | 1 947 ms |
 | 37,44 s | 3 819 ms | **1 729 ms** | **1 890 ms** |
+
+Una segunda corrida del baseline con 5 repeticiones dio 966 ms, 1 299 ms y
+3 202 ms: el orden de magnitud se mantiene, y la diferencia con la tabla
+anterior es ruido de la maquina (compilaciones en paralelo).
 
 ### Lo que dice la medicion
 
@@ -193,7 +205,7 @@ Lo que se puede decir sin medir, y lo que no:
 |---|---|---|
 | Latencia | El codificador cache-aware no recalcula lo ya decodificado, asi que el coste posterior a soltar deberia ser solo la cola. **Es una expectativa, no un resultado.** | El banco en vivo, en igualdad de condiciones |
 | Exactitud | El WER publicado por el propio modelo en FLEURS es 6,3 para espanol (Q8_0). Whisper Base no tiene equivalente comparable aqui. | El guion de `docs/validation-voice/frases-voz.txt` con voz real |
-| Memoria | 716 MB en disco; el consumo en RAM del proceso todavia no se ha medido con el modelo cargado | El muestreador de `scripts/` mide el arbol de procesos |
+| Memoria | 716 MB en disco. **Medido con Whisper Base**: el arbol de procesos completo (4 procesos: la app, el worker del motor y sus hijos) ocupa **216 MB de mediana y 248 MB de pico**. Nemotron todavia no se ha medido | La misma medicion con el modelo cargado |
 
 **No se recomienda sustituir Whisper Base por Nemotron hasta que el banco
 diga que la experiencia real mejora.** La expectativa es buena y la
