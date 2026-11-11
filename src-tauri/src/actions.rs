@@ -15,7 +15,7 @@ use crate::utils::{
     self, show_processing_overlay, show_recording_overlay, show_transcribing_overlay,
 };
 use crate::TranscriptionCoordinator;
-use log::{debug, error, info, warn};
+use log::{debug, error, warn};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::future::Future;
@@ -646,6 +646,11 @@ impl ShortcutAction for TranscribeAction {
 
         tauri::async_runtime::spawn(async move {
             let _guard = FinishGuard(ah.clone(), Arc::clone(&tm));
+            // The task owns the latency trace: it closes and logs it when it
+            // ends, whatever the outcome. Closing it in the paste (on the
+            // main thread) would cut the accounting stage short and lose the
+            // line on every failure or cancellation.
+            let _latency_guard = crate::latency::TraceGuard::new();
             debug!(
                 "Starting async transcription task for binding: {}",
                 binding_id
@@ -678,7 +683,10 @@ impl ShortcutAction for TranscribeAction {
                 } else {
                     // Save WAV concurrently with transcription
                     let sample_count = samples.len();
-                    let file_name = format!("dixi-{}.wav", chrono::Utc::now().timestamp());
+                    let file_name = format!(
+                        "dixi-{}.wav",
+                        chrono::Utc::now().timestamp_millis()
+                    );
                     let wav_path = hm.recordings_dir().join(&file_name);
                     let wav_path_for_verify = wav_path.clone();
                     let samples_for_wav = samples.clone();
@@ -778,36 +786,34 @@ impl ShortcutAction for TranscribeAction {
                                 let ah_clone = ah.clone();
                                 let final_text = processed.final_text;
                                 let rm_for_paste = Arc::clone(&rm);
+                                // The paste runs on the main thread and reports
+                                // back, so the trace can wait for it: closing
+                                // the trace here would cut the accounting stage
+                                // short, because the main thread usually
+                                // finishes the paste before this task gets to
+                                // the bookkeeping.
+                                let (paste_tx, paste_rx) = std::sync::mpsc::channel();
                                 ah.run_on_main_thread(move || {
                                     if rm_for_paste.was_cancelled_since(cancel_generation) {
                                         debug!("Transcription operation cancelled before paste");
                                         utils::hide_recording_overlay(&ah_clone);
                                         set_tray_state(&ah_clone, TrayIconState::Idle);
+                                        let _ = paste_tx.send(None);
                                         return;
                                     }
 
                                     let insertion_started = Instant::now();
-                                    match utils::paste(final_text, ah_clone.clone()) {
+                                    let outcome = utils::paste(final_text, ah_clone.clone());
+                                    let took = insertion_started.elapsed();
+                                    match &outcome {
                                         Ok(()) => {
-                                            crate::latency::mark_since(
-                                                crate::latency::Stage::Insertion,
-                                                insertion_started,
-                                            );
-                                            debug!(
-                                                "Text pasted successfully in {:?}",
-                                                insertion_started.elapsed()
-                                            );
-                                            // The text is in the destination
-                                            // application: the dictation is
-                                            // over and the trace can be
-                                            // closed.
-                                            if let Some(trace) = crate::latency::finish() {
-                                                info!("[latency] {}", trace.summary());
-                                            }
+                                            debug!("Text pasted successfully in {:?}", took);
+                                            let _ = paste_tx.send(Some(took));
                                         }
                                         Err(e) => {
                                             error!("Failed to paste transcription: {}", e);
                                             let _ = ah_clone.emit("paste-error", ());
+                                            let _ = paste_tx.send(Some(took));
                                         }
                                     }
                                     utils::hide_recording_overlay(&ah_clone);
@@ -818,6 +824,28 @@ impl ShortcutAction for TranscribeAction {
                                     utils::hide_recording_overlay(&ah);
                                     set_tray_state(&ah, TrayIconState::Idle);
                                 });
+
+                                // Wait for the paste to report back, so the
+                                // insertion stage is the real one and not the
+                                // time it took to schedule it.
+                                match paste_rx.recv_timeout(Duration::from_secs(5)) {
+                                    Ok(Some(took)) => {
+                                        crate::latency::mark(
+                                            crate::latency::Stage::Insertion,
+                                            took,
+                                        );
+                                        // The text is in the destination: from
+                                        // here on, the latency the user
+                                        // perceives is known.
+                                        crate::latency::mark_text_ready();
+                                    }
+                                    Ok(None) => {
+                                        debug!("The paste was cancelled before it ran");
+                                    }
+                                    Err(_) => {
+                                        warn!("The paste did not report back in time");
+                                    }
+                                }
 
                                 // The bookkeeping, after the paste: the WAV file
                                 // and the history entry no longer sit between

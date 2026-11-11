@@ -33,11 +33,25 @@ pub enum Stage {
     Dispatch,
     /// Closing the audio buffer and getting the samples.
     Audio,
-    /// Loading the ASR model. Zero when it was already resident.
+    /// The model was not ready and the pipeline waited for it.
+    ///
+    /// It is the *wait*, not the duration of the load: the load is kicked
+    /// off when the recording starts, so it runs while the user speaks and
+    /// only the leftover wait shows up in the post-release latency.
     ModelLoad,
-    /// The engine run: features, inference and decoding, including the round
-    /// trip to the worker process.
+    /// The engine run in batch: feature preparation, inference and decoding,
+    /// including the round trip to the worker process.
+    ///
+    /// In the app's default path the transcription is decoded *live* while
+    /// the user speaks, so this stage measures almost nothing: the real work
+    /// happened before the release and is not part of the post-release
+    /// latency. The final queue decode is [`Stage::Finalize`].
     Asr,
+    /// The decode of the last chunk, after the release.
+    ///
+    /// This is the part of the recognition that the user actually waits
+    /// for, and it is what separates the release from the text.
+    Finalize,
     /// The dictionary, the snippets and the writing profile.
     Rules,
     /// The post-processing by the language model.
@@ -56,6 +70,7 @@ impl Stage {
             Stage::Audio => "audio",
             Stage::ModelLoad => "model_load",
             Stage::Asr => "asr",
+            Stage::Finalize => "finalize",
             Stage::Rules => "rules",
             Stage::PostProcess => "post",
             Stage::History => "history",
@@ -71,6 +86,8 @@ pub struct LatencyTrace {
     origin: Instant,
     /// How long each stage took.
     stages: BTreeMap<Stage, Duration>,
+    /// The moment the text reached the destination application.
+    text_ready_at: Option<Instant>,
     /// The moment the dictation reached its end.
     finished_at: Instant,
 }
@@ -91,11 +108,31 @@ impl LatencyTrace {
             .saturating_duration_since(self.origin)
     }
 
+    /// The time from the user stopping to the moment the text reached the
+    /// destination application.
+    ///
+    /// This is **the** latency the user perceives: from the release of the
+    /// shortcut to the text appearing where they are typing. It is not the
+    /// sum of the stages, because the stages are disjoint slices of the
+    /// work and the sum leaves out whatever nobody attributed.
+    pub fn text_latency(&self) -> Option<Duration> {
+        self.text_ready_at
+            .map(|at| at.saturating_duration_since(self.origin))
+    }
+
     /// The one-line summary for the log.
     ///
     /// The format is stable on purpose: the benchmark harness parses it, and
     /// a log that a human can read and a script can parse is worth more than
     /// either alone.
+    ///
+    /// Three totals are printed, and they are not the same thing:
+    ///
+    /// * `text` is from the release to the text in the destination: the
+    ///   latency the user perceives.
+    /// * `total` is the sum of the stages: what the pipeline spent.
+    /// * `wall` is from the release to the end of the task, which includes
+    ///   the bookkeeping that happens after the text is already delivered.
     pub fn summary(&self) -> String {
         let mut parts = Vec::new();
         for stage in [
@@ -103,6 +140,7 @@ impl LatencyTrace {
             Stage::Audio,
             Stage::ModelLoad,
             Stage::Asr,
+            Stage::Finalize,
             Stage::Rules,
             Stage::PostProcess,
             Stage::History,
@@ -112,6 +150,10 @@ impl LatencyTrace {
             parts.push(format!("{}={}ms", stage.name(), took.as_millis()));
         }
         parts.push(format!("total={}ms", self.total().as_millis()));
+        if let Some(text) = self.text_latency() {
+            parts.push(format!("text={}ms", text.as_millis()));
+        }
+        parts.push(format!("wall={}ms", self.wall().as_millis()));
         parts.join(" ")
     }
 
@@ -127,6 +169,7 @@ impl LatencyTrace {
         serde_json::json!({
             "stages": serde_json::Value::Object(stages),
             "total_ms": self.total().as_millis() as u64,
+            "text_ms": self.text_latency().map(|d| d.as_millis() as u64),
             "wall_ms": self.wall().as_millis() as u64,
         })
     }
@@ -146,10 +189,23 @@ pub fn begin_at(origin: Instant) {
         *slot = Some(LatencyTrace {
             origin,
             stages: BTreeMap::new(),
+            text_ready_at: None,
             finished_at: origin,
         });
     }
 }
+/// Records that the text reached the destination application.
+///
+/// From this instant on, the latency the user perceives is known: it is the
+/// distance from the release to here.
+pub fn mark_text_ready() {
+    if let Ok(mut slot) = CURRENT.lock() {
+        if let Some(trace) = slot.as_mut() {
+            trace.text_ready_at = Some(Instant::now());
+        }
+    }
+}
+
 /// Records how long a stage took.
 pub fn mark(stage: Stage, took: Duration) {
     if let Ok(mut slot) = CURRENT.lock() {
@@ -198,4 +254,28 @@ pub fn finish() -> Option<LatencyTrace> {
     let mut trace = slot.take()?;
     trace.finished_at = Instant::now();
     Some(trace)
+}
+
+/// Closes the trace and logs it when it goes out of scope.
+///
+/// The owner of the trace is the task that runs the pipeline, not the
+/// clipboard: the paste happens on the main thread and can finish before
+/// the bookkeeping, so closing the trace there would cut the accounting
+/// stage short and lose the line on every failure. With the guard, every
+/// outcome leaves a closed, logged trace behind.
+pub struct TraceGuard;
+
+impl TraceGuard {
+    /// Takes ownership of the trace in flight.
+    pub fn new() -> Self {
+        TraceGuard
+    }
+}
+
+impl Drop for TraceGuard {
+    fn drop(&mut self) {
+        if let Some(trace) = finish() {
+            log::info!("[latency] {}", trace.summary());
+        }
+    }
 }

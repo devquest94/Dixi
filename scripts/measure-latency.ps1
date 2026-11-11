@@ -86,11 +86,31 @@ if (Test-Path $resourcesSource) {
     Copy-Item $resourcesSource (Join-Path $InstanceDir 'resources') -Recurse -Force
 }
 
-# Los modelos se comparten por junction: no se duplican los cientos de
-# megabytes y la instalacion real no se modifica.
+# Los modelos se comparten por ENLACES DUROS, archivo por archivo: no se
+# duplican los cientos de megabytes y la instalacion real no se toca.
+#
+# Un junction de carpeta NO sirve aqui: la app puede borrar un `.partial`
+# residual en `models_dir`, y con un junction ese borrado cae en la carpeta
+# real del usuario. Con un enlace duro, borrar el nombre de la instancia no
+# afecta al original, que sigue teniendo su propio enlace.
 $instanceModels = Join-Path $InstanceDir 'Data\models'
 if (Test-Path $ModelsDir) {
-    cmd /c "mklink /J `"$instanceModels`" `"$ModelsDir`"" | Out-Null
+    New-Item -ItemType Directory -Force -Path $instanceModels | Out-Null
+    $linked = 0
+    foreach ($model in (Get-ChildItem $ModelsDir -File -ErrorAction SilentlyContinue)) {
+        $target = Join-Path $instanceModels $model.Name
+        if (Test-Path $target) { continue }
+        try {
+            New-Item -ItemType HardLink -Path $target -Target $model.FullName -ErrorAction Stop | Out-Null
+            $linked++
+        } catch {
+            Write-Warning "No se pudo enlazar $($model.Name): $_"
+        }
+    }
+    Write-Host "[setup] $linked modelo(s) enlazados por hard link (sin copia, sin junction)"
+    if ($linked -eq 0) {
+        Write-Warning "No hay modelos enlazados; la transcripcion no podra cargar ninguno."
+    }
 } else {
     Write-Warning "No hay modelos en $ModelsDir; la transcripcion no podra cargar ninguno."
 }

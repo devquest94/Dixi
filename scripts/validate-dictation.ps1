@@ -92,6 +92,9 @@ $logPos = if (Test-Path $LogPath) { (Get-Item $LogPath).Length } else { 0 }
 
 $events = New-Object System.Collections.ArrayList
 $sw = [System.Diagnostics.Stopwatch]::StartNew()
+# Sin consola real no se puede leer ENTER: la prueba acaba por tiempo.
+$script:ConsoleReady = $true
+try { [void][Console]::KeyAvailable } catch { $script:ConsoleReady = $false }
 $spaceWasDown = $false
 $keyReleasedAt = $null
 $prevCpu = @{}
@@ -105,7 +108,9 @@ Write-Output ""
 
 while ($sw.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
     # --- cola de entrada: si se pulso ENTER, terminar -------------------------
-    if ([Console]::KeyAvailable) {
+    # Sin consola (la entrada esta redirigida) no hay ENTER que pulsar: la
+    # prueba termina por tiempo. Se comprueba una vez, no en cada vuelta.
+    if ($script:ConsoleReady -and [Console]::KeyAvailable) {
         $k = [Console]::ReadKey($true)
         if ($k.Key -eq [ConsoleKey]::Enter) { Write-Output ">>> fin de la prueba (ENTER)"; break }
     }
@@ -201,7 +206,13 @@ if ($asrEnd -and $asrEnd.line -match 'completed in ([0-9.]+)s') { $asrSeconds = 
 # un reloj monotonico dentro de la app. El log solo tiene resolucion de 1
 # segundo, asi que sin esta linea los tiempos por etapa no se podrian
 # distinguir.
-$latencyLine = Find-Event '\[latency\]'
+#
+# Se toma la ULTIMA linea: si el usuario dicta dos veces durante la prueba, la
+# primera no es la que interesa.
+$latencyLine = $null
+foreach ($e in $events) {
+    if ($e.kind -eq 'log' -and $e.line -match '\[latency\]') { $latencyLine = $e }
+}
 $latency = @{}
 if ($latencyLine) {
     foreach ($m in [regex]::Matches($latencyLine.line, '([a-z_]+)=(\d+)ms')) {
@@ -235,19 +246,21 @@ if ($latency.Count -gt 0) {
     $stageNames = @{
         dispatch = 'soltura -> pipeline'
         audio    = 'cierre del buffer de audio'
-        model_load = 'carga del modelo'
-        asr      = 'inferencia ASR (hilo -> worker)'
+        model_load = 'espera por el modelo'
+        asr      = 'inferencia en lote'
+        finalize = 'decodificacion final (post-soltura)'
         rules    = 'diccionario + snippets + perfil'
         post     = 'posprocesado LLM'
         history  = 'escritura del historial'
         insert   = 'envio del texto al destino'
     }
-    foreach ($key in @('dispatch','audio','model_load','asr','rules','post','history','insert')) {
+    foreach ($key in @('dispatch','audio','model_load','asr','finalize','rules','post','history','insert')) {
         if ($latency.ContainsKey($key)) {
             "  {0,-26}: {1,6} ms" -f $stageNames[$key], $latency[$key]
         }
     }
-    "  {0,-26}: {1,6} ms" -f 'TOTAL', $latency['total']
+    "  {0,-26}: {1,6} ms" -f 'SUMA de etapas', $latency['total']
+    "  {0,-26}: {1,6} ms" -f 'TOTAL (soltura -> fin)', $latency['wall']
 } else {
     "  (sin traza de latencia: la app en ejecucion no la emite; hace falta la"
     " version con la instrumentacion)"

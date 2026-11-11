@@ -657,9 +657,6 @@ impl TranscriptionManager {
         );
 
         let load_duration = load_start.elapsed();
-        // The load is part of the latency only when it happens during a
-        // dictation. Outside one there is no trace and the mark is dropped.
-        crate::latency::mark(crate::latency::Stage::ModelLoad, load_duration);
         debug!(
             "Successfully loaded transcription model: {} (took {}ms)",
             model_id,
@@ -899,7 +896,13 @@ impl TranscriptionManager {
     /// batch run of the whole recording when there is no live result.
     pub fn transcribe_recording(&self, samples: Vec<f32>) -> Result<String> {
         let started = Instant::now();
+        // The decode of the last chunk is the part of the recognition the
+        // user waits for: the rest was decoded live while they spoke. It is
+        // measured apart from the batch inference, which in this path is
+        // almost nothing.
+        let finalize_started = Instant::now();
         let live = self.finalize_live(samples.len())?;
+        crate::latency::mark_since(crate::latency::Stage::Finalize, finalize_started);
         self.complete(started, samples, live)
     }
 
@@ -1097,11 +1100,17 @@ impl TranscriptionManager {
 
         // Check if model is loaded, if not try to load it
         {
-            // If the model is loading, wait for it to complete.
+            // If the model is loading, wait for it to complete. The load was
+            // kicked off when the recording started, so it normally runs
+            // while the user speaks; what reaches the post-release latency
+            // is only the leftover wait.
+            let wait_started = Instant::now();
             let mut is_loading = self.is_loading.lock().unwrap();
             while *is_loading {
                 is_loading = self.loading_condvar.wait(is_loading).unwrap();
             }
+            drop(is_loading);
+            crate::latency::mark_since(crate::latency::Stage::ModelLoad, wait_started);
 
             if !self.is_model_loaded() {
                 return Err(anyhow::anyhow!("Model is not loaded for transcription."));
