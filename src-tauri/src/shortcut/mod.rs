@@ -445,9 +445,37 @@ pub fn resume_all_shortcuts(app: &AppHandle) {
         if id == "transcribe_with_post_process" && !settings.post_process_enabled {
             continue;
         }
+        // The shortcut for the remote desktop only exists while the
+        // integration is on.
+        if id == "prepare_remote_paste" && !settings.remote_desktop_enabled {
+            continue;
+        }
         if let Err(e) = register_shortcut(app, binding.clone()) {
             debug!("resume_all_shortcuts: could not register '{}': {}", id, e);
         }
+    }
+}
+
+/// Registers or unregisters the shortcut that prepares the transcription for
+/// a remote session, following the integration switch.
+///
+/// The shortcut is the natural way to use the integration: the user keeps
+/// working in the remote window and the focus never moves.
+pub fn refresh_remote_desktop_shortcut(app: &AppHandle, enabled: bool) {
+    let Some(binding) = settings::get_settings(app)
+        .bindings
+        .get("prepare_remote_paste")
+        .cloned()
+    else {
+        return;
+    };
+    let result = if enabled {
+        register_shortcut(app, binding)
+    } else {
+        unregister_shortcut(app, binding)
+    };
+    if let Err(e) = result {
+        warn!("Could not update the remote desktop shortcut: {}", e);
     }
 }
 
@@ -637,6 +665,12 @@ fn register_all_shortcuts_for_implementation(
 
         // Skip post-processing shortcut when the feature is disabled
         if id == "transcribe_with_post_process" && !current_settings.post_process_enabled {
+            continue;
+        }
+
+        // The shortcut for the remote desktop only exists while the
+        // integration is on.
+        if id == "prepare_remote_paste" && !current_settings.remote_desktop_enabled {
             continue;
         }
 

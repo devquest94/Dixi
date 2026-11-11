@@ -12,7 +12,9 @@ import {
   Blocks,
   WandSparkles,
   ScrollText,
+  MonitorSmartphone,
 } from "lucide-react";
+import { type } from "@tauri-apps/plugin-os";
 import DixiTextLogo from "./icons/DixiTextLogo";
 import DixiMark from "./icons/DixiMark";
 import { useSettings } from "../hooks/useSettings";
@@ -29,7 +31,14 @@ import {
   SnippetsSettings,
   TransformsSettings,
   TextHistorySettings,
+  RemoteDesktopSettings,
 } from "./settings";
+
+/**
+ * The remote desktop integration targets mRemoteNG, a Windows application.
+ * The section only exists where that client can exist.
+ */
+const isWindows = type() === "windows";
 
 export type SidebarSection = keyof typeof SECTIONS_CONFIG;
 
@@ -108,6 +117,12 @@ export const SECTIONS_CONFIG = {
     icon: ScrollText,
     component: TextHistorySettings,
     enabled: () => true,
+  },
+  remoteDesktop: {
+    labelKey: "sidebar.remoteDesktop",
+    icon: MonitorSmartphone,
+    component: RemoteDesktopSettings,
+    enabled: () => isWindows,
   },
   debug: {
     labelKey: "sidebar.debug",

@@ -7,7 +7,8 @@
     "model": "Model",
     "quit": "Afslut",
     "cancel": "Annuller",
-    "secureInputWarning": "⚠ Genveje blokeret af Secure Input"
+    "secureInputWarning": "⚠ Genveje blokeret af Secure Input",
+    "prepareRemotePaste": "Forbered transskriptionen til fjernskrivebordet"
   },
   "sidebar": {
     "general": "Generelt",
@@ -21,7 +22,8 @@
     "profiles": "Skriveprofiler",
     "snippets": "Genbrugsstykker",
     "transforms": "Transformationer",
-    "textHistory": "Teksthistorik"
+    "textHistory": "Teksthistorik",
+    "remoteDesktop": "Fjernskrivebord"
   },
   "onboarding": {
     "subtitle": "For at komme i gang skal du vælge en transskriptionsmodel",
@@ -957,8 +959,8 @@
         "captureCountdown": "Gå tilbage til appen og vælg teksten. Opsamling om {{seconds}}…",
         "nothingCaptured": "Der er endnu ikke opslaget tekst.",
         "acceptNeedsCapture": "Opsaml en markering, før du accepterer.",
-        "captureInvalidated": "Teksten blev ændret, så den optagede markering gælder ikke længere. Opsaml markeringen igen.",
-        "shortcutNotRegistered": "Genvejstasten {{shortcut}} kunne ikke registreres. Skift den under tastaturgenveje.",
+        "captureInvalidated": "Du har ændret teksten, så optagelsen holder ikke længere og kan ikke accepteres.",
+        "shortcutNotRegistered": "Kunne ikke registrere genvejen {{shortcut}}: en anden app har den måske allerede.",
         "shortcutConflict": "Genvejstasten {{shortcut}} kunne ikke registreres: en anden app har allerede den kombination. Skift den under tastaturgenveje.",
         "shortcutDuplicate": "Genvejstasten {{shortcut}} kunne ikke registreres: Dixi havde allerede registreret den kombination. Genstart Dixi, eller skift den under tastaturgenveje.",
         "shortcutInvalidCombination": "Genvejstasten {{shortcut}} er ikke en gyldig kombination. Skift den under tastaturgenveje.",
@@ -1045,7 +1047,58 @@
         "destinationGone": "Appen, hvor teksten blev valgt, er lukket, så der blev ikke skrevet noget.",
         "write": "Teksten kunne ikke skrives.",
         "focusedApp": "Den app, der havde fokus, var {{app}}.",
-        "focusedAppIsDixi": "Den app, der havde fokus, var Dixi selv: gå tilbage til den app, hvor teksten er valgt, og tryk gen på genvejstasten."
+        "focusedAppIsDixi": "Dixi havde fokus: gå tilbage til den app, hvor teksten er valgt, og tryk på genvejen dér."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Integration med fjernskrivebord",
+      "description": "Dikter på denne computer og indsæt teksten i en fjernsession, der er åbnet med mRemoteNG. Der installeres intet på den fjernforbundne maskine.",
+      "enable": {
+        "title": "Aktiver integrationen med mRemoteNG / RDP",
+        "description": "Tilføjer muligheden for at forberede en transskription til en fjernsession og den tilhørende genvej."
+      },
+      "manualMode": {
+        "title": "Manuel indsættning",
+        "description": "Teksten lægges på udklipsholderen, og du trykker på Ctrl+V i fjernsessionen."
+      },
+      "autoMode": {
+        "title": "Automatisk indsættelse",
+        "description": "Dixi trykker på Ctrl+V for dig, og kun når fjernklienten, én destinationssession og fokus kan verificeres."
+      },
+      "autoModeNotValidated": "Den automatiske tilstand er endnu ikke valideret mod en live-session.",
+      "restoreClipboard": {
+        "title": "Gendan udklipsholderen, når overførslen er færdig",
+        "description": "Lægger indholdet fra udklipsholderen tilbage, som den havde, før teksten blev forberedt."
+      },
+      "notify": {
+        "title": "Giv mig besked, når teksten er klar",
+        "description": "Viser en notifikation, når transskriptionen er klar til at blive indsat."
+      },
+      "actions": {
+        "title": "Handlinger",
+        "prepare": "Forbered den seneste transskription",
+        "confirm": "Jeg har indsat den",
+        "cancel": "Annullér overførslen"
+      },
+      "status": {
+        "idle": "Der er ingen overførsel i gang.",
+        "ready": "Teksten er klar til at blive indsat i fjernskrivebordet.",
+        "remoteRead": "Fjernklienten læste teksten.",
+        "pasted": "Indsættelsen blev bekræftet.",
+        "cancelled": "Overførslen blev annulleret.",
+        "expired": "Overførslen udløb uden bekræftelse.",
+        "failed": "Overførslen kunne ikke startes."
+      },
+      "detection": {
+        "title": "Registreret miljø",
+        "installed": "Fjernklient",
+        "notInstalled": "Ikke installeret",
+        "running": "Kører",
+        "stopped": "Ikke kørende",
+        "sessions": "Åbne RDP-sessioner",
+        "focused": "RDP-sessionen har fokus.",
+        "notFocused": "RDP-sessionen har ikke fokus.",
+        "blocked": "Den automatiske tilstand kan ikke handle: {{reason}}"
       }
     }
   },

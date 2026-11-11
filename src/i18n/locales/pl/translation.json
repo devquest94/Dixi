@@ -7,7 +7,8 @@
     "model": "Model",
     "quit": "Zamknij",
     "cancel": "Anuluj",
-    "secureInputWarning": "⚠ Skróty zablokowane przez Secure Input"
+    "secureInputWarning": "⚠ Skróty zablokowane przez Secure Input",
+    "prepareRemotePaste": "Przygotuj transkrypcję do zdalnego pulpitu"
   },
   "sidebar": {
     "general": "Ogólne",
@@ -21,7 +22,8 @@
     "profiles": "Profile pisania",
     "snippets": "Wstawki",
     "transforms": "Transformacje",
-    "textHistory": "Historia tekstu"
+    "textHistory": "Historia tekstu",
+    "remoteDesktop": "Zdalny pulpit"
   },
   "onboarding": {
     "subtitle": "Aby rozpocząć, wybierz model transkrypcji",
@@ -957,8 +959,8 @@
         "captureCountdown": "Wróć do aplikacji i zaznacz tekst. Przechwytywanie za {{seconds}}…",
         "nothingCaptured": "Nie przechwycono jeszcze żadnego tekstu.",
         "acceptNeedsCapture": "Przechwyć zaznaczenie przed zaakceptowaniem.",
-        "captureInvalidated": "Tekst się zmienił, więc przechwycone zaznaczenie już nie pasuje. Przechwyć zaznaczenie ponownie.",
-        "shortcutNotRegistered": "Nie udało się zarejestrować skrótu {{shortcut}}. Zmień go w skrótach klawiaturowych.",
+        "captureInvalidated": "Zmieniłeś tekst, więc przechwycenie jest już nieaktualne i nie można go zaakceptować.",
+        "shortcutNotRegistered": "Nie udało się zarejestrować skrótu {{shortcut}}: może jest już zajęty przez inną aplikację.",
         "shortcutConflict": "Nie udało się zarejestrować skrótu {{shortcut}}: inną aplikacja ma już tę kombinację. Zmień go w skrótach klawiaturowych.",
         "shortcutDuplicate": "Nie udało się zarejestrować skrótu {{shortcut}}: Dixi miał już zarejestrowaną tę kombinację. Uruchom ponownie Dixi albo zmień skrót w skrótach klawiaturowych.",
         "shortcutInvalidCombination": "Skrót {{shortcut}} nie jest prawidłową kombinacją. Zmień go w skrótach klawiaturowych.",
@@ -1045,7 +1047,58 @@
         "destinationGone": "Aplikacja, w której zaznaczono tekst, została zamknięta, więc nic nie zostało zapisane.",
         "write": "Nie udało się zapisać tekstu.",
         "focusedApp": "Aplikacja, która miała fokus, to {{app}}.",
-        "focusedAppIsDixi": "Aplikacja, która miała fokus, to sam Dixi: wróć do aplikacji, w której zaznaczono tekst, i naciśnij skrót ponownie."
+        "focusedAppIsDixi": "To Dixi miało fokus: wróć do aplikacji, w której zaznaczono tekst, i naciśnij tam skrót."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Integracja ze zdalnym pulpitem",
+      "description": "Dyktuj na tym komputerze i wklej tekst w sesji zdalnej otwartej w mRemoteNG. Na zdalnej maszynie nic nie jest instalowane.",
+      "enable": {
+        "title": "Włącz integrację mRemoteNG / RDP",
+        "description": "Dodaje opcję przygotowania transkrypcji do sesji zdalnej oraz przypisany do niej skrót."
+      },
+      "manualMode": {
+        "title": "Wklejanie ręczne",
+        "description": "Tekst trafia do schowka, a w sesji zdalnej naciskasz Ctrl+V."
+      },
+      "autoMode": {
+        "title": "Wstawianie automatyczne",
+        "description": "Dixi naciska Ctrl+V za Ciebie, ale tylko wtedy, gdy można zweryfikować klienta zdalnego, jedną sesję docelową oraz fokus."
+      },
+      "autoModeNotValidated": "Tryb automatyczny nie został jeszcze sprawdzony na działającej sesji.",
+      "restoreClipboard": {
+        "title": "Przywróć schowek po zakończeniu",
+        "description": "Przywraca zawartość, którą schowek miał przed przygotowaniem tekstu."
+      },
+      "notify": {
+        "title": "Powiadom mnie, gdy tekst będzie gotowy",
+        "description": "Pokazuje powiadomienie, gdy transkrypcja będzie gotowa do wklejenia."
+      },
+      "actions": {
+        "title": "Akcje",
+        "prepare": "Przygotuj ostatnią transkrypcję",
+        "confirm": "Wkleiłem",
+        "cancel": "Anuluj przesyłanie"
+      },
+      "status": {
+        "idle": "Żadne przesyłanie nie trwa.",
+        "ready": "Tekst jest gotowy do wklejenia na zdalnym pulpicie.",
+        "remoteRead": "Klient zdalny odczytał tekst.",
+        "pasted": "Wklejenie zostało potwierdzone.",
+        "cancelled": "Przesyłanie zostało anulowane.",
+        "expired": "Przesyłanie wygasło bez potwierdzenia.",
+        "failed": "Przesyłania nie można było rozpocząć."
+      },
+      "detection": {
+        "title": "Wykryte środowisko",
+        "installed": "Klient zdalny",
+        "notInstalled": "Nie zainstalowany",
+        "running": "Uruchomiony",
+        "stopped": "Nie uruchomiony",
+        "sessions": "Otwarte sesje RDP",
+        "focused": "Sesja RDP ma fokus.",
+        "notFocused": "Sesja RDP nie ma fokusu.",
+        "blocked": "Tryb automatyczny nie może zadziałać: {{reason}}"
       }
     }
   },

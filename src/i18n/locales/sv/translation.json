@@ -7,7 +7,8 @@
     "model": "Modell",
     "quit": "Avsluta",
     "cancel": "Avbryt",
-    "secureInputWarning": "⚠ Kortkommandon blockeras av Secure Input"
+    "secureInputWarning": "⚠ Kortkommandon blockeras av Secure Input",
+    "prepareRemotePaste": "Förbered transkriptionen för fjärrskrivbordet"
   },
   "sidebar": {
     "general": "Allmänt",
@@ -21,7 +22,8 @@
     "profiles": "Skrivprofiler",
     "snippets": "Textstycken",
     "transforms": "Transformationer",
-    "textHistory": "Texthistorik"
+    "textHistory": "Texthistorik",
+    "remoteDesktop": "Fjärrskrivbord"
   },
   "onboarding": {
     "subtitle": "För att komma igång, välj en transkriptionsmodell",
@@ -957,8 +959,8 @@
         "captureCountdown": "Gå tillbaka till appen och markera texten. Insamling om {{seconds}}…",
         "nothingCaptured": "Ingen text har insamlats än.",
         "acceptNeedsCapture": "Samla in en markering innan du accepterar.",
-        "captureInvalidated": "Texten ändrades, så den insamlade markeringen gäller inte längre. Samla in markeringen igen.",
-        "shortcutNotRegistered": "Genvägen {{shortcut}} kunde inte registreras. Ändra den under tangentbordsgenvägar.",
+        "captureInvalidated": "Du har ändrat texten, så den insamlade texten gäller inte längre och kan inte accepteras.",
+        "shortcutNotRegistered": "Misslyckades med att registrera kortkommandot {{shortcut}}: en annan app kan ha det redan.",
         "shortcutConflict": "Genvägen {{shortcut}} kunde inte registreras: en annan app har redan den kombinationen. Ändra den under tangentbordsgenvägar.",
         "shortcutDuplicate": "Genvägen {{shortcut}} kunde inte registreras: Dixi hade redan registrerat den kombinationen. Starta om Dixi, eller ändra den under tangentbordsgenvägar.",
         "shortcutInvalidCombination": "Genvägen {{shortcut}} är inte en giltig kombination. Ändra den under tangentbordsgenvägar.",
@@ -1045,7 +1047,58 @@
         "destinationGone": "Appen där texten var markerad är stängd, så inget skrevs.",
         "write": "Texten kunde inte skrivas.",
         "focusedApp": "Appen som hade fokus var {{app}}.",
-        "focusedAppIsDixi": "Appen som hade fokus var Dixi själv: gå tillbaka till appen där texten är markerad och tryck gen på genvägen."
+        "focusedAppIsDixi": "Dixi hade fokus: gå tillbaka till appen där texten är markerad och tryck på genvägen där."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Integration med fjärrskrivbord",
+      "description": "Diktera på den här datorn och klistra in texten i en fjärrsession som har öppnats med mRemoteNG. Inget installeras på fjärrdatorn.",
+      "enable": {
+        "title": "Aktivera integrationen med mRemoteNG / RDP",
+        "description": "Lägger till alternativet att förbereda en transkription för en fjärrsession, och genvägen som hör till."
+      },
+      "manualMode": {
+        "title": "Manuell klistra in",
+        "description": "Texten hamnar på urklipp och du trycker på Ctrl+V i fjärrsessionen."
+      },
+      "autoMode": {
+        "title": "Automatisk insättning",
+        "description": "Dixi trycker på Ctrl+V åt dig, och bara när fjärrklienten, en enda destinationssession och fokus kan verifieras."
+      },
+      "autoModeNotValidated": "Det automatiska läget har ännu inte validerats mot en live-session.",
+      "restoreClipboard": {
+        "title": "Återställ urklippet när överföringen är klar",
+        "description": "Lägger tillbaka det innehåll urklippet hade innan texten förbereddes."
+      },
+      "notify": {
+        "title": "Meddela mig när texten är klar",
+        "description": "Visar en avisering när transkriptionen är klar att klistra in."
+      },
+      "actions": {
+        "title": "Åtgärder",
+        "prepare": "Förbered den senaste transkriptionen",
+        "confirm": "Jag klistrade in",
+        "cancel": "Avbryt överföringen"
+      },
+      "status": {
+        "idle": "Ingen överföring pågår.",
+        "ready": "Texten är klar att klistra in i fjärrskrivbordet.",
+        "remoteRead": "Fjärrklienten läste texten.",
+        "pasted": "Klistringen bekräftades.",
+        "cancelled": "Överföringen avbröts.",
+        "expired": "Överföringen gick ut utan bekräftelse.",
+        "failed": "Överföringen kunde inte startas."
+      },
+      "detection": {
+        "title": "Identifierad miljö",
+        "installed": "Fjärrklient",
+        "notInstalled": "Inte installerad",
+        "running": "Igång",
+        "stopped": "Inte igång",
+        "sessions": "Öppna RDP-sessioner",
+        "focused": "RDP-sessionen har fokus.",
+        "notFocused": "RDP-sessionen har inte fokus.",
+        "blocked": "Det automatiska läget kan inte agera: {{reason}}"
       }
     }
   },

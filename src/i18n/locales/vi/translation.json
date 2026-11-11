@@ -7,7 +7,8 @@
     "model": "Mô hình",
     "quit": "Thoát",
     "cancel": "Hủy",
-    "secureInputWarning": "⚠ Phím tắt bị Secure Input chặn"
+    "secureInputWarning": "⚠ Phím tắt bị Secure Input chặn",
+    "prepareRemotePaste": "Chuẩn bị bản chép lời cho desktop từ xa"
   },
   "sidebar": {
     "general": "Chung",
@@ -21,7 +22,8 @@
     "profiles": "Hồ sơ viết",
     "snippets": "Đoạn văn bản",
     "transforms": "Chuyển đổi",
-    "textHistory": "Lịch sử văn bản"
+    "textHistory": "Lịch sử văn bản",
+    "remoteDesktop": "Desktop từ xa"
   },
   "onboarding": {
     "subtitle": "Để bắt đầu, hãy chọn một mô hình chuyển đổi giọng nói",
@@ -957,8 +959,8 @@
         "captureCountdown": "Quay lại ứng dụng và chọn văn bản. Chụp sau {{seconds}}…",
         "nothingCaptured": "Chưa chụp văn bản nào.",
         "acceptNeedsCapture": "Chụp vùng chọn trước khi chấp nhận.",
-        "captureInvalidated": "Văn bản đã thay đổi nên vùng chọn đã chụp không còn đúng. Hãy chụp lại vùng chọn.",
-        "shortcutNotRegistered": "Không thể đăng ký phím tắt {{shortcut}}. Hãy đổi trong phím tắt bàn phím.",
+        "captureInvalidated": "Bạn đã thay đổi văn bản, nên nội dung đã lấy không còn hợp lệ và không thể chấp nhận.",
+        "shortcutNotRegistered": "Không thể đăng ký phím tắt {{shortcut}}: ứng dụng khác có thể đã dùng phím tắt này.",
         "shortcutConflict": "Không thể đăng ký phím tắt {{shortcut}}: ứng dụng khác đã có tổ hợp đó. Hãy đổi trong phím tắt bàn phím.",
         "shortcutDuplicate": "Không thể đăng ký phím tắt {{shortcut}}: Dixi đã đăng ký tổ hợp đó. Hãy khởi động lại Dixi, hoặc đổi trong phím tắt bàn phím.",
         "shortcutInvalidCombination": "Phím tắt {{shortcut}} không phải là tổ hợp hợp lệ. Hãy đổi trong phím tắt bàn phím.",
@@ -1044,8 +1046,59 @@
         "destinationUnavailable": "Dixi không thể đưa ứng dụng trở lại phía trước, nên không có gì được ghi.",
         "destinationGone": "Ứng dụng đang chọn văn bản đã đóng, nên không có gì được ghi.",
         "write": "Không thể ghi văn bản.",
-        "focusedApp": "Ứng dụng đang có tiêu điểm là {{app}}.",
-        "focusedAppIsDixi": "Ứng dụng đang có tiêu điểm chính là Dixi: quay lại ứng dụng đang chọn văn bản rồi nhấn phím tắt lần nữa."
+        "focusedApp": "Ứng dụng đang được đưa vào tiêu điểm là {{app}}.",
+        "focusedAppIsDixi": "Dixi đang được đưa vào tiêu điểm: hãy quay lại ứng dụng nơi văn bản được chọn và nhấn phím tắt ở đó."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Tích hợp desktop từ xa",
+      "description": "Ghi âm trên máy tính này rồi dán văn bản vào một phiên từ xa được mở bằng mRemoteNG. Không cài đặt gì trên máy từ xa.",
+      "enable": {
+        "title": "Bật tích hợp mRemoteNG / RDP",
+        "description": "Thêm tùy chọn chuẩn bị bản chép lời cho một phiên từ xa, cùng phím tắt đi kèm."
+      },
+      "manualMode": {
+        "title": "Dán thủ công",
+        "description": "Văn bản được đưa vào bảng nhớ tạm và bạn nhấn Ctrl+V trong phiên từ xa."
+      },
+      "autoMode": {
+        "title": "Chèn tự động",
+        "description": "Dixi nhấn Ctrl+V giúp bạn, và chỉ khi có thể xác minh cả client từ xa, một phiên đích duy nhất và tiêu điểm."
+      },
+      "autoModeNotValidated": "Chế độ tự động chưa được kiểm chứng với một phiên thực tế.",
+      "restoreClipboard": {
+        "title": "Khôi phục bảng nhớ tạm khi hoàn tất",
+        "description": "Đưa lại nội dung mà bảng nhớ tạm đang có trước khi văn bản được chuẩn bị."
+      },
+      "notify": {
+        "title": "Báo tôi khi văn bản đã sẵn sàng",
+        "description": "Hiển thị thông báo khi bản chép lời đã sẵn sàng để dán."
+      },
+      "actions": {
+        "title": "Thao tác",
+        "prepare": "Chuẩn bị bản chép lời gần nhất",
+        "confirm": "Tôi đã dán",
+        "cancel": "Hủy truyền"
+      },
+      "status": {
+        "idle": "Không có quá trình truyền nào đang chạy.",
+        "ready": "Văn bản đã sẵn sàng để dán trong desktop từ xa.",
+        "remoteRead": "Client từ xa đã đọc văn bản.",
+        "pasted": "Đã xác nhận dán.",
+        "cancelled": "Đã hủy truyền.",
+        "expired": "Quá trình truyền hết hạn mà không được xác nhận.",
+        "failed": "Không thể bắt đầu truyền."
+      },
+      "detection": {
+        "title": "Môi trường được phát hiện",
+        "installed": "Client từ xa",
+        "notInstalled": "Chưa cài đặt",
+        "running": "Đang chạy",
+        "stopped": "Không chạy",
+        "sessions": "Phiên RDP đang mở",
+        "focused": "Phiên RDP đang có tiêu điểm.",
+        "notFocused": "Phiên RDP không có tiêu điểm.",
+        "blocked": "Chế độ tự động không thể thực hiện: {{reason}}"
       }
     }
   },

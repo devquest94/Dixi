@@ -7,7 +7,8 @@
     "model": "Modello",
     "quit": "Esci",
     "cancel": "Annulla",
-    "secureInputWarning": "⚠ Scorciatoie bloccate da Secure Input"
+    "secureInputWarning": "⚠ Scorciatoie bloccate da Secure Input",
+    "prepareRemotePaste": "Prepara la trascrizione per la scrivania remota"
   },
   "sidebar": {
     "general": "Generale",
@@ -21,7 +22,8 @@
     "profiles": "Profili di scrittura",
     "snippets": "Frammenti",
     "transforms": "Trasformazioni",
-    "textHistory": "Cronologia del testo"
+    "textHistory": "Cronologia del testo",
+    "remoteDesktop": "Scrivania remota"
   },
   "onboarding": {
     "subtitle": "Per cominciare, scegli un modello di riconoscimento vocale",
@@ -957,8 +959,8 @@
         "captureCountdown": "Torna nell'app e seleziona il testo. Acquisizione tra {{seconds}}…",
         "nothingCaptured": "Nessun testo acquisito finora.",
         "acceptNeedsCapture": "Acquisisci una selezione prima di accettare.",
-        "captureInvalidated": "Il testo è cambiato, quindi la selezione acquisita non vale più. Acquisisci di nuovo la selezione.",
-        "shortcutNotRegistered": "Non è stato possibile registrare la scorciatoia {{shortcut}}. Cambiala nelle scorciatoie da tastiera.",
+        "captureInvalidated": "Hai modificato il testo, quindi l'acquisizione non è più valida e non può essere accettata.",
+        "shortcutNotRegistered": "Non è stato possibile registrare la scorciatoia {{shortcut}}: un'altra applicazione potrebbe già averla.",
         "shortcutConflict": "Non è stato possibile registrare la scorciatoia {{shortcut}}: un'altra app ha già quella combinazione. Cambiala nelle scorciatoie da tastiera.",
         "shortcutDuplicate": "Non è stato possibile registrare la scorciatoia {{shortcut}}: Dixi aveva già registrato quella combinazione. Riavvia Dixi, oppure cambiala nelle scorciatoie da tastiera.",
         "shortcutInvalidCombination": "La scorciatoia {{shortcut}} non è una combinazione valida. Cambiala nelle scorciatoie da tastiera.",
@@ -1045,7 +1047,58 @@
         "destinationGone": "L'app in cui era selezionato il testo è chiusa, quindi non è stato scritto nulla.",
         "write": "Non è stato possibile scrivere il testo.",
         "focusedApp": "L'applicazione che aveva il focus era {{app}}.",
-        "focusedAppIsDixi": "L'applicazione che aveva il focus era Dixi stesso: torna nell'app in cui il testo è selezionato e premi di nuovo la scorciatoia."
+        "focusedAppIsDixi": "Dixi aveva il focus: torna all'applicazione in cui il testo è selezionato e premi lì la scorciatoia."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Integrazione con la scrivania remota",
+      "description": "Trascrivi su questo computer e incolla il testo in una sessione remota aperta con mRemoteNG. Sulla macchina remota non viene installato nulla.",
+      "enable": {
+        "title": "Abilita l'integrazione con mRemoteNG / RDP",
+        "description": "Aggiunge l'opzione di preparare una trascrizione per una sessione remota e la scorciatoia corrispondente."
+      },
+      "manualMode": {
+        "title": "Incolla manuale",
+        "description": "Il testo va negli appunti e premi Ctrl+V nella sessione remota."
+      },
+      "autoMode": {
+        "title": "Inserimento automatico",
+        "description": "Dixi preme Ctrl+V al posto tuo, e solo quando il client remoto, una singola sessione di destinazione e il focus possono essere verificati."
+      },
+      "autoModeNotValidated": "La modalità automatica non è ancora stata validata su una sessione live.",
+      "restoreClipboard": {
+        "title": "Ripristina gli appunti al termine",
+        "description": "Rimette il contenuto che gli appunti avevano prima che il testo fosse preparato."
+      },
+      "notify": {
+        "title": "Avvisami quando il testo è pronto",
+        "description": "Mostra una notifica quando la trascrizione è pronta per essere incollata."
+      },
+      "actions": {
+        "title": "Azioni",
+        "prepare": "Prepara l'ultima trascrizione",
+        "confirm": "L'ho incollato",
+        "cancel": "Annulla il trasferimento"
+      },
+      "status": {
+        "idle": "Nessun trasferimento in corso.",
+        "ready": "Il testo è pronto per essere incollato nella scrivania remota.",
+        "remoteRead": "Il client remoto ha letto il testo.",
+        "pasted": "L'incollamento è stato confermato.",
+        "cancelled": "Il trasferimento è stato annullato.",
+        "expired": "Il trasferimento è scaduto senza conferma.",
+        "failed": "Non è stato possibile avviare il trasferimento."
+      },
+      "detection": {
+        "title": "Ambiente rilevato",
+        "installed": "Client remoto",
+        "notInstalled": "Non installato",
+        "running": "In esecuzione",
+        "stopped": "Non in esecuzione",
+        "sessions": "Sessioni RDP aperte",
+        "focused": "La sessione RDP ha il focus.",
+        "notFocused": "La sessione RDP non ha il focus.",
+        "blocked": "La modalità automatica non può agire: {{reason}}"
       }
     }
   },

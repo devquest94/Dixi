@@ -7,7 +7,8 @@
     "model": "Model",
     "quit": "Surt",
     "cancel": "Cancel·la",
-    "secureInputWarning": "⚠ Dreceres blocades per l'entrada segura"
+    "secureInputWarning": "⚠ Dreceres blocades per l'entrada segura",
+    "prepareRemotePaste": "Prepara la transcripció per a l'escriptori remot"
   },
   "sidebar": {
     "general": "General",
@@ -21,7 +22,8 @@
     "profiles": "Perfils d'escriptura",
     "snippets": "Fragments",
     "transforms": "Transformacions",
-    "textHistory": "Historial de text"
+    "textHistory": "Historial de text",
+    "remoteDesktop": "Escriptori remot"
   },
   "onboarding": {
     "subtitle": "Per començar, trieu un model de transcripció",
@@ -957,8 +959,8 @@
         "captureCountdown": "Torneu a l'aplicació i seleccioneu el text. Capturant en {{seconds}}…",
         "nothingCaptured": "Encara no s'ha capturat cap text.",
         "acceptNeedsCapture": "Captureu una selecció abans d'acceptar.",
-        "captureInvalidated": "El text ha canviat, de manera que la selecció capturada ja no serveix. Captureu la selecció de nou.",
-        "shortcutNotRegistered": "L'atall {{shortcut}} no s'ha pogut registrar. Canvieu-lo a les dreceres de teclat.",
+        "captureInvalidated": "Heu canviat el text, de manera que la captura ja no és vàlida i no es pot acceptar.",
+        "shortcutNotRegistered": "No s'ha pogut registrar la drecera {{shortcut}}: pot ser que una altra aplicació ja la tingui.",
         "shortcutConflict": "L'atall {{shortcut}} no s'ha pogut registrar: una altra aplicació ja té aquesta combinació. Canvieu-lo a les dreceres de teclat.",
         "shortcutDuplicate": "L'atall {{shortcut}} no s'ha pogut registrar: Dixi ja tenia aquesta combinació registrada. Reinicieu Dixi, o canvieu-lo a les dreceres de teclat.",
         "shortcutInvalidCombination": "L'atall {{shortcut}} no és una combinació vàlida. Canvieu-lo a les dreceres de teclat.",
@@ -1045,7 +1047,58 @@
         "destinationGone": "L'aplicació on estava seleccionat el text està tancada, així que no s'ha escrit res.",
         "write": "No es va poder escriure el text.",
         "focusedApp": "L'aplicació que tenia el focus era {{app}}.",
-        "focusedAppIsDixi": "L'aplicació que tenia el focus era el mateix Dixi: torneu a l'aplicació on està seleccionat el text i premeu de nou l'atall."
+        "focusedAppIsDixi": "El Dixi tenia el focus: torneu a l'aplicació on hi ha el text seleccionat i premeu la drecera allà."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Integració amb l'escriptori remot",
+      "description": "Dicta en aquest ordinador i enganxa el text en una sessió remota oberta amb mRemoteNG. No s'instal·la res a la màquina remota.",
+      "enable": {
+        "title": "Activa la integració amb mRemoteNG / RDP",
+        "description": "Afegeix l'opció de preparar una transcripció per a una sessió remota i l'atall que l'acompanya."
+      },
+      "manualMode": {
+        "title": "Pegado manual",
+        "description": "El text arriba al porta-retalls i prems Ctrl+V a la sessió remota."
+      },
+      "autoMode": {
+        "title": "Inserció automàtica",
+        "description": "Dixi prem Ctrl+V en el teu lloc, i només quan es poden verificar el client remot, una única sessió de destinació i el focus."
+      },
+      "autoModeNotValidated": "El mode automàtic encara no s'ha validat amb una sessió en directe.",
+      "restoreClipboard": {
+        "title": "Restaura el porta-retalls quan acabi",
+        "description": "Torna a deixar el contingut que tenia el porta-retalls abans de preparar el text."
+      },
+      "notify": {
+        "title": "Avisa'm quan el text estigui a punt",
+        "description": "Mostra una notificació quan la transcripció estigui a punt per pegar."
+      },
+      "actions": {
+        "title": "Accions",
+        "prepare": "Prepara l'última transcripció",
+        "confirm": "Ja l'he pegat",
+        "cancel": "Cancel·la la transferència"
+      },
+      "status": {
+        "idle": "No hi ha cap transferència en curs.",
+        "ready": "El text està a punt per pegar a l'escriptori remot.",
+        "remoteRead": "El client remot ha llegit el text.",
+        "pasted": "S'ha confirmat el pegat.",
+        "cancelled": "S'ha cancel·lat la transferència.",
+        "expired": "La transferència ha caducat sense confirmació.",
+        "failed": "No s'ha pogut iniciar la transferència."
+      },
+      "detection": {
+        "title": "Entorn detectat",
+        "installed": "Client remot",
+        "notInstalled": "No instal·lat",
+        "running": "En execució",
+        "stopped": "Detingut",
+        "sessions": "Sessions RDP obertes",
+        "focused": "La sessió RDP té el focus.",
+        "notFocused": "La sessió RDP no té el focus.",
+        "blocked": "El mode automàtic no pot actuar: {{reason}}"
       }
     }
   },

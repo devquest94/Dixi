@@ -7,7 +7,8 @@
     "model": "Model",
     "quit": "Çıkış",
     "cancel": "İptal",
-    "secureInputWarning": "⚠ Kısayollar Secure Input tarafından engelleniyor"
+    "secureInputWarning": "⚠ Kısayollar Secure Input tarafından engelleniyor",
+    "prepareRemotePaste": "Transkripsiyonu uzak masaüstü için hazırla"
   },
   "sidebar": {
     "general": "Genel",
@@ -21,7 +22,8 @@
     "profiles": "Yazma profilleri",
     "snippets": "Paragrafçıklar",
     "transforms": "Dönüşümler",
-    "textHistory": "Metin geçmişi"
+    "textHistory": "Metin geçmişi",
+    "remoteDesktop": "Uzak Masaüstü"
   },
   "onboarding": {
     "subtitle": "Başlamak için bir transkripsiyon modeli seçin",
@@ -957,8 +959,8 @@
         "captureCountdown": "Uygulamaya dönün ve metni seçin. {{seconds}} sonra yakalanıyor…",
         "nothingCaptured": "Henüz metin yakalanmadı.",
         "acceptNeedsCapture": "Kabul etmeden önce bir seçimi yakalayın.",
-        "captureInvalidated": "Metin değiştiği için yakalanan seçim artık geçerli değil. Seçimi yeniden yakalayın.",
-        "shortcutNotRegistered": "{{shortcut}} kısayolu kaydedilemedi. Klavye kısayollarından değiştirin.",
+        "captureInvalidated": "Metni değiştirdiniz, bu yüzden yakalama artık geçerli değil ve kabul edilemez.",
+        "shortcutNotRegistered": "Kısayol {{shortcut}} kaydedilemedi: başka bir uygulama bu kısayolu zaten kullanıyor olabilir.",
         "shortcutConflict": "{{shortcut}} kısayolu kaydedilemedi: bu kombinasyona sahip başka bir uygulama var. Klavye kısayollarından değiştirin.",
         "shortcutDuplicate": "{{shortcut}} kısayolu kaydedilemedi: Dixi bu kombinasyonu zaten kaydetmişti. Dixi'yi yeniden başlatın ya da klavye kısayollarından değiştirin.",
         "shortcutInvalidCombination": "{{shortcut}} geçerli bir kombinasyon değil. Klavye kısayollarından değiştirin.",
@@ -1044,8 +1046,59 @@
         "destinationUnavailable": "Dixi uygulamayı öne getiremedi, bu yüzden hiçbir şey yazılmadı.",
         "destinationGone": "Metnin seçildiği uygulama kapandı, bu yüzden hiçbir şey yazılmadı.",
         "write": "Metin yazılamadı.",
-        "focusedApp": "Odakta olan uygulama {{app}} idi.",
-        "focusedAppIsDixi": "Odakta olan uygulama Dixi'nin kendisiydi: metnin seçili olduğu uygulamaya geri dönün ve kısayola ikinci kez basın."
+        "focusedApp": "Odağı bulunan uygulama {{app}} idi.",
+        "focusedAppIsDixi": "Dixi odaktaydı: metnin seçili olduğu uygulamaya geri dönün ve orada kısayola basın."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Uzak Masaüstü Entegrasyonu",
+      "description": "Bu bilgisayarda söyleyin ve metni mRemoteNG ile açılan uzak bir oturuma yapıştırın. Uzak makineye hiçbir şey kurulmaz.",
+      "enable": {
+        "title": "mRemoteNG / RDP entegrasyonunu etkinleştirin",
+        "description": "Uzak bir oturum için transkripsiyon hazırlama seçeneğini ve ilgili kısayolu ekler."
+      },
+      "manualMode": {
+        "title": "Manuel yapıştırma",
+        "description": "Metin panoya gider ve uzak oturumda Ctrl+V tuşuna basarsınız."
+      },
+      "autoMode": {
+        "title": "Otomatik ekleme",
+        "description": "Dixi sizin yerinize Ctrl+V tuşuna basar; yalnızca uzak istemci, tek bir hedef oturum ve odak doğrulanabildiğinde."
+      },
+      "autoModeNotValidated": "Otomatik mod henüz canlı bir oturumda doğrulanmadı.",
+      "restoreClipboard": {
+        "title": "Bittiğinde panoyu geri yükle",
+        "description": "Metin hazırlanmadan önce panoda bulunan içeriği geri koyar."
+      },
+      "notify": {
+        "title": "Metin hazır olduğunda haber ver",
+        "description": "Transkripsiyon yapıştırmaya hazır olduğunda bir bildirim gösterir."
+      },
+      "actions": {
+        "title": "Eylemler",
+        "prepare": "Son transkripsiyonu hazırla",
+        "confirm": "Yapıştırdım",
+        "cancel": "Aktarımı iptal et"
+      },
+      "status": {
+        "idle": "Devam eden aktarım yok.",
+        "ready": "Metin uzak masaüstüne yapıştırmaya hazır.",
+        "remoteRead": "Uzak istemci metni okudu.",
+        "pasted": "Yapıştırma onaylandı.",
+        "cancelled": "Aktarım iptal edildi.",
+        "expired": "Aktarım onay olmadan sona erdi.",
+        "failed": "Aktarım başlatılamadı."
+      },
+      "detection": {
+        "title": "Algılanan ortam",
+        "installed": "Uzak istemci",
+        "notInstalled": "Kurulu değil",
+        "running": "Çalışıyor",
+        "stopped": "Çalışmıyor",
+        "sessions": "Açık RDP oturumları",
+        "focused": "RDP oturumunda odak var.",
+        "notFocused": "RDP oturumunda odak yok.",
+        "blocked": "Otomatik mod hareket edemiyor: {{reason}}"
       }
     }
   },

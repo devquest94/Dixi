@@ -7,7 +7,8 @@
     "model": "Modell",
     "quit": "Beenden",
     "cancel": "Abbrechen",
-    "secureInputWarning": "⚠ Tastenkürzel durch Secure Input blockiert"
+    "secureInputWarning": "⚠ Tastenkürzel durch Secure Input blockiert",
+    "prepareRemotePaste": "Transkription für den entfernten Arbeitsbereich vorbereiten"
   },
   "sidebar": {
     "general": "Allgemein",
@@ -21,7 +22,8 @@
     "profiles": "Schreibprofile",
     "snippets": "Textbausteine",
     "transforms": "Transformationen",
-    "textHistory": "Textverlauf"
+    "textHistory": "Textverlauf",
+    "remoteDesktop": "Entfernter Arbeitsbereich"
   },
   "onboarding": {
     "subtitle": "Wähle ein Transkriptionsmodell, um loszulegen",
@@ -957,8 +959,8 @@
         "captureCountdown": "Kehren Sie zur Anwendung zurück und wählen Sie den Text aus. Erfassung in {{seconds}}…",
         "nothingCaptured": "Noch kein Text erfasst.",
         "acceptNeedsCapture": "Erfassen Sie eine Auswahl, bevor Sie übernehmen.",
-        "captureInvalidated": "Der Text wurde geändert, damit passt die erfasste Auswahl nicht mehr. Erfassen Sie die Auswahl erneut.",
-        "shortcutNotRegistered": "Die Tastenkombination {{shortcut}} konnte nicht registriert werden. Ändern Sie sie unter Tastenkürzel.",
+        "captureInvalidated": "Sie haben den Text geändert, daher ist die Erfassung nicht mehr gültig und kann nicht übernommen werden.",
+        "shortcutNotRegistered": "Tastenkürzel {{shortcut}} konnte nicht registriert werden: Möglicherweise hat eine andere Anwendung es bereits belegt.",
         "shortcutConflict": "Die Tastenkombination {{shortcut}} konnte nicht registriert werden: Eine andere Anwendung hat diese Kombination bereits. Ändern Sie sie unter Tastenkürzel.",
         "shortcutDuplicate": "Die Tastenkombination {{shortcut}} konnte nicht registriert werden: Dixi hatte diese Kombination bereits registriert. Starten Sie Dixi neu, oder ändern Sie sie unter Tastenkürzel.",
         "shortcutInvalidCombination": "Die Tastenkombination {{shortcut}} ist keine gültige Kombination. Ändern Sie sie unter Tastenkürzel.",
@@ -1044,8 +1046,59 @@
         "destinationUnavailable": "Dixi konnte die Anwendung nicht in den Vordergrund bringen, daher wurde nichts geschrieben.",
         "destinationGone": "Die Anwendung, in der der Text ausgewählt war, ist geschlossen, daher wurde nichts geschrieben.",
         "write": "Der Text konnte nicht geschrieben werden.",
-        "focusedApp": "Die fokussierte Anwendung war {{app}}.",
-        "focusedAppIsDixi": "Die fokussierte Anwendung war Dixi selbst: Kehren Sie zu der Anwendung zurück, in der der Text ausgewählt ist, und drücken Sie die Tastenkombination erneut."
+        "focusedApp": "Die Anwendung, die den Fokus hatte, war {{app}}.",
+        "focusedAppIsDixi": "Dixi hatte den Fokus: Wechseln Sie zurück zur Anwendung, in der der Text ausgewählt ist, und drücken Sie dort das Tastenkürzel."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Integration mit dem entfernten Arbeitsbereich",
+      "description": "Auf diesem Computer diktieren und den Text in einer mit mRemoteNG geöffneten Remotesitzung einfügen. Auf dem entfernten Rechner wird nichts installiert.",
+      "enable": {
+        "title": "Integration von mRemoteNG / RDP aktivieren",
+        "description": "Ergänzt die Option, eine Transkription für eine Remotesitzung vorzubereiten, samt der zugehörigen Tastenkombination."
+      },
+      "manualMode": {
+        "title": "Manuelles Einfügen",
+        "description": "Der Text landet in der Zwischenablage und Sie drücken in der Remotesitzung Ctrl+V."
+      },
+      "autoMode": {
+        "title": "Automatisches Einfügen",
+        "description": "Dixi drückt Ctrl+V für Sie, und zwar nur, wenn sich der entfernte Client, genau eine Zielsitzung und der Fokus überprüfen lassen."
+      },
+      "autoModeNotValidated": "Der automatische Modus wurde noch nicht an einer aktiven Sitzung geprüft.",
+      "restoreClipboard": {
+        "title": "Zwischenablage nach Abschluss wiederherstellen",
+        "description": "Stellt den Inhalt wieder her, den die Zwischenablage vor der Vorbereitung des Textes hatte."
+      },
+      "notify": {
+        "title": "Benachrichtigen, wenn der Text bereit ist",
+        "description": "Zeigt eine Benachrichtigung, sobald die Transkription zum Einfügen bereitsteht."
+      },
+      "actions": {
+        "title": "Aktionen",
+        "prepare": "Letzte Transkription vorbereiten",
+        "confirm": "Eingefügt",
+        "cancel": "Übertragung abbrechen"
+      },
+      "status": {
+        "idle": "Keine Übertragung läuft.",
+        "ready": "Der Text ist bereit zum Einfügen in den entfernten Arbeitsbereich.",
+        "remoteRead": "Der entfernte Client hat den Text gelesen.",
+        "pasted": "Das Einfügen wurde bestätigt.",
+        "cancelled": "Die Übertragung wurde abgebrochen.",
+        "expired": "Die Übertragung ist ohne Bestätigung abgelaufen.",
+        "failed": "Die Übertragung konnte nicht gestartet werden."
+      },
+      "detection": {
+        "title": "Erkannte Umgebung",
+        "installed": "Entfernter Client",
+        "notInstalled": "Nicht installiert",
+        "running": "Läuft",
+        "stopped": "Läuft nicht",
+        "sessions": "Offene RDP-Sitzungen",
+        "focused": "Die RDP-Sitzung hat den Fokus.",
+        "notFocused": "Die RDP-Sitzung hat den Fokus nicht.",
+        "blocked": "Der automatische Modus kann nicht handeln: {{reason}}"
       }
     }
   },

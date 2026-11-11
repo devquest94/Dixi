@@ -7,7 +7,8 @@
     "model": "模型",
     "quit": "退出",
     "cancel": "取消",
-    "secureInputWarning": "⚠ 快捷键被 Secure Input 阻止"
+    "secureInputWarning": "⚠ 快捷键被 Secure Input 阻止",
+    "prepareRemotePaste": "准备要粘贴到远程桌面的转录"
   },
   "sidebar": {
     "general": "通用",
@@ -21,7 +22,8 @@
     "profiles": "写作配置",
     "snippets": "文本片段",
     "transforms": "转换",
-    "textHistory": "文本历史"
+    "textHistory": "文本历史",
+    "remoteDesktop": "远程桌面"
   },
   "onboarding": {
     "subtitle": "请选择一个转录模型以开始使用",
@@ -957,8 +959,8 @@
         "captureCountdown": "返回应用并选中文本。将在 {{seconds}} 秒后捕获…",
         "nothingCaptured": "尚未捕获任何文本。",
         "acceptNeedsCapture": "请先捕获选区，再接受。",
-        "captureInvalidated": "文本已更改，因此捕获的选区不再适用。请重新捕获选区。",
-        "shortcutNotRegistered": "快捷键 {{shortcut}} 无法注册。请在键盘快捷键中更改。",
+        "captureInvalidated": "你修改了文本，因此捕获的内容已失效，无法接受。",
+        "shortcutNotRegistered": "无法注册快捷键 {{shortcut}}: 可能已被其他应用占用。",
         "shortcutConflict": "快捷键 {{shortcut}} 无法注册：另一个应用已经占用该组合。请在键盘快捷键中更改。",
         "shortcutDuplicate": "快捷键 {{shortcut}} 无法注册：Dixi 已经注册过该组合。请重新启动 Dixi，或在键盘快捷键中更改。",
         "shortcutInvalidCombination": "快捷键 {{shortcut}} 不是有效的组合。请在键盘快捷键中更改。",
@@ -1045,7 +1047,58 @@
         "destinationGone": "选中文本的应用已关闭，因此没有写入任何内容。",
         "write": "无法写入文本。",
         "focusedApp": "拥有焦点的应用是 {{app}}。",
-        "focusedAppIsDixi": "拥有焦点的应用就是 Dixi 本身：请回到选中文本的应用，再次按快捷键。"
+        "focusedAppIsDixi": "焦点在 Dixi 上：请返回已选中文本的应用，并在那里按下快捷键。"
+      }
+    },
+    "remoteDesktop": {
+      "title": "远程桌面集成",
+      "description": "在此电脑上进行语音输入，并把文本粘贴到通过 mRemoteNG 打开的远程会话中。远程计算机上无需安装任何内容。",
+      "enable": {
+        "title": "启用 mRemoteNG / RDP 集成",
+        "description": "增加用于准备远程会话转录的选项，以及与之对应的快捷键。"
+      },
+      "manualMode": {
+        "title": "手动粘贴",
+        "description": "文本会进入剪贴板，由您在远程会话中按 Ctrl+V。"
+      },
+      "autoMode": {
+        "title": "自动插入",
+        "description": "由 Dixi 代替您按 Ctrl+V，但仅在能够确认远程客户端、只有一个目标会话且具备焦点时才会执行。"
+      },
+      "autoModeNotValidated": "自动模式尚未在实际会话中验证。",
+      "restoreClipboard": {
+        "title": "完成后还原剪贴板",
+        "description": "把剪贴板恢复为准备文本之前的内容。"
+      },
+      "notify": {
+        "title": "文本就绪时通知我",
+        "description": "当转录可以粘贴时显示通知。"
+      },
+      "actions": {
+        "title": "操作",
+        "prepare": "准备最新转录",
+        "confirm": "已粘贴",
+        "cancel": "取消传输"
+      },
+      "status": {
+        "idle": "没有正在进行的传输。",
+        "ready": "文本已可在远程桌面中粘贴。",
+        "remoteRead": "远程客户端已读取文本。",
+        "pasted": "粘贴已确认。",
+        "cancelled": "传输已取消。",
+        "expired": "传输在未确认的情况下已过期。",
+        "failed": "无法开始传输。"
+      },
+      "detection": {
+        "title": "检测到的环境",
+        "installed": "远程客户端",
+        "notInstalled": "未安装",
+        "running": "运行中",
+        "stopped": "未运行",
+        "sessions": "已打开的 RDP 会话",
+        "focused": "RDP 会话具有焦点。",
+        "notFocused": "RDP 会话没有焦点。",
+        "blocked": "自动模式无法执行：{{reason}}"
       }
     }
   },

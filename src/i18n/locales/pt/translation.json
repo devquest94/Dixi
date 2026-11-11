@@ -7,7 +7,8 @@
     "model": "Modelo",
     "quit": "Sair",
     "cancel": "Cancelar",
-    "secureInputWarning": "⚠ Atalhos bloqueados pelo Secure Input"
+    "secureInputWarning": "⚠ Atalhos bloqueados pelo Secure Input",
+    "prepareRemotePaste": "Preparar a transcrição para a área de trabalho remota"
   },
   "sidebar": {
     "general": "Geral",
@@ -21,7 +22,8 @@
     "profiles": "Perfis de escrita",
     "snippets": "Trechos",
     "transforms": "Transformações",
-    "textHistory": "Histórico de texto"
+    "textHistory": "Histórico de texto",
+    "remoteDesktop": "Área de trabalho remota"
   },
   "onboarding": {
     "subtitle": "Para começar, escolha um modelo de transcrição",
@@ -957,8 +959,8 @@
         "captureCountdown": "Volte ao aplicativo e selecione o texto. Capturando em {{seconds}}…",
         "nothingCaptured": "Nenhum texto capturado ainda.",
         "acceptNeedsCapture": "Capture uma seleção antes de aceitar.",
-        "captureInvalidated": "O texto mudou, então a seleção capturada não vale mais. Capture a seleção de novo.",
-        "shortcutNotRegistered": "Não foi possível registrar o atalho {{shortcut}}. Altere-o nos atalhos de teclado.",
+        "captureInvalidated": "Você alterou o texto, então a captura não é mais válida e não pode ser aceita.",
+        "shortcutNotRegistered": "Falha ao registrar o atalho {{shortcut}}: outro aplicativo pode já tê-lo.",
         "shortcutConflict": "Não foi possível registrar o atalho {{shortcut}}: outro aplicativo já tem essa combinação. Altere-o nos atalhos de teclado.",
         "shortcutDuplicate": "Não foi possível registrar o atalho {{shortcut}}: o Dixi já tinha essa combinação registrada. Reinicie o Dixi, ou altere-o nos atalhos de teclado.",
         "shortcutInvalidCombination": "O atalho {{shortcut}} não é uma combinação válida. Altere-o nos atalhos de teclado.",
@@ -1044,8 +1046,59 @@
         "destinationUnavailable": "O Dixi não conseguiu trazer o aplicativo para o primeiro plano, então nada foi escrito.",
         "destinationGone": "O aplicativo em que o texto estava selecionado foi fechado, então nada foi escrito.",
         "write": "Não foi possível escrever o texto.",
-        "focusedApp": "O aplicativo em foco era {{app}}.",
-        "focusedAppIsDixi": "O aplicativo em foco era o próprio Dixi: volte ao aplicativo em que o texto está selecionado e pressione o atalho de novo."
+        "focusedApp": "O aplicativo que estava em foco era {{app}}.",
+        "focusedAppIsDixi": "O Dixi estava em foco: volte para o aplicativo em que o texto está selecionado e pressione o atalho lá."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Integração com a área de trabalho remota",
+      "description": "Dicte neste computador e cole o texto em uma sessão remota aberta com o mRemoteNG. Nada é instalado na máquina remota.",
+      "enable": {
+        "title": "Ativar a integração com mRemoteNG / RDP",
+        "description": "Adiciona a opção de preparar uma transcrição para uma sessão remota e o atalho correspondente."
+      },
+      "manualMode": {
+        "title": "Colagem manual",
+        "description": "O texto vai para a área de transferência e você pressiona Ctrl+V na sessão remota."
+      },
+      "autoMode": {
+        "title": "Inserção automática",
+        "description": "O Dixi pressiona Ctrl+V para você, e somente quando o cliente remoto, uma única sessão de destino e o foco podem ser todos verificados."
+      },
+      "autoModeNotValidated": "O modo automático ainda não foi validado em uma sessão ao vivo.",
+      "restoreClipboard": {
+        "title": "Restaurar a área de transferência ao terminar",
+        "description": "Devolve o conteúdo que a área de transferência tinha antes de o texto ser preparado."
+      },
+      "notify": {
+        "title": "Avise quando o texto estiver pronto",
+        "description": "Mostra uma notificação quando a transcrição estiver pronta para colar."
+      },
+      "actions": {
+        "title": "Ações",
+        "prepare": "Preparar a última transcrição",
+        "confirm": "Já colei",
+        "cancel": "Cancelar a transferência"
+      },
+      "status": {
+        "idle": "Nenhuma transferência em andamento.",
+        "ready": "O texto está pronto para colar na área de trabalho remota.",
+        "remoteRead": "O cliente remoto leu o texto.",
+        "pasted": "A colagem foi confirmada.",
+        "cancelled": "A transferência foi cancelada.",
+        "expired": "A transferência expirou sem confirmação.",
+        "failed": "Não foi possível iniciar a transferência."
+      },
+      "detection": {
+        "title": "Ambiente detectado",
+        "installed": "Cliente remoto",
+        "notInstalled": "Não instalado",
+        "running": "Em execução",
+        "stopped": "Parado",
+        "sessions": "Sessões RDP abertas",
+        "focused": "A sessão RDP está em foco.",
+        "notFocused": "A sessão RDP não está em foco.",
+        "blocked": "O modo automático não pode agir: {{reason}}"
       }
     }
   },

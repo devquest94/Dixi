@@ -12,6 +12,7 @@ export { ProfilesSettings } from "./profiles/ProfilesSettings";
 export { SnippetsSettings } from "./snippets/SnippetsSettings";
 export { TransformsSettings } from "./transforms/TransformsSettings";
 export { TextHistorySettings } from "./textHistory/TextHistorySettings";
+export { RemoteDesktopSettings } from "./remoteDesktop/RemoteDesktopSettings";
 
 // Individual setting components
 export { MicrophoneSelector } from "./MicrophoneSelector";

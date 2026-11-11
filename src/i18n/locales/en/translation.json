@@ -7,7 +7,8 @@
     "model": "Model",
     "quit": "Quit",
     "cancel": "Cancel",
-    "secureInputWarning": "⚠ Shortcuts blocked by Secure Input"
+    "secureInputWarning": "⚠ Shortcuts blocked by Secure Input",
+    "prepareRemotePaste": "Prepare the transcription for the remote desktop"
   },
   "sidebar": {
     "general": "General",
@@ -21,7 +22,8 @@
     "profiles": "Writing profiles",
     "snippets": "Snippets",
     "transforms": "Transforms",
-    "textHistory": "Text history"
+    "textHistory": "Text history",
+    "remoteDesktop": "Remote desktop"
   },
   "onboarding": {
     "subtitle": "To get started, choose a transcription model",
@@ -957,8 +959,8 @@
         "captureCountdown": "Go back to the app and select the text. Capturing in {{seconds}}…",
         "nothingCaptured": "No text captured yet.",
         "acceptNeedsCapture": "Capture a selection before accepting.",
-        "captureInvalidated": "The text was changed, so the captured selection no longer applies. Capture the selection again.",
-        "shortcutNotRegistered": "The shortcut {{shortcut}} could not be registered. Change it in the keyboard shortcuts.",
+        "captureInvalidated": "You changed the text, so the capture no longer holds and cannot be accepted.",
+        "shortcutNotRegistered": "The shortcut {{shortcut}} could not be registered: another application may already have it.",
         "shortcutConflict": "The shortcut {{shortcut}} could not be registered: another application already has that combination. Change it in the keyboard shortcuts.",
         "shortcutDuplicate": "The shortcut {{shortcut}} could not be registered: Dixi already had that combination registered. Restart Dixi, or change it in the keyboard shortcuts.",
         "shortcutInvalidCombination": "The shortcut {{shortcut}} is not a valid combination. Change it in the keyboard shortcuts.",
@@ -1045,7 +1047,58 @@
         "destinationGone": "The app where the text was selected is closed, so nothing was written.",
         "write": "The text could not be written.",
         "focusedApp": "The application that had the focus was {{app}}.",
-        "focusedAppIsDixi": "The application that had the focus was Dixi itself: go back to the application where the text is selected and press the shortcut again."
+        "focusedAppIsDixi": "Dixi had the focus: go back to the application where the text is selected and press the shortcut there."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Remote desktop integration",
+      "description": "Dictate on this computer and paste the text in a remote session opened with mRemoteNG. Nothing is installed on the remote machine.",
+      "enable": {
+        "title": "Enable the mRemoteNG / RDP integration",
+        "description": "Adds the option to prepare a transcription for a remote session, and the shortcut that goes with it."
+      },
+      "manualMode": {
+        "title": "Manual paste",
+        "description": "The text goes to the clipboard and you press Ctrl+V in the remote session."
+      },
+      "autoMode": {
+        "title": "Automatic insertion",
+        "description": "Dixi presses Ctrl+V for you, and only when the remote client, a single destination session and the focus can all be verified."
+      },
+      "autoModeNotValidated": "The automatic mode has not been validated against a live session yet.",
+      "restoreClipboard": {
+        "title": "Restore the clipboard when it finishes",
+        "description": "Puts back the content the clipboard had before the text was prepared."
+      },
+      "notify": {
+        "title": "Tell me when the text is ready",
+        "description": "Shows a notification when the transcription is ready to paste."
+      },
+      "actions": {
+        "title": "Actions",
+        "prepare": "Prepare the last transcription",
+        "confirm": "I pasted it",
+        "cancel": "Cancel the transfer"
+      },
+      "status": {
+        "idle": "No transfer in progress.",
+        "ready": "The text is ready to paste in the remote desktop.",
+        "remoteRead": "The remote client read the text.",
+        "pasted": "The paste was confirmed.",
+        "cancelled": "The transfer was cancelled.",
+        "expired": "The transfer expired without a confirmation.",
+        "failed": "The transfer could not be started."
+      },
+      "detection": {
+        "title": "Detected environment",
+        "installed": "Remote client",
+        "notInstalled": "Not installed",
+        "running": "Running",
+        "stopped": "Not running",
+        "sessions": "Open RDP sessions",
+        "focused": "The RDP session has the focus.",
+        "notFocused": "The RDP session does not have the focus.",
+        "blocked": "The automatic mode cannot act: {{reason}}"
       }
     }
   },

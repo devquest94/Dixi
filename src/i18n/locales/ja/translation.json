@@ -7,7 +7,8 @@
     "model": "モデル",
     "quit": "終了",
     "cancel": "キャンセル",
-    "secureInputWarning": "⚠ Secure Input でショートカットがブロック中"
+    "secureInputWarning": "⚠ Secure Input でショートカットがブロック中",
+    "prepareRemotePaste": "文字起こしをリモートデスクトップ用に準備する"
   },
   "sidebar": {
     "general": "一般",
@@ -21,7 +22,8 @@
     "profiles": "書き込みプロファイル",
     "snippets": "スニペット",
     "transforms": "変換",
-    "textHistory": "テキスト履歴"
+    "textHistory": "テキスト履歴",
+    "remoteDesktop": "リモートデスクトップ"
   },
   "onboarding": {
     "subtitle": "開始するには、文字起こしのモデルを選択してください",
@@ -957,8 +959,8 @@
         "captureCountdown": "アプリに戻ってテキストを選択してください。{{seconds}} 後に取得します…",
         "nothingCaptured": "まだテキストを取得していません。",
         "acceptNeedsCapture": "採用する前に選択内容を取得してください。",
-        "captureInvalidated": "テキストが変更されたため、取得した選択内容は使えなくなりました。選択内容をもう一度取得してください。",
-        "shortcutNotRegistered": "ショートカット {{shortcut}} を登録できませんでした。キーボードショートカットで変更してください。",
+        "captureInvalidated": "テキストを変更したため、取得した内容は無効になり、受け入れることはできません。",
+        "shortcutNotRegistered": "ショートカット {{shortcut}} を登録できませんでした: 他のアプリが既に登録している可能性があります。",
         "shortcutConflict": "ショートカット {{shortcut}} を登録できませんでした：同じ組み合わせを他のアプリケーションが既に使っています。キーボードショートカットで変更してください。",
         "shortcutDuplicate": "ショートカット {{shortcut}} を登録できませんでした：Dixi が同じ組み合わせをすでに登録しています。Dixi を再起動するか、キーボードショートカットで変更してください。",
         "shortcutInvalidCombination": "ショートカット {{shortcut}} は有効な組み合わせではありません。キーボードショートカットで変更してください。",
@@ -1045,7 +1047,58 @@
         "destinationGone": "テキストが選択されていたアプリが閉じたため、何も書き込まれませんでした。",
         "write": "テキストを書き込めませんでした。",
         "focusedApp": "フォーカスのあったアプリは {{app}} でした。",
-        "focusedAppIsDixi": "フォーカスのあったアプリは Dixi 自身でした。テキストが選択されているアプリに戻り、ショートカットをもう一度押してください。"
+        "focusedAppIsDixi": "フォーカスは Dixi にありました。テキストを選択しているアプリに戻り、そこでショートカットを押してください。"
+      }
+    },
+    "remoteDesktop": {
+      "title": "リモートデスクトップとの統合",
+      "description": "このコンピューターで音声入力し、mRemoteNG で開いたリモートセッションにテキストを貼り付けます。リモート側には何もインストールされません。",
+      "enable": {
+        "title": "mRemoteNG / RDP 統合を有効にする",
+        "description": "リモートセッション用の文字起こしを準備するオプションと、それに対応するショートカットが追加されます。"
+      },
+      "manualMode": {
+        "title": "手動貼り付け",
+        "description": "テキストはクリップボードに送られ、リモートセッションで Ctrl+V を押します。"
+      },
+      "autoMode": {
+        "title": "自動挿入",
+        "description": "Dixi が Ctrl+V を代わりに押します。リモートクライアント、貼り付け先が 1 つのセッション、フォーカスのすべてを確認できた場合に限ります。"
+      },
+      "autoModeNotValidated": "自動モードは、まだ実際のセッションで検証されていません。",
+      "restoreClipboard": {
+        "title": "完了時にクリップボードを復元する",
+        "description": "テキストを準備する前のクリップボードの内容に戻します。"
+      },
+      "notify": {
+        "title": "テキストの準備ができたら知らせる",
+        "description": "文字起こしが貼り付け可能になったときに通知を表示します。"
+      },
+      "actions": {
+        "title": "アクション",
+        "prepare": "最新の文字起こしを準備する",
+        "confirm": "貼り付けました",
+        "cancel": "転送を取り消す"
+      },
+      "status": {
+        "idle": "転送は進行していません。",
+        "ready": "テキストはリモートデスクトップに貼り付けられる準備ができています。",
+        "remoteRead": "リモートクライアントがテキストを読み取りました。",
+        "pasted": "貼り付けが確認されました。",
+        "cancelled": "転送は取り消されました。",
+        "expired": "確認がなかったため、転送は期限切れになりました。",
+        "failed": "転送を開始できませんでした。"
+      },
+      "detection": {
+        "title": "検出された環境",
+        "installed": "リモートクライアント",
+        "notInstalled": "未インストール",
+        "running": "実行中",
+        "stopped": "停止中",
+        "sessions": "開いている RDP セッション",
+        "focused": "RDP セッションにフォーカスがあります。",
+        "notFocused": "RDP セッションにフォーカスがありません。",
+        "blocked": "自動モードは動作できません：{{reason}}"
       }
     }
   },

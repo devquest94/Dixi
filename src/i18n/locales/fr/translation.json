@@ -7,7 +7,8 @@
     "model": "Modèle",
     "quit": "Quitter",
     "cancel": "Annuler",
-    "secureInputWarning": "⚠ Raccourcis bloqués par Secure Input"
+    "secureInputWarning": "⚠ Raccourcis bloqués par Secure Input",
+    "prepareRemotePaste": "Préparer la transcription pour le bureau à distance"
   },
   "sidebar": {
     "general": "Général",
@@ -21,7 +22,8 @@
     "profiles": "Profils d'écriture",
     "snippets": "Extraits",
     "transforms": "Transformations",
-    "textHistory": "Historique du texte"
+    "textHistory": "Historique du texte",
+    "remoteDesktop": "Bureau à distance"
   },
   "onboarding": {
     "subtitle": "Pour commencer, choisissez un modèle de transcription",
@@ -957,8 +959,8 @@
         "captureCountdown": "Revenez dans l'application et sélectionnez le texte. Capture dans {{seconds}}…",
         "nothingCaptured": "Aucun texte capturé pour le moment.",
         "acceptNeedsCapture": "Capturez une sélection avant d'accepter.",
-        "captureInvalidated": "Le texte a changé, la sélection capturée ne correspond donc plus. Capturez à nouveau la sélection.",
-        "shortcutNotRegistered": "Le raccourci {{shortcut}} n'a pas pu être enregistré. Modifiez-le dans les raccourcis clavier.",
+        "captureInvalidated": "Vous avez modifié le texte, donc la capture n'est plus valable et ne peut pas être acceptée.",
+        "shortcutNotRegistered": "Échec de l'enregistrement du raccourci {{shortcut}} : une autre application l'a peut-être déjà.",
         "shortcutConflict": "Le raccourci {{shortcut}} n'a pas pu être enregistré : une autre application a déjà cette combinaison. Modifiez-le dans les raccourcis clavier.",
         "shortcutDuplicate": "Le raccourci {{shortcut}} n'a pas pu être enregistré : Dixi avait déjà cette combinaison enregistrée. Redémarrez Dixi, ou modifiez-le dans les raccourcis clavier.",
         "shortcutInvalidCombination": "Le raccourci {{shortcut}} n'est pas une combinaison valide. Modifiez-le dans les raccourcis clavier.",
@@ -1045,7 +1047,58 @@
         "destinationGone": "L'application où le texte était sélectionné est fermée, rien n'a donc été écrit.",
         "write": "Le texte n'a pas pu être écrit.",
         "focusedApp": "L'application qui avait le focus était {{app}}.",
-        "focusedAppIsDixi": "L'application qui avait le focus était Dixi lui-même : revenez à l'application où le texte est sélectionné et appuyez de nouveau sur le raccourci."
+        "focusedAppIsDixi": "Dixi avait le focus : revenez à l'application où le texte est sélectionné et appuyez sur le raccourci là-bas."
+      }
+    },
+    "remoteDesktop": {
+      "title": "Intégration du bureau à distance",
+      "description": "Dictez sur cet ordinateur et collez le texte dans une session distante ouverte avec mRemoteNG. Rien n'est installé sur la machine distante.",
+      "enable": {
+        "title": "Activer l'intégration mRemoteNG / RDP",
+        "description": "Ajoute l'option de préparer une transcription pour une session distante, ainsi que le raccourci associé."
+      },
+      "manualMode": {
+        "title": "Collage manuel",
+        "description": "Le texte va dans le presse-papiers et vous appuyez sur Ctrl+V dans la session distante."
+      },
+      "autoMode": {
+        "title": "Insertion automatique",
+        "description": "Dixi appuie sur Ctrl+V à votre place, et uniquement lorsque le client distant, une seule session de destination et le focus peuvent tous être vérifiés."
+      },
+      "autoModeNotValidated": "Le mode automatique n'a pas encore été validé sur une session active.",
+      "restoreClipboard": {
+        "title": "Restaurer le presse-papiers à la fin",
+        "description": "Remet le contenu que le presse-papiers contenait avant la préparation du texte."
+      },
+      "notify": {
+        "title": "M'avertir quand le texte est prêt",
+        "description": "Affiche une notification quand la transcription est prête à être collée."
+      },
+      "actions": {
+        "title": "Actions",
+        "prepare": "Préparer la dernière transcription",
+        "confirm": "C'est collé",
+        "cancel": "Annuler le transfert"
+      },
+      "status": {
+        "idle": "Aucun transfert en cours.",
+        "ready": "Le texte est prêt à être collé dans le bureau à distance.",
+        "remoteRead": "Le client distant a lu le texte.",
+        "pasted": "Le collage a été confirmé.",
+        "cancelled": "Le transfert a été annulé.",
+        "expired": "Le transfert a expiré sans confirmation.",
+        "failed": "Le transfert n'a pas pu démarrer."
+      },
+      "detection": {
+        "title": "Environnement détecté",
+        "installed": "Client distant",
+        "notInstalled": "Non installé",
+        "running": "En cours d'exécution",
+        "stopped": "Arrêté",
+        "sessions": "Sessions RDP ouvertes",
+        "focused": "La session RDP a le focus.",
+        "notFocused": "La session RDP n'a pas le focus.",
+        "blocked": "Le mode automatique ne peut pas agir : {{reason}}"
       }
     }
   },

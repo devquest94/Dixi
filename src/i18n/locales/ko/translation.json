@@ -7,7 +7,8 @@
     "model": "모델",
     "quit": "종료",
     "cancel": "취소",
-    "secureInputWarning": "⚠ Secure Input으로 단축키가 차단됨"
+    "secureInputWarning": "⚠ Secure Input으로 단축키가 차단됨",
+    "prepareRemotePaste": "원격 데스크톱용으로 녹음 내용 준비"
   },
   "sidebar": {
     "general": "일반",
@@ -21,7 +22,8 @@
     "profiles": "작성 프로필",
     "snippets": "스니펫",
     "transforms": "변환",
-    "textHistory": "텍스트 기록"
+    "textHistory": "텍스트 기록",
+    "remoteDesktop": "원격 데스크톱"
   },
   "onboarding": {
     "subtitle": "시작하려면 음성 인식 모델을 선택하세요",
@@ -957,8 +959,8 @@
         "captureCountdown": "앱으로 돌아가 텍스트를 선택하세요. {{seconds}}초 후 캡처합니다…",
         "nothingCaptured": "아직 캡처된 텍스트가 없습니다.",
         "acceptNeedsCapture": "수락하기 전에 선택 영역을 캡처하세요.",
-        "captureInvalidated": "텍스트가 바뀌어 캡처한 선택 영역이 더 이상 맞지 않습니다. 선택 영역을 다시 캡처하세요.",
-        "shortcutNotRegistered": "단축키 {{shortcut}}을(를) 등록할 수 없습니다. 키보드 단축키에서 변경하세요.",
+        "captureInvalidated": "텍스트를 변경하여 캡처 내용이 더 이상 유효하지 않아 승인할 수 없습니다.",
+        "shortcutNotRegistered": "단축키 {{shortcut}} 등록에 실패했습니다: 다른 앱에서 이미 사용 중일 수 있습니다.",
         "shortcutConflict": "단축키 {{shortcut}}을(를) 등록할 수 없습니다: 같은 조합을 다른 앱이 이미 사용 중입니다. 키보드 단축키에서 변경하세요.",
         "shortcutDuplicate": "단축키 {{shortcut}}을(를) 등록할 수 없습니다: Dixi가 같은 조합을 이미 등록한 상태입니다. Dixi를 다시 시작하거나 키보드 단축키에서 변경하세요.",
         "shortcutInvalidCombination": "단축키 {{shortcut}}은(는) 올바른 조합이 아닙니다. 키보드 단축키에서 변경하세요.",
@@ -1045,7 +1047,58 @@
         "destinationGone": "텍스트를 선택했던 앱이 닫혀서 아무것도 기록되지 않았습니다.",
         "write": "텍스트를 작성할 수 없습니다.",
         "focusedApp": "포커스가 있던 앱은 {{app}}입니다.",
-        "focusedAppIsDixi": "포커스가 있던 앱은 Dixi 자신이었습니다. 텍스트가 선택된 앱으로 돌아가서 단축키를 다시 누르세요."
+        "focusedAppIsDixi": "포커스가 Dixi에 있었습니다. 텍스트를 선택한 앱으로 돌아가서 그곳에서 단축키를 누르세요."
+      }
+    },
+    "remoteDesktop": {
+      "title": "원격 데스크톱 통합",
+      "description": "이 컴퓨터에서 녹음하고 mRemoteNG로 연 원격 세션에 텍스트를 붙여넣습니다. 원격 컴퓨터에는 아무것도 설치하지 않습니다.",
+      "enable": {
+        "title": "mRemoteNG / RDP 통합 사용",
+        "description": "원격 세션용으로 녹음 내용을 준비하는 옵션과 그에 맞는 단축키를 추가합니다."
+      },
+      "manualMode": {
+        "title": "수동 붙여넣기",
+        "description": "텍스트가 클립보드로 복사되고 원격 세션에서 Ctrl+V를 누릅니다."
+      },
+      "autoMode": {
+        "title": "자동 삽입",
+        "description": "Dixi가 대신 Ctrl+V를 누릅니다. 원격 클라이언트, 삽입 대상 세션이 하나뿐인 상태, 포커스를 모두 확인할 수 있을 때만 동작합니다."
+      },
+      "autoModeNotValidated": "자동 모드는 아직 실제 세션에서 검증되지 않았습니다.",
+      "restoreClipboard": {
+        "title": "완료 시 클립보드 복원",
+        "description": "텍스트를 준비하기 전 클립보드에 있던 내용을 되돌립니다."
+      },
+      "notify": {
+        "title": "텍스트가 준비되면 알림",
+        "description": "녹음 내용이 붙여넣을 준비가 되면 알림을 표시합니다."
+      },
+      "actions": {
+        "title": "작업",
+        "prepare": "마지막 녹음 내용 준비",
+        "confirm": "붙여넣었습니다",
+        "cancel": "전송 취소"
+      },
+      "status": {
+        "idle": "진행 중인 전송이 없습니다.",
+        "ready": "텍스트가 원격 데스크톱에 붙여넣을 준비가 되었습니다.",
+        "remoteRead": "원격 클라이언트가 텍스트를 읽었습니다.",
+        "pasted": "붙여넣기가 확인되었습니다.",
+        "cancelled": "전송이 취소되었습니다.",
+        "expired": "확인 없이 전송이 만료되었습니다.",
+        "failed": "전송을 시작할 수 없습니다."
+      },
+      "detection": {
+        "title": "감지된 환경",
+        "installed": "원격 클라이언트",
+        "notInstalled": "설치되지 않음",
+        "running": "실행 중",
+        "stopped": "실행 중이 아님",
+        "sessions": "열린 RDP 세션",
+        "focused": "RDP 세션에 포커스가 있습니다.",
+        "notFocused": "RDP 세션에 포커스가 없습니다.",
+        "blocked": "자동 모드가 동작할 수 없습니다: {{reason}}"
       }
     }
   },
