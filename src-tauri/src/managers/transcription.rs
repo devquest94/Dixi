@@ -24,6 +24,7 @@ use policy::{batch_decode, live_decode, BatchDecode, ModelTraits};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::collections::VecDeque;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU64, Ordering};
 use std::sync::{mpsc, Arc, Condvar, Mutex, MutexGuard};
 use std::thread;
@@ -104,6 +105,16 @@ pub const DEFAULT_STREAM_BACKLOG_LIMIT_MS: i64 = 2_000;
 /// completion to pay off. Overridable: `DIXI_STREAM_BACKLOG_MIN_FRACTION`.
 pub const DEFAULT_STREAM_BACKLOG_MIN_FRACTION: f64 = 0.5;
 
+/// How much slower per second of audio the full transcription is than the
+/// streaming path.
+///
+/// Measured on the corpus of seven recordings with the machine saturated:
+/// both paths need about the same wall clock per second of audio (the
+/// streaming path pays the machine's pauses once per queued fragment and
+/// the batch path pays them once, which is the whole difference). It is
+/// used for the estimate that goes to the log; it never decides by itself.
+pub const BATCH_SPEED_RATIO: f64 = 1.1;
+
 /// The pending-audio limit in force, in milliseconds.
 pub fn stream_backlog_limit_ms() -> i64 {
     static LIMIT: std::sync::OnceLock<i64> = std::sync::OnceLock::new();
@@ -165,6 +176,17 @@ pub fn stream_needs_catch_up(
         return true;
     }
     backlog_ms as f64 >= recorded_ms as f64 * min_fraction
+}
+
+/// Emitted when a cancelled dictation keeps its audio in the history.
+///
+/// The user asked to cancel and the audio had not been recognized yet: it
+/// is kept, and this event says so, with the history entry that holds it so
+/// the interface can offer to discard it.
+#[derive(Clone, Debug, Serialize, Deserialize, Type, tauri_specta::Event)]
+pub struct CancelledRecordingKept {
+    /// The history entry that holds the recording.
+    pub id: i64,
 }
 
 /// Emitted to switch the streaming overlay to a working spinner.
@@ -1487,7 +1509,23 @@ fn lock_perf(perf: &Mutex<StreamPerf>) -> MutexGuard<'_, StreamPerf> {
 struct StreamPerf {
     feed_count: u64,
     emit_count: u64,
+    /// The audio handed to the engine.
     streamed_samples: u64,
+    /// The audio the engine has finished decoding: the feeds it has
+    /// answered.
+    ///
+    /// The engine's own `audio_committed_ms` is the **encoder's** progress,
+    /// and the encoder runs ahead of the decoder. Measuring the pending
+    /// audio with it misses the work the user is really waiting for: in a
+    /// saturated run the encoder had committed almost everything while the
+    /// decoder was still tens of seconds behind, and the app saw a pending
+    /// audio of one second.
+    decoded_samples: u64,
+    /// The feeds handed to the engine and not yet answered, in order. Their
+    /// sizes are kept so the answer can be matched with its frame.
+    unacked_frames: VecDeque<u64>,
+    /// When the stream began: the denominator of the observed speed.
+    started_at: Instant,
     stream_compute_elapsed: Duration,
     last_log: Instant,
     latest_revision: i32,
@@ -1502,6 +1540,9 @@ impl StreamPerf {
             feed_count: 0,
             emit_count: 0,
             streamed_samples: 0,
+            decoded_samples: 0,
+            unacked_frames: VecDeque::new(),
+            started_at: Instant::now(),
             stream_compute_elapsed: Duration::ZERO,
             last_log: Instant::now(),
             latest_revision: 0,
@@ -1514,6 +1555,17 @@ impl StreamPerf {
     fn record_feed(&mut self, samples: usize) {
         self.feed_count += 1;
         self.streamed_samples += samples as u64;
+        self.unacked_frames.push_back(samples as u64);
+    }
+
+    /// The engine answered a feed: that audio is decoded.
+    ///
+    /// The answer comes after the chunk's decode, so this is the audio the
+    /// engine has really finished with.
+    fn record_ack(&mut self) {
+        if let Some(samples) = self.unacked_frames.pop_front() {
+            self.decoded_samples += samples;
+        }
     }
 
     fn record_compute(&mut self, elapsed: Duration) {
@@ -1527,23 +1579,63 @@ impl StreamPerf {
         self.latest_buffered_ms = update.buffered_ms;
     }
 
-    /// How much captured audio has not been recognized yet.
+    /// The audio captured and not yet decoded, in milliseconds.
     ///
-    /// The measure is the app's own: the audio it handed to the engine minus
-    /// the audio the engine has committed. The difference is what still waits
-    /// in the queues (the transcription manager's channel and the supervisor's)
-    /// plus what the engine keeps buffered.
-    ///
-    /// The engine's own numbers do not see the queues: it only knows the
-    /// audio it already received, and the app queues the rest while the
-    /// engine is busy. Measuring only the engine's buffer would report a
-    /// healthy machine right when the recording is about to be stuck.
-    fn backlog_ms(&self) -> i64 {
+    /// This is the measure the recovery decision uses: the audio the user
+    /// has spoken and the engine has not finished with. It counts the
+    /// frames the engine has not answered yet, so it sees the decoder's
+    /// lag and not only the encoder's.
+    fn pending_ms(&self) -> i64 {
+        let pending = self.streamed_samples.saturating_sub(self.decoded_samples);
         // The capture is 16 kHz: 16 samples are a millisecond.
-        let fed_ms = (self.streamed_samples / 16) as i64;
-        fed_ms
-            .saturating_sub(self.latest_audio_committed_ms)
-            .max(self.latest_buffered_ms)
+        (pending / 16) as i64
+    }
+
+    /// The engine's observed speed: the audio it decodes per second of wall
+    /// time. Above 1 it keeps up with the speech; below 1 it loses ground.
+    fn speed(&self) -> f64 {
+        let elapsed = self.started_at.elapsed().as_secs_f64();
+        if elapsed <= 0.0 {
+            return f64::INFINITY;
+        }
+        (self.decoded_samples as f64 / 16_000.0) / elapsed
+    }
+
+    /// How long the stream would take to finish at the observed speed.
+    ///
+    /// It is an estimate, not a promise: the speed changes with the load.
+    fn estimated_stream_ms(&self) -> i64 {
+        let speed = self.speed();
+        if !speed.is_finite() || speed <= 0.0 {
+            return i64::MAX;
+        }
+        (self.pending_ms() as f64 / speed) as i64
+    }
+
+    /// How long a full transcription of the recording would take.
+    ///
+    /// The batch path is a single pass over the whole audio. It is a bit
+    /// less efficient per second of audio than the streaming path (it has no
+    /// chunk's cache to reuse) but it does not pay the machine's pauses once
+    /// per queued fragment, which is what makes the difference when the
+    /// machine is saturated.
+    fn estimated_batch_ms(&self, recorded_ms: i64) -> i64 {
+        let speed = self.speed();
+        if !speed.is_finite() || speed <= 0.0 {
+            return i64::MAX;
+        }
+        (recorded_ms as f64 / speed * BATCH_SPEED_RATIO) as i64
+    }
+
+    /// The engine's own measure of what it has not committed yet.
+    ///
+    /// It is the **encoder's** progress, so it runs ahead of the decoder and
+    /// it does not see the app's queues. It is kept for the log: seeing the
+    /// two side by side is what showed that the pending audio is not what the
+    /// engine's numbers say.
+    fn engine_backlog_ms(&self) -> i64 {
+        self.latest_buffered_ms
+            .max(self.latest_input_received_ms - self.latest_audio_committed_ms)
             .max(0)
     }
 
@@ -2595,33 +2687,49 @@ mod tests {
         assert_eq!(corrected, "i use Dixi every day");
     }
 
-    /// The pending audio is the app's own measure: what it handed to the
-    /// engine and the engine has not committed yet.
+    /// The pending audio is what the user has spoken and the engine has not
+    /// finished decoding: the frames the engine has not answered yet.
     #[test]
-    fn the_backlog_counts_the_audio_that_waits_in_the_queues() {
+    fn the_pending_audio_is_what_the_engine_has_not_decoded() {
         let mut perf = StreamPerf::new();
-        assert_eq!(perf.backlog_ms(), 0);
+        assert_eq!(perf.pending_ms(), 0);
 
-        // The app handed 3 s to the engine and the engine committed 1 s:
-        // the other 2 s are still waiting (in a queue or in the engine).
-        perf.streamed_samples = 3 * 16_000;
-        perf.latest_audio_committed_ms = 1_000;
-        assert_eq!(perf.backlog_ms(), 2_000);
+        // Three seconds handed to the engine, none answered yet.
+        perf.record_feed(16_000);
+        perf.record_feed(16_000);
+        perf.record_feed(16_000);
+        assert_eq!(perf.pending_ms(), 3_000);
 
-        // The engine's own buffered audio is the other measure: the larger
-        // of the two wins.
-        perf.latest_buffered_ms = 900;
-        assert_eq!(perf.backlog_ms(), 2_000);
-        perf.latest_buffered_ms = 2_500;
-        assert_eq!(perf.backlog_ms(), 2_500);
+        // The engine answers one frame: a second is decoded.
+        perf.record_ack();
+        assert_eq!(perf.pending_ms(), 2_000);
+        perf.record_ack();
+        assert_eq!(perf.pending_ms(), 1_000);
+        perf.record_ack();
+        assert_eq!(perf.pending_ms(), 0);
     }
 
     #[test]
-    fn the_backlog_is_never_negative() {
+    fn the_pending_audio_is_never_negative() {
         let mut perf = StreamPerf::new();
-        perf.latest_buffered_ms = -50;
-        perf.latest_audio_committed_ms = 4_000;
-        assert_eq!(perf.backlog_ms(), 0);
+        // More answers than frames (a stream that started elsewhere).
+        perf.record_ack();
+        perf.record_feed(16_000);
+        assert_eq!(perf.pending_ms(), 1_000);
+    }
+
+    /// The engine's own number is the encoder's progress, which runs ahead
+    /// of the decoder: it is kept apart, not mixed into the pending audio.
+    #[test]
+    fn the_engine_measure_is_the_encoders_progress() {
+        let mut perf = StreamPerf::new();
+        perf.latest_input_received_ms = 5_000;
+        perf.latest_audio_committed_ms = 4_500;
+        perf.latest_buffered_ms = 900;
+        // The engine says 900 ms; the app has fed nothing, so the app's
+        // pending audio is still zero.
+        assert_eq!(perf.engine_backlog_ms(), 900);
+        assert_eq!(perf.pending_ms(), 0);
     }
 
     #[test]

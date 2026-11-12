@@ -162,7 +162,9 @@ impl<'a> StreamSession<'a> {
                 let mut perf = lock_perf(&perf);
                 perf.record_compute(progress.elapsed);
                 perf.record_update(&progress.update);
-                backlog_slot.store(perf.backlog_ms(), Ordering::Relaxed);
+                // The engine answered this feed: that audio is decoded.
+                perf.record_ack();
+                backlog_slot.store(perf.pending_ms(), Ordering::Relaxed);
                 if let Some(text) = progress.text {
                     perf.record_emit();
                     let (committed, tentative) =
@@ -227,14 +229,48 @@ impl<'a> StreamSession<'a> {
         // there is almost nothing left for it to finish. Nothing is
         // discarded either way, and the text that comes out is the complete
         // text, never a partial one.
-        let backlog = lock_perf(&self.perf).backlog_ms();
+        let (backlog, stream_estimate, batch_estimate, engine_backlog, speed) = {
+            let perf = lock_perf(&self.perf);
+            // The capture is 16 kHz: 16 samples are a millisecond.
+            let recorded_ms = (recorded_samples / 16) as i64;
+            (
+                perf.pending_ms(),
+                perf.estimated_stream_ms(),
+                perf.estimated_batch_ms(recorded_ms),
+                perf.engine_backlog_ms(),
+                perf.speed(),
+            )
+        };
         let limit = super::stream_backlog_limit_ms();
         // The capture is 16 kHz: 16 samples are a millisecond.
         let recorded_ms = (recorded_samples / 16) as i64;
+        // A frame left out of the queue (the pending audio was over the
+        // bound) means the stream's text does not cover the recording: the
+        // full transcription has to do it.
+        if self.stream.incomplete() {
+            warn!(
+                "The stream left {} ms of audio out of the queue; completing the recording in one pass",
+                recorded_ms
+            );
+            self.tm.emit_stream_working(StreamWorkKind::CatchingUp);
+            return Ok(None);
+        }
         // Published whatever the decision is: it is the measure of how far
         // behind the recognition was when the user let go, and the cancel
         // path reads it.
         self.tm.publish_stream_backlog(backlog);
+        // The estimates go to the log with the decision: the speed the engine
+        // is achieving, what finishing the stream would cost and what a full
+        // transcription would cost, at that speed.
+        info!(
+            "The live stream is {} ms behind of {} ms recorded (engine says {} ms, speed {:.2}x, finishing the stream ~{} ms, a full transcription ~{} ms)",
+            backlog,
+            recorded_ms,
+            engine_backlog,
+            speed,
+            stream_estimate,
+            batch_estimate
+        );
         if super::stream_needs_catch_up(
             backlog,
             limit,
