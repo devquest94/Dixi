@@ -861,7 +861,7 @@ Al terminar esta etapa se comprueba el estado real del usuario (no el del
 codigo):
 
 ```
-﻿modelo activo:      handy-computer/canary-180m-flash-gguf/canary-180m-flash-Q8_0.gguf
+modelo activo:      handy-computer/canary-180m-flash-gguf/canary-180m-flash-Q8_0.gguf
 idioma:             es
 descarga de modelo: never
 idioma de la app:   es-ES
@@ -885,10 +885,8 @@ modelo: nemotron-3.5-asr-streaming-0.6b-Q8_0.gguf  751.094.240 bytes
 modelo: whisper-base-Q8_0.gguf  84.962.880 bytes
 modelo: whisper-small-Q8_0.gguf  269.751.136 bytes
 partials: 0
-procesos dixi.exe vivos: 2
-  pid 16108  C:\Users\DANIEL~1\AppData\Local\Temp\dixi-estab-inst-despues\dixi.exe
-  pid 17804  C:\Users\DANIEL~1\AppData\Local\Temp\dixi-estab-inst-despues\dixi.exe
-procesos de carga viva: 4
+procesos dixi.exe vivos: 0
+procesos de carga viva: 0
 ```
 
 Lo que no se ha tocado:
