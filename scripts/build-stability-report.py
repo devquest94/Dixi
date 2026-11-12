@@ -297,6 +297,7 @@ def main():
     parser.add_argument("--antes", required=True)
     parser.add_argument("--despues", required=True)
     parser.add_argument("--cancelacion", default="")
+    parser.add_argument("--integridad-pasada", default="")
     parser.add_argument("--moderada-antes", default="")
     parser.add_argument("--moderada-despues", default="")
     parser.add_argument("--alta-antes", default="")
@@ -339,6 +340,9 @@ def main():
         "POR-GRABACION": table_per_audio(antes, despues),
         "RUTAS-DESPUES": table_paths(despues),
         "INTEGRIDAD": table_integrity(antes, despues),
+        "INTEGRIDAD-PASADA": table_integrity(
+            optional(args.moderada_antes), optional(args.integridad_pasada)
+        ),
         "CANCELACION": table_cancel(cancel),
         "COMMITS": table_commits(args.repo),
         "ESTADO-USUARIO": table_user_state(args.estado_usuario),

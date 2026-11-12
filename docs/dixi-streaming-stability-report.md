@@ -458,11 +458,30 @@ capturado se perdia en silencio.
 | V6.wav | 68 | 68 | 0 | 0 | 0 | si |
 | V7.wav | 104 | 104 | 0 | 0 | 0 | si |
 
-La comparacion es entre **el mismo audio con dos rutas**: la ruta en vivo (la
-que el motor finaliza el stream) y la pasada completa (la que se usa cuando
-la maquina no da abasto). Las columnas de "omitidas" y "anadidas" son
-palabras que aparecen en un texto y no en el otro; "repeticiones" son
-palabras repetidas seguidas, la firma de un fragmento duplicado.
+Esta primera comparacion es del **mismo audio con el binario de antes y el de
+despues**, ambos por la ruta en vivo: comprueba que el cambio no altera el
+texto reconocido.
+
+La comparacion que de verdad importa es la de **las dos rutas sobre el mismo
+audio con la misma carga**: la ruta en vivo (la que motor finaliza el stream)
+y la pasada completa (la que se usa cuando la maquina no da abasto). Con
+carga moderada, el binario de antes ($antes-moderada, ruta en vivo) y el de
+despues ($despues2-moderada, ruta de pasada completa en 13 de sus 14
+corridas):
+
+| Audio | palabras antes | palabras despues | omitidas | anadidas | repeticiones | texto identico |
+|---|---|---|---|---|---|---|
+| V1.wav | 8 | 8 | 0 | 0 | 0 | si |
+| V2.wav | 16 | 16 | 0 | 0 | 0 | si |
+| V3.wav | 40 | 40 | 0 | 0 | 0 | si |
+| V4.wav | 38 | 38 | 0 | 0 | 0 | si |
+| V5.wav | 56 | 56 | 0 | 0 | 0 | si |
+| V6.wav | 68 | 68 | 0 | 0 | 0 | si |
+| V7.wav | 104 | 104 | 0 | 0 | 0 | si |
+
+Las columnas de "omitidas" y "anadidas" son palabras que aparecen en un
+texto y no en el otro; "repeticiones" son palabras repetidas seguidas, la
+firma de un fragmento duplicado.
 
 El texto de las siete grabaciones es contenido privado del usuario: se
 midio en ficheros temporales y **no queda en este documento**.
