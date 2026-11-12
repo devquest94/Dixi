@@ -58,6 +58,12 @@ pub struct CliArgs {
     #[arg(long)]
     pub fast_feed: bool,
 
+    /// Cancel the live transcription this many milliseconds after the
+    /// release, the way the user's cancel shortcut does. Development only:
+    /// it measures what a cancellation with pending audio costs.
+    #[arg(long, value_name = "MS")]
+    pub cancel_after_ms: Option<u64>,
+
     /// Model id to load for --transcribe-file (default: the selected model).
     #[arg(long)]
     pub model: Option<String>,

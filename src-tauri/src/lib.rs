@@ -598,6 +598,7 @@ fn run_headless_transcription(app: &AppHandle, args: &CliArgs) -> i32 {
             args.device_index,
             args.repeat.unwrap_or(1),
             !args.fast_feed,
+            args.cancel_after_ms,
         );
     }
 

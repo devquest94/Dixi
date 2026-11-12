@@ -47,6 +47,7 @@ pub fn run(
     device_index: Option<usize>,
     repeat: usize,
     realtime: bool,
+    cancel_after_ms: Option<u64>,
 ) -> i32 {
     // The same format the app records: 16 kHz mono 16-bit PCM. Anything else
     // would be timed and decoded as garbage.
@@ -121,15 +122,53 @@ pub fn run(
         let release_at = Instant::now();
         latency::begin_at(release_at);
 
+        // The explicit cancellation, the way the user's cancel shortcut does
+        // it: N ms after the release the engine is stopped. It measures what
+        // a cancellation with pending audio costs, and that it is prompt
+        // instead of waiting for the whole pending audio to be decoded.
+        //
+        // The flag is cleared as soon as the transcription ends, so a cancel
+        // that arrives late does not stop the NEXT run's worker.
+        let finished = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let cancel_handle = cancel_after_ms.map(|ms| {
+            let tm = Arc::clone(&tm);
+            let finished = Arc::clone(&finished);
+            std::thread::spawn(move || {
+                std::thread::sleep(Duration::from_millis(ms));
+                if finished.load(std::sync::atomic::Ordering::Acquire) {
+                    return;
+                }
+                tm.cancel_transcription();
+            })
+        });
+
         let finalize_started = Instant::now();
+        let mut cancelled = false;
         match tm.transcribe_recording(samples.clone()) {
             Ok(out) => text = out,
             Err(e) => {
-                eprintln!("error: live transcription failed: {}", e);
-                return 1;
+                // A cancellation is not a failure: it is the scenario being
+                // measured. Anything else is a real error.
+                let is_cancel = e
+                    .downcast_ref::<crate::engine_supervisor::EngineError>()
+                    .is_some_and(|err| matches!(err, crate::engine_supervisor::EngineError::Cancelled));
+                if !is_cancel {
+                    eprintln!("error: live transcription failed: {}", e);
+                    return 1;
+                }
+                cancelled = true;
             }
         }
+        finished.store(true, std::sync::atomic::Ordering::Release);
+        if let Some(handle) = cancel_handle {
+            let _ = handle.join();
+        }
         let post_release_ms = finalize_started.elapsed().as_millis() as u64;
+        // How far behind the recognition was when the user let go: the audio
+        // that was captured and not yet recognized. The manager publishes it
+        // when the stream is finalized (or abandoned), so it is the measure
+        // of the queue the app had to drain.
+        let backlog_ms = tm.stream_backlog_ms();
 
         let stages = latency::snapshot().map(|trace| trace.to_json());
         let chunks = latency::chunks();
@@ -180,7 +219,17 @@ pub fn run(
             "decoded_secs_while_recording": (decoded_secs * 1000.0).round() / 1000.0,
             "pending_secs_at_release": ((audio_secs - decoded_secs) * 1000.0).round() / 1000.0,
             "last_chunk_ms": last_chunk_ms,
+            "cancelled": cancelled,
+            "cancel_after_ms": cancel_after_ms,
+            "backlog_ms_at_release": backlog_ms,
         }));
+
+        // A cancelled run leaves the engine without a worker: the next one
+        // starts fresh. Stopping here keeps the cancellation from leaking
+        // into the following run.
+        if cancelled {
+            break;
+        }
 
         std::thread::sleep(RUN_GAP);
     }
