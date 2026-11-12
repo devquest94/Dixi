@@ -100,6 +100,10 @@ pub enum StreamWorkKind {
 /// Overridable for calibration: `DIXI_STREAM_BACKLOG_LIMIT_MS`.
 pub const DEFAULT_STREAM_BACKLOG_LIMIT_MS: i64 = 2_000;
 
+/// The fraction of the recording that has to be pending for the one-pass
+/// completion to pay off. Overridable: `DIXI_STREAM_BACKLOG_MIN_FRACTION`.
+pub const DEFAULT_STREAM_BACKLOG_MIN_FRACTION: f64 = 0.5;
+
 /// The pending-audio limit in force, in milliseconds.
 pub fn stream_backlog_limit_ms() -> i64 {
     static LIMIT: std::sync::OnceLock<i64> = std::sync::OnceLock::new();
@@ -118,14 +122,49 @@ fn parse_backlog_limit(raw: Option<String>) -> i64 {
         .unwrap_or(DEFAULT_STREAM_BACKLOG_LIMIT_MS)
 }
 
-/// Whether the live stream is too far behind for the engine's own finalize.
+/// The fraction of the recording that has to be pending for completing it in
+/// one pass to pay off.
 ///
-/// Above the limit the native puts ALL the pending audio in ONE fragment and
-/// the attention over that fragment is quadratic in it, so the finalize's
-/// cost explodes exactly when the machine is already saturated. The batch
-/// pass over the complete recording is linear and bounded.
-fn stream_needs_catch_up(backlog_ms: i64, limit_ms: i64) -> bool {
-    backlog_ms > limit_ms
+/// The one-pass completion decodes the WHOLE recording again, so it only
+/// beats finishing the stream when the stream has effectively lost the race
+/// and there is almost nothing left to finish. With a small backlog the
+/// stream still has only its tail to decode, which is much less work.
+///
+/// Overridable for calibration: `DIXI_STREAM_BACKLOG_MIN_FRACTION`.
+pub fn stream_backlog_min_fraction() -> f64 {
+    static FRACTION: std::sync::OnceLock<f64> = std::sync::OnceLock::new();
+    *FRACTION.get_or_init(|| {
+        std::env::var("DIXI_STREAM_BACKLOG_MIN_FRACTION")
+            .ok()
+            .and_then(|v| v.trim().parse::<f64>().ok())
+            .filter(|v| *v > 0.0 && *v <= 1.0)
+            .unwrap_or(DEFAULT_STREAM_BACKLOG_MIN_FRACTION)
+    })
+}
+
+/// Whether the recording is completed in one pass instead of finalizing the
+/// stream.
+///
+/// Two conditions, and both are needed:
+///
+/// - The pending audio is over the limit: the machine is not keeping up.
+/// - The pending audio is most of the recording: the one-pass completion
+///   decodes everything again, so it only pays off when there is almost
+///   nothing left for the stream to finish.
+pub fn stream_needs_catch_up(
+    backlog_ms: i64,
+    limit_ms: i64,
+    recorded_ms: i64,
+    min_fraction: f64,
+) -> bool {
+    if backlog_ms <= limit_ms {
+        return false;
+    }
+    if recorded_ms <= 0 {
+        // The recording's length is unknown: the limit alone decides.
+        return true;
+    }
+    backlog_ms as f64 >= recorded_ms as f64 * min_fraction
 }
 
 /// Emitted to switch the streaming overlay to a working spinner.
@@ -2608,11 +2647,25 @@ mod tests {
     }
 
     #[test]
-    fn the_catch_up_starts_above_the_limit() {
+    fn the_catch_up_needs_the_limit_and_most_of_the_recording() {
         let limit = DEFAULT_STREAM_BACKLOG_LIMIT_MS;
-        assert!(!stream_needs_catch_up(limit - 1, limit));
-        assert!(!stream_needs_catch_up(limit, limit));
-        assert!(stream_needs_catch_up(limit + 1, limit));
+        let fraction = DEFAULT_STREAM_BACKLOG_MIN_FRACTION;
+        // A recording of 10 s.
+        let recorded = 10_000;
+
+        // Over the limit but only a tenth of the recording: the stream still
+        // has its tail to finish, which is much less work than decoding the
+        // whole recording again.
+        assert!(!stream_needs_catch_up(3_000, limit, recorded, fraction));
+        // Over the limit and most of the recording: the one-pass completion
+        // pays off.
+        assert!(stream_needs_catch_up(6_000, limit, recorded, fraction));
+        // Under the limit: never, however much is pending.
+        assert!(!stream_needs_catch_up(limit, limit, recorded, fraction));
+        assert!(!stream_needs_catch_up(limit - 1, limit, recorded, fraction));
+        // An unknown recording length: the limit alone decides.
+        assert!(stream_needs_catch_up(limit + 1, limit, 0, fraction));
+        assert!(!stream_needs_catch_up(limit, limit, 0, fraction));
     }
 }
 

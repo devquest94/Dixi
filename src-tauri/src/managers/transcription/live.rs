@@ -81,7 +81,7 @@ impl<'a> LiveSession<'a> {
     /// `recorded_samples` is the whole recording's length.
     pub(super) fn finish(self, recorded_samples: usize) -> StreamFinalizeReply {
         let decoded = match self.decoder {
-            LiveDecoder::Stream(stream) => stream.finish()?,
+            LiveDecoder::Stream(stream) => stream.finish(recorded_samples)?,
             LiveDecoder::Chunked(chunks) => finish_chunks(*chunks, recorded_samples)?,
         };
         Ok(decoded.map(|(text, model_detected_language)| RunOutcome {
@@ -213,30 +213,37 @@ impl<'a> StreamSession<'a> {
         self.stream.feed(pcm);
     }
 
-    fn finish(self) -> Result<Option<Decoded>, EngineError> {
+    fn finish(self, recorded_samples: usize) -> Result<Option<Decoded>, EngineError> {
         // How far behind the recognition is.
         //
         // The engine's finalize puts everything that is still buffered into
         // ONE fragment, and the attention over that fragment is quadratic in
         // it. Worse, the finalize is queued BEHIND every pending feed, so on
         // a saturated machine the wait is mostly the queue draining first.
-        // The batch pass over the complete original recording is linear,
-        // processes every sample, and its cost is predictable.
         //
-        // So above the limit the stream is not finalized: the caller
-        // completes the recording in batch over the whole audio. Nothing is
-        // discarded, and the text that comes out is the complete text, never
-        // a partial one.
+        // The one-pass completion over the complete original recording is
+        // linear and processes every sample, but it decodes EVERYTHING again:
+        // it only pays off when the stream has effectively lost the race and
+        // there is almost nothing left for it to finish. Nothing is
+        // discarded either way, and the text that comes out is the complete
+        // text, never a partial one.
         let backlog = lock_perf(&self.perf).backlog_ms();
         let limit = super::stream_backlog_limit_ms();
+        // The capture is 16 kHz: 16 samples are a millisecond.
+        let recorded_ms = (recorded_samples / 16) as i64;
         // Published whatever the decision is: it is the measure of how far
         // behind the recognition was when the user let go, and the cancel
         // path reads it.
         self.tm.publish_stream_backlog(backlog);
-        if super::stream_needs_catch_up(backlog, limit) {
+        if super::stream_needs_catch_up(
+            backlog,
+            limit,
+            recorded_ms,
+            super::stream_backlog_min_fraction(),
+        ) {
             warn!(
-                "The live stream is {} ms behind (limit {} ms); completing the recording in one pass",
-                backlog, limit
+                "The live stream is {} ms behind of {} ms recorded (limit {} ms); completing the recording in one pass",
+                backlog, recorded_ms, limit
             );
             // The user is told what is happening: the machine could not keep
             // up and Dixi is finishing the recording.
