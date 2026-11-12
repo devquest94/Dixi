@@ -1167,7 +1167,8 @@
   "overlay": {
     "transcribing": "מתמלל...",
     "processing": "מעבד...",
-    "loadingModel": "טוען מודל..."
+    "loadingModel": "טוען מודל...",
+    "catchingUp": "מסיים את ההקלטה..."
   },
   "whatsNew": {
     "title": "חדש ב-Dixi v{{version}}"

@@ -1167,7 +1167,8 @@
   "overlay": {
     "transcribing": "正在轉錄...",
     "processing": "處理中...",
-    "loadingModel": "正在載入模型..."
+    "loadingModel": "正在載入模型...",
+    "catchingUp": "正在完成錄音..."
   },
   "whatsNew": {
     "title": "Dixi v{{version}} 新功能"

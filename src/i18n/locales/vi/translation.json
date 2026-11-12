@@ -1167,7 +1167,8 @@
   "overlay": {
     "transcribing": "Đang chuyển đổi...",
     "processing": "Đang xử lý...",
-    "loadingModel": "Đang tải mô hình..."
+    "loadingModel": "Đang tải mô hình...",
+    "catchingUp": "Đang hoàn tất bản ghi..."
   },
   "whatsNew": {
     "title": "Điểm mới trong Dixi v{{version}}"

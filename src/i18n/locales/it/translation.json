@@ -1167,7 +1167,8 @@
   "overlay": {
     "transcribing": "Trascrizione...",
     "processing": "Elaborazione...",
-    "loadingModel": "Caricamento del modello..."
+    "loadingModel": "Caricamento del modello...",
+    "catchingUp": "Completamento della registrazione..."
   },
   "whatsNew": {
     "title": "Novità in Dixi v{{version}}"

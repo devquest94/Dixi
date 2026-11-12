@@ -1167,7 +1167,8 @@
   "overlay": {
     "transcribing": "Přepisuji...",
     "processing": "Zpracovávám...",
-    "loadingModel": "Načítání modelu..."
+    "loadingModel": "Načítání modelu...",
+    "catchingUp": "Dokončování nahrávání..."
   },
   "whatsNew": {
     "title": "Novinky v Dixi v{{version}}"

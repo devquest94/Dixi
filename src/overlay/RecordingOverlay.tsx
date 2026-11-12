@@ -334,9 +334,11 @@ const RecordingOverlay: React.FC = () => {
           </div>
           {working
             ? workingRow(
-                workKind === "polishing"
-                  ? t("overlay.processing")
-                  : transcribingLabel,
+                workKind === "catchingup"
+                  ? t("overlay.catchingUp")
+                  : workKind === "polishing"
+                    ? t("overlay.processing")
+                    : transcribingLabel,
                 true,
               )
             : listeningRow(open, true)}

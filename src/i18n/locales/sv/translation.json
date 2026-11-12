@@ -1167,7 +1167,8 @@
   "overlay": {
     "transcribing": "Transkriberar...",
     "processing": "Bearbetar...",
-    "loadingModel": "Laddar modell..."
+    "loadingModel": "Laddar modell...",
+    "catchingUp": "Slutför inspelningen..."
   },
   "whatsNew": {
     "title": "Nytt i Dixi v{{version}}"

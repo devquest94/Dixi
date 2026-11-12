@@ -2774,7 +2774,12 @@ export type StreamTextEvent = { committed: string; tentative: string }
 /**
  * Semantic kind of "working" phase, used to localize the spinner label.
  */
-export type StreamWorkKind = "transcribing" | "polishing"
+export type StreamWorkKind = "transcribing" | "polishing" | 
+/**
+ * The machine could not keep up with the speech: the recording is being
+ * completed in one pass over the whole audio.
+ */
+"catchingup"
 /**
  * A word-level diff, ready to be shown.
  */

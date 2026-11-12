@@ -1167,7 +1167,8 @@
   "overlay": {
     "transcribing": "جاري التفريغ...",
     "processing": "جاري المعالجة...",
-    "loadingModel": "جارٍ تحميل النموذج..."
+    "loadingModel": "جارٍ تحميل النموذج...",
+    "catchingUp": "جارٍ إنهاء التسجيل..."
   },
   "whatsNew": {
     "title": "الجديد في Dixi v{{version}}"

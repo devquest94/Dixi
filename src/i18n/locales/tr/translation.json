@@ -1167,7 +1167,8 @@
   "overlay": {
     "transcribing": "Transkribe ediliyor...",
     "processing": "İşleniyor...",
-    "loadingModel": "Model yükleniyor..."
+    "loadingModel": "Model yükleniyor...",
+    "catchingUp": "Kayıt tamamlanıyor..."
   },
   "whatsNew": {
     "title": "Dixi v{{version}} yenilikleri"
