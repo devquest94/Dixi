@@ -47,6 +47,16 @@ const SHUTDOWN_GRACE: Duration = Duration::from_secs(2);
 const STDERR_TAIL_LINES: usize = 64;
 const SAMPLE_RATE: f64 = 16_000.0;
 
+/// The most pending audio the supervisor accepts for a live stream.
+///
+/// The feeds are queued without waiting, so on a saturated machine the queue
+/// would grow with the length of the recording. Past this bound the frame is
+/// not queued and the stream is marked incomplete: the caller then finishes
+/// the recording with the full transcription, which covers every sample
+/// (the WAV holds them all), so the text is complete and the memory stops
+/// growing.
+const MAX_PENDING_FEED_SAMPLES: u64 = 120 * 16_000;
+
 /// How long decoding work may take before its worker counts as hung, by the
 /// device the model runs on. On a GPU a hang is recovered from (retried on
 /// CPU), so it should be caught soon. On CPU a hang is never retried, so the
@@ -446,11 +456,14 @@ impl EngineSupervisor {
         // stops its feeds and its finalize.
         let epoch = self.shared.epoch();
         let closed = Arc::new(AtomicBool::new(false));
+        let incomplete = Arc::new(AtomicBool::new(false));
+        let pending_samples = Arc::new(AtomicU64::new(0));
         self.ask(|reply| Command::StreamBegin {
             active: ActiveStream {
                 id,
                 epoch,
                 closed: Arc::clone(&closed),
+                pending_samples: Arc::clone(&pending_samples),
                 on_progress: Box::new(on_progress),
                 pending_ms: 0,
             },
@@ -463,6 +476,8 @@ impl EngineSupervisor {
             id,
             epoch,
             closed,
+            incomplete,
+            pending_samples,
             commands: self.commands.clone(),
             finished: false,
         })
@@ -518,13 +533,43 @@ pub struct StreamHandle {
     epoch: u64,
     /// Set when the handle is dropped; shared with the owner.
     closed: Arc<AtomicBool>,
+    /// Set when a frame could not be queued because the pending audio was
+    /// over the bound; shared with the owner.
+    incomplete: Arc<AtomicBool>,
+    /// The pending audio in the queue, in samples; shared with the owner.
+    pending_samples: Arc<AtomicU64>,
     commands: mpsc::Sender<Command>,
     finished: bool,
 }
 
 impl StreamHandle {
+    /// Hands a frame to the engine.
+    ///
+    /// The queue of pending audio is bounded. Past the bound the frame is
+    /// not queued and the stream is marked incomplete: the caller finishes
+    /// the recording with the full transcription instead, so no sample is
+    /// missing from the text and the memory stops growing.
     pub fn feed(&self, pcm: Vec<f32>) {
-        let _ = self.commands.send(Command::Feed { id: self.id, pcm });
+        let samples = pcm.len() as u64;
+        let pending = self.pending_samples.fetch_add(samples, Ordering::AcqRel) + samples;
+        if pending > MAX_PENDING_FEED_SAMPLES {
+            self.pending_samples.fetch_sub(samples, Ordering::AcqRel);
+            self.incomplete.store(true, Ordering::Release);
+            warn!(
+                "The stream's pending audio is over the bound ({} ms); the frame is not queued",
+                pending * 1000 / 16_000
+            );
+            return;
+        }
+        if self.commands.send(Command::Feed { id: self.id, pcm }).is_err() {
+            self.pending_samples.fetch_sub(samples, Ordering::AcqRel);
+        }
+    }
+
+    /// Whether a frame was left out of the queue because the pending audio
+    /// was over the bound. The stream's text does not cover the recording.
+    pub fn incomplete(&self) -> bool {
+        self.incomplete.load(Ordering::Acquire)
     }
 
     /// Flush the stream and return its final text. `Ok(None)` if the stream
@@ -621,6 +666,8 @@ struct ActiveStream {
     epoch: u64,
     /// Set when the caller drops its handle.
     closed: Arc<AtomicBool>,
+    /// The pending audio in the queue, in samples.
+    pending_samples: Arc<AtomicU64>,
     on_progress: OnProgress,
     /// Audio received but not yet committed, which finalize must still
     /// decode; sizes the feed and finalize deadlines.
@@ -955,6 +1002,11 @@ impl Owner {
         let Some(stream) = self.stream.as_ref().filter(|s| s.id == id) else {
             return;
         };
+        // The frame leaves the queue: the pending audio goes down whatever
+        // happens with the decode.
+        stream
+            .pending_samples
+            .fetch_sub(pcm.len() as u64, Ordering::AcqRel);
         // Skipped once the caller dropped its handle or cancelled.
         if stream.closed.load(Ordering::Acquire)
             || self.shared.cancelled_since(stream.epoch)
