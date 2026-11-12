@@ -4,14 +4,15 @@
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
 
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use transcribe_cpp::StreamOptions;
 
 use super::chunked::ChunkedDecode;
 use super::policy::LiveDecode;
 use super::{
     effective_language_for_model, emit_stream_text, join_chunks, lock_perf, run_setup,
-    PreviewScript, RunOutcome, RunSetup, StreamFinalizeReply, StreamPerf, TranscriptionManager,
+    PreviewScript, RunOutcome, RunSetup, StreamFinalizeReply, StreamPerf, StreamWorkKind,
+    TranscriptionManager,
 };
 use crate::audio_toolkit::OutputLanguageEvidence;
 use crate::engine_supervisor::{EngineError, LoadedInfo, StreamHandle, StreamProgress};
@@ -152,12 +153,16 @@ impl<'a> StreamSession<'a> {
         let on_progress = {
             let perf = Arc::clone(&perf);
             let app_handle = tm.app_handle.clone();
+            // Where the pending audio is published, so the cancel path can see
+            // how far behind the recognition was.
+            let backlog_slot = Arc::clone(&tm.stream_backlog_ms);
             let languages = setup.languages.clone();
             let mut preview_script = PreviewScript::new(settings.chinese_script, &output_language);
             move |progress: StreamProgress| {
                 let mut perf = lock_perf(&perf);
                 perf.record_compute(progress.elapsed);
                 perf.record_update(&progress.update);
+                backlog_slot.store(perf.backlog_ms(), Ordering::Relaxed);
                 if let Some(text) = progress.text {
                     perf.record_emit();
                     let (committed, tentative) =
@@ -187,6 +192,9 @@ impl<'a> StreamSession<'a> {
         };
 
         tm.stream_active.store(true, Ordering::Release);
+        // A new session starts with nothing pending: the previous session's
+        // backlog must never be read as this one's.
+        tm.publish_stream_backlog(0);
         info!(
             "Live streaming transcription started (model '{}', backend '{}')",
             model_id, info.backend
@@ -206,6 +214,35 @@ impl<'a> StreamSession<'a> {
     }
 
     fn finish(self) -> Result<Option<Decoded>, EngineError> {
+        // How far behind the recognition is.
+        //
+        // The engine's finalize puts everything that is still buffered into
+        // ONE fragment, and the attention over that fragment is quadratic in
+        // it. Worse, the finalize is queued BEHIND every pending feed, so on
+        // a saturated machine the wait is mostly the queue draining first.
+        // The batch pass over the complete original recording is linear,
+        // processes every sample, and its cost is predictable.
+        //
+        // So above the limit the stream is not finalized: the caller
+        // completes the recording in batch over the whole audio. Nothing is
+        // discarded, and the text that comes out is the complete text, never
+        // a partial one.
+        let backlog = lock_perf(&self.perf).backlog_ms();
+        let limit = super::stream_backlog_limit_ms();
+        // Published whatever the decision is: it is the measure of how far
+        // behind the recognition was when the user let go, and the cancel
+        // path reads it.
+        self.tm.publish_stream_backlog(backlog);
+        if super::stream_needs_catch_up(backlog, limit) {
+            warn!(
+                "The live stream is {} ms behind (limit {} ms); completing the recording in one pass",
+                backlog, limit
+            );
+            // The user is told what is happening: the machine could not keep
+            // up and Dixi is finishing the recording.
+            self.tm.emit_stream_working(StreamWorkKind::CatchingUp);
+            return Ok(None);
+        }
         let result = match self.stream.finalize(self.want_language) {
             // After finalize the committed prefix holds the full text;
             // display() = committed + tentative is the safe read.

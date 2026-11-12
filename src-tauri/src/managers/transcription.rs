@@ -24,7 +24,7 @@ use policy::{batch_decode, live_decode, BatchDecode, ModelTraits};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use std::panic::{catch_unwind, AssertUnwindSafe};
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU64, Ordering};
 use std::sync::{mpsc, Arc, Condvar, Mutex, MutexGuard};
 use std::thread;
 use std::time::{Duration, Instant, SystemTime};
@@ -83,6 +83,49 @@ pub enum StreamPhase {
 pub enum StreamWorkKind {
     Transcribing,
     Polishing,
+    /// The machine could not keep up with the speech: the recording is being
+    /// completed in one pass over the whole audio.
+    CatchingUp,
+}
+
+/// How much pending audio the live stream tolerates before the recording
+/// is completed in one pass instead.
+///
+/// Past this point the engine's own finalize stops being the cheapest way
+/// to finish: the native puts ALL the pending audio in ONE fragment, and
+/// the attention over that fragment is quadratic in it. The batch pass over
+/// the complete recording is linear, processes every sample, and its cost
+/// is predictable.
+///
+/// Overridable for calibration: `DIXI_STREAM_BACKLOG_LIMIT_MS`.
+pub const DEFAULT_STREAM_BACKLOG_LIMIT_MS: i64 = 2_000;
+
+/// The pending-audio limit in force, in milliseconds.
+pub fn stream_backlog_limit_ms() -> i64 {
+    static LIMIT: std::sync::OnceLock<i64> = std::sync::OnceLock::new();
+    *LIMIT.get_or_init(|| parse_backlog_limit(std::env::var("DIXI_STREAM_BACKLOG_LIMIT_MS").ok()))
+}
+
+/// Reads the limit from the environment.
+///
+/// A value that is not a positive number is ignored: a broken override must
+/// not turn into a limit of zero (which would catch up on every dictation)
+/// or a negative one (which would catch up on none).
+fn parse_backlog_limit(raw: Option<String>) -> i64 {
+    raw.as_deref()
+        .and_then(|v| v.trim().parse::<i64>().ok())
+        .filter(|v| *v > 0)
+        .unwrap_or(DEFAULT_STREAM_BACKLOG_LIMIT_MS)
+}
+
+/// Whether the live stream is too far behind for the engine's own finalize.
+///
+/// Above the limit the native puts ALL the pending audio in ONE fragment and
+/// the attention over that fragment is quadratic in it, so the finalize's
+/// cost explodes exactly when the machine is already saturated. The batch
+/// pass over the complete recording is linear and bounded.
+fn stream_needs_catch_up(backlog_ms: i64, limit_ms: i64) -> bool {
+    backlog_ms > limit_ms
 }
 
 /// Emitted to switch the streaming overlay to a working spinner.
@@ -256,6 +299,11 @@ pub struct TranscriptionManager {
     /// True only while a transcribe-cpp stream is actually in flight (set by
     /// the worker once the stream begins). Used for overlay/UI decisions.
     stream_active: Arc<AtomicBool>,
+    /// How far behind the live recognition is, in milliseconds of audio: what
+    /// the app has handed to the engine and the engine has not committed yet.
+    /// Published by the stream's progress callback so the cancel path can
+    /// see it.
+    stream_backlog_ms: Arc<AtomicI64>,
     /// Streaming uses three independent flags: router open = frames should
     /// route, worker active = no second worker may start, stream active = UI
     /// should show a live session.
@@ -283,6 +331,7 @@ impl TranscriptionManager {
             reload_model_on_next_use: Arc::new(AtomicBool::new(false)),
             router: Arc::new(StreamRouter::new()),
             stream_active: Arc::new(AtomicBool::new(false)),
+            stream_backlog_ms: Arc::new(AtomicI64::new(0)),
             next_stream_worker_id: Arc::new(AtomicU64::new(1)),
             active_stream_worker: Arc::new(AtomicU64::new(0)),
         };
@@ -710,6 +759,21 @@ impl TranscriptionManager {
     /// Whether a live streaming run is currently in flight.
     pub fn is_streaming(&self) -> bool {
         self.stream_active.load(Ordering::Acquire)
+    }
+
+    /// How far behind the live recognition was, in milliseconds of audio.
+    ///
+    /// Measured when the user let go of the shortcut: it counts the audio
+    /// that waits in the queues as well as the audio the engine keeps
+    /// buffered. This is the measure of whether the machine is keeping up
+    /// with the speech.
+    pub fn stream_backlog_ms(&self) -> i64 {
+        self.stream_backlog_ms.load(Ordering::Relaxed)
+    }
+
+    /// Publish how far behind the live recognition is.
+    pub(crate) fn publish_stream_backlog(&self, backlog_ms: i64) {
+        self.stream_backlog_ms.store(backlog_ms, Ordering::Relaxed);
     }
 
     /// Shared handle to the stream router, used by the audio recorder to feed
@@ -1422,6 +1486,26 @@ impl StreamPerf {
         self.latest_input_received_ms = update.input_received_ms;
         self.latest_audio_committed_ms = update.audio_committed_ms;
         self.latest_buffered_ms = update.buffered_ms;
+    }
+
+    /// How much captured audio has not been recognized yet.
+    ///
+    /// The measure is the app's own: the audio it handed to the engine minus
+    /// the audio the engine has committed. The difference is what still waits
+    /// in the queues (the transcription manager's channel and the supervisor's)
+    /// plus what the engine keeps buffered.
+    ///
+    /// The engine's own numbers do not see the queues: it only knows the
+    /// audio it already received, and the app queues the rest while the
+    /// engine is busy. Measuring only the engine's buffer would report a
+    /// healthy machine right when the recording is about to be stuck.
+    fn backlog_ms(&self) -> i64 {
+        // The capture is 16 kHz: 16 samples are a millisecond.
+        let fed_ms = (self.streamed_samples / 16) as i64;
+        fed_ms
+            .saturating_sub(self.latest_audio_committed_ms)
+            .max(self.latest_buffered_ms)
+            .max(0)
     }
 
     fn record_emit(&mut self) {
@@ -2470,6 +2554,65 @@ mod tests {
             &supported,
         );
         assert_eq!(corrected, "i use Dixi every day");
+    }
+
+    /// The pending audio is the app's own measure: what it handed to the
+    /// engine and the engine has not committed yet.
+    #[test]
+    fn the_backlog_counts_the_audio_that_waits_in_the_queues() {
+        let mut perf = StreamPerf::new();
+        assert_eq!(perf.backlog_ms(), 0);
+
+        // The app handed 3 s to the engine and the engine committed 1 s:
+        // the other 2 s are still waiting (in a queue or in the engine).
+        perf.streamed_samples = 3 * 16_000;
+        perf.latest_audio_committed_ms = 1_000;
+        assert_eq!(perf.backlog_ms(), 2_000);
+
+        // The engine's own buffered audio is the other measure: the larger
+        // of the two wins.
+        perf.latest_buffered_ms = 900;
+        assert_eq!(perf.backlog_ms(), 2_000);
+        perf.latest_buffered_ms = 2_500;
+        assert_eq!(perf.backlog_ms(), 2_500);
+    }
+
+    #[test]
+    fn the_backlog_is_never_negative() {
+        let mut perf = StreamPerf::new();
+        perf.latest_buffered_ms = -50;
+        perf.latest_audio_committed_ms = 4_000;
+        assert_eq!(perf.backlog_ms(), 0);
+    }
+
+    #[test]
+    fn a_broken_limit_override_falls_back_to_the_default() {
+        assert_eq!(parse_backlog_limit(None), DEFAULT_STREAM_BACKLOG_LIMIT_MS);
+        assert_eq!(
+            parse_backlog_limit(Some("  ".to_string())),
+            DEFAULT_STREAM_BACKLOG_LIMIT_MS
+        );
+        assert_eq!(
+            parse_backlog_limit(Some("abc".to_string())),
+            DEFAULT_STREAM_BACKLOG_LIMIT_MS
+        );
+        assert_eq!(
+            parse_backlog_limit(Some("0".to_string())),
+            DEFAULT_STREAM_BACKLOG_LIMIT_MS
+        );
+        assert_eq!(
+            parse_backlog_limit(Some("-5".to_string())),
+            DEFAULT_STREAM_BACKLOG_LIMIT_MS
+        );
+        assert_eq!(parse_backlog_limit(Some(" 1500 ".to_string())), 1_500);
+    }
+
+    #[test]
+    fn the_catch_up_starts_above_the_limit() {
+        let limit = DEFAULT_STREAM_BACKLOG_LIMIT_MS;
+        assert!(!stream_needs_catch_up(limit - 1, limit));
+        assert!(!stream_needs_catch_up(limit, limit));
+        assert!(stream_needs_catch_up(limit + 1, limit));
     }
 }
 
