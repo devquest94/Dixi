@@ -16,7 +16,7 @@ No se toco ninguna conexion de trabajo ni ninguna politica corporativa.
 
 ## Por que hace falta un control
 
-ElPegado remoto falla por una de estas dos razones, y son cosas distintas:
+El pegado remoto falla por una de estas dos razones, y son cosas distintas:
 
 1. **El canal de portapapeles del cliente remoto no transporta el texto.**
    Es un problema del cliente (mRemoteNG sobre RDP): no hay nada que arreglar

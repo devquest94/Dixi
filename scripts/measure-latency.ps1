@@ -249,6 +249,12 @@ foreach ($fixture in (Get-ChildItem $benchAudioDir -Filter '*.wav' | Sort-Object
     $asrMin = [int]::MaxValue
     $rulesMin = [int]::MaxValue
     $totalMin = [int]::MaxValue
+    # Ademas del minimo se guardan todos los valores por etapa: sin la
+    # distribucion no se puede afirmar nada sobre la latencia habitual, y el
+    # minimo de las repeticiones es el estimador menos ruidoso pero no el
+    # tipico.
+    $asrAll = @()
+    $totalAll = @()
     foreach ($run in @($data.runs)) {
         if (-not $run) { continue }
         $st = $run.stages
@@ -256,11 +262,17 @@ foreach ($fixture in (Get-ChildItem $benchAudioDir -Filter '*.wav' | Sort-Object
             if ([int]$st.asr -lt $asrMin) { $asrMin = [int]$st.asr }
             if ([int]$st.rules -lt $rulesMin) { $rulesMin = [int]$st.rules }
             if ([int]$run.total_ms -lt $totalMin) { $totalMin = [int]$run.total_ms }
+            $asrAll += [double]$st.asr
+            $totalAll += [double]$run.total_ms
         }
     }
     if ($asrMin -eq [int]::MaxValue) { $asrMin = 0 }
     if ($rulesMin -eq [int]::MaxValue) { $rulesMin = 0 }
     if ($totalMin -eq [int]::MaxValue) { $totalMin = 0 }
+    $asrP50 = [int](Get-Percentile -Values $asrAll -Percentile 50)
+    $asrP95 = [int](Get-Percentile -Values $asrAll -Percentile 95)
+    $totalP50 = [int](Get-Percentile -Values $totalAll -Percentile 50)
+    $totalP95 = [int](Get-Percentile -Values $totalAll -Percentile 95)
 
     $results += [pscustomobject]@{
         Fixture    = $fixture.Name
@@ -271,6 +283,10 @@ foreach ($fixture in (Get-ChildItem $benchAudioDir -Filter '*.wav' | Sort-Object
         BestMs     = [int]$data.best_ms
         Rtf        = [double]$data.rtf
         AsrMs      = $asrMin
+        AsrP50Ms   = $asrP50
+        AsrP95Ms   = $asrP95
+        TotalP50Ms = $totalP50
+        TotalP95Ms = $totalP95
         RulesMs    = $rulesMin
         TotalMs    = $totalMin
         Text       = $(if ($NoText) { '' } else { $data.text })
@@ -298,10 +314,13 @@ function Stat {
 
 $stats = @(
     Stat -Name 'Carga del modelo (ms)' -Selector { $_.LoadMs }
-    Stat -Name 'Inferencia ASR (ms)' -Selector { $_.AsrMs }
-    Stat -Name 'Mejor pasada (ms)' -Selector { $_.BestMs }
+    Stat -Name 'Inferencia ASR min (ms)' -Selector { $_.AsrMs }
+    Stat -Name 'Inferencia ASR p50 (ms)' -Selector { $_.AsrP50Ms }
+    Stat -Name 'Inferencia ASR p95 (ms)' -Selector { $_.AsrP95Ms }
+    Stat -Name 'Total trazado p50 (ms)' -Selector { $_.TotalP50Ms }
+    Stat -Name 'Total trazado p95 (ms)' -Selector { $_.TotalP95Ms }
     Stat -Name 'Reglas de texto (ms)' -Selector { $_.RulesMs }
-    Stat -Name 'Total trazado (ms)' -Selector { $_.TotalMs }
+    Stat -Name 'Total trazado min (ms)' -Selector { $_.TotalMs }
 )
 
 $audioTotal = ($results | Measure-Object -Property AudioSecs -Sum).Sum
@@ -318,7 +337,7 @@ $rows = foreach ($s in $stats) {
     "| $($s.Metrica) | $($s.Media) | $($s.P50) | $($s.P95) | $($s.Max) |"
 }
 $detail = foreach ($r in $results) {
-    "| $($r.Fixture) | $($r.AudioSecs) | $($r.LoadMs) | $($r.AsrMs) | $($r.RulesMs) | $($r.TotalMs) | $($r.Rtf) |"
+    "| $($r.Fixture) | $($r.AudioSecs) | $($r.LoadMs) | $($r.AsrMs) | $($r.AsrP50Ms) | $($r.AsrP95Ms) | $($r.TotalP50Ms) | $($r.TotalP95Ms) | $($r.Rtf) |"
 }
 
 @"
@@ -341,8 +360,8 @@ Factor de tiempo real global (audio total / inferencia total): **$rtfGlobal x**
 
 ## Detalle por audio
 
-| Audio | Audio (s) | Carga (ms) | ASR (ms) | Reglas (ms) | Total (ms) | RTF |
-|---|---|---|---|---|---|---|
+| Audio | Audio (s) | Carga (ms) | ASR min | ASR p50 | ASR p95 | Total p50 | Total p95 | RTF |
+|---|---|---|---|---|---|---|---|---|
 $($detail -join "`n")
 "@ | Set-Content -Path (Join-Path $OutDir 'informe.md') -Encoding UTF8
 
