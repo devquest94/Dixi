@@ -447,7 +447,7 @@ def main():
             continue
         # Una tabla sin datos no se escribe: se deja el marcador para que se
         # vea que falta la medicion, en vez de una tabla con guiones.
-        if "| - |" in body or not body.strip():
+        if "| - |" in body or "sin datos" in body or not body.strip():
             print(f"  sin datos: {name} (marcador intacto)")
             continue
         report = report.replace(marker, body)

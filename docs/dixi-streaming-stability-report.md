@@ -100,7 +100,31 @@ gestor de transcripcion tampoco da abasto, en la del enrutador). El motor no
 es el que se queda atrasado: es el que trabaja a la velocidad a la que le
 manda la cola.
 
-### 1.6 El plazo que permitia el cierre de 68 s
+### 1.6 Por que la decision por porcentaje disparaba un fallback contraproducente
+
+La primera version de la regla media el retraso pendiente con la cifra del
+motor (`input_received_ms - audio_committed_ms`). Esa cifra es el avance del
+**codificador**, y el codificador corre por delante del decodificador: el
+motor puede haber codificado toda la grabacion y tener el decodificador
+todavia con veinte segundos de trabajo.
+
+Medido en el log del motor, en la misma corrida saturada:
+
+| Corrida | Lo que decia la cifra del motor | Lo que costo de verdad |
+|---|---|---|
+| 3,30 s de audio | `committed_audio=3.30s`, `buffered=0ms` | 25,22 s de espera |
+| 14,40 s de audio | `committed_audio=14.40s`, `buffered=0ms` | 151,86 s de espera |
+
+O sea: **la cifra del motor decia "cero pendiente" con la maquina twenty
+veces mas lenta de lo que puede**. Con esa medida, la regla por porcentaje
+se disparaba en momentos arbitrarios: en el caso moderado (donde el motor va
+bien y la pasada por lotes es mas cara) y en el caso extremo (donde el motor
+va mal y la pasada si compensa), indistintamente.
+
+Por eso la medida nueva **no** es la del motor: es la del audio que el
+motor todavia no ha **terminado de decodificar**.
+
+### 1.7 El plazo que permitia el cierre de 68 s
 
 `Deadlines::audio` escala el plazo con el audio pendiente
 (`audio_factor: 20`) pero con un suelo de **120 s** (`supervisor.rs:92`). Con
@@ -198,7 +222,81 @@ carga:
 | RAM privada del arbol (MB) | 21 | 1 523,6 | 1 361,7 | 1 517,7 | 1 727,4 | 1 727,4 |
 | Retraso pendiente al soltar (ms) | 21 | 5 374 | 1 126 | 5 606 | 10 630 | 10 630 |
 
-### 2.6 Lo que NO se ha tocado
+### 2.6 La medida del audio pendiente de verdad
+
+`StreamPerf::pending_ms()` (`src-tauri/src/managers/transcription.rs`) mide el
+audio que el usuario ha dicho y que el motor **todavia no ha terminado de
+decodificar**: los fragmentos que el motor no ha contestado. El motor
+contesta un fragmento cuando su decodificacion ha terminado, asi que la
+cifra ve lo que el decodificador tiene atras.
+
+La medida anterior (la del motor) se conserva, aparte, para el log: ver las
+dos juntas es lo que mostro que el retraso pendiente no es lo que el motor
+dice.
+
+Con ella, la regla del fallback no cambia de parametros (2 000 ms de limite
+y fraccion 0,5): cambia **lo que mide**, y eso es lo que hacia que la regla
+se disparara donde no debia.
+
+### 2.7 Las estimaciones, con la velocidad observada
+
+La decision se apoya en una estimacion, y la estimacion se apoya en la
+velocidad que el motor ha demostrado:
+
+- **velocidad observada**: el audio que ha decodificado por segundo de reloj
+  (arriba de 1, el motor sigue a la voz; por debajo de 1, pierde terreno).
+- **terminar el stream**: el audio pendiente divided por esa velocidad.
+- **una transcripcion completa**: la grabacion entera por esa velocidad, con
+  el factor medido entre las dos rutas (`BATCH_SPEED_RATIO`).
+
+Las tres van al log en cada cierre, con la cifra del motor al lado, para que
+la decision quede respaldada por la medicion y no por una suposicion. **No
+deciden por si mismas**: la decision sigue siendo el limite y la fraccion,
+que es lo comprobable.
+
+### 2.8 La cola de audio pendiente, acotada
+
+El supervisor encola los fragmentos sin limite (`mpsc::channel`), asi que con
+la maquina ocupada la cola crece con la duracion de la grabacion.
+
+Ahora la cola tiene un tope (`MAX_PENDING_FEED_SAMPLES`, 120 s de audio):
+pasado el tope, el fragmento **no** se encola y el stream se marca como
+incompleto. El llamante entonces termina la grabacion con la transcripcion
+completa, que cubre **todas** las muestras (el WAV las tiene todas), asi que:
+
+- el microfono nunca se bloquea (el fragmento que no cabe se descarta de la
+  cola, no del audio);
+- no se pierde ninguna muestra del texto;
+- no hay duplicaciones (el fragmento no se reenvia);
+- la RAM de la cola deja de crecer con la duracion;
+- el orden de los fragmentos se mantiene;
+- la cancelacion y el cierre siguen igual (el stream se resetea como siempre).
+
+El tope esta por encima de cualquier retraso medido (el maximo visto con los
+cuatro nucleos ocupados fue de 36 s), asi que en la practica avisa de un
+problema, no lo provoca.
+
+### 2.9 La semantica de la cancelacion
+
+Cancelar es **cancelar el procesamiento**. Que el audio se conserve o no
+depende de si se llego a reconocer:
+
+- **Cancelar el procesamiento**: el motor se detiene (medido: en menos de un
+  segundo, con hasta 33 s de audio pendiente).
+- **Conservar el audio para reintentar**: si no hubo texto, el audio se
+  conserva en el historial con el texto vacio. **Y ahora se avisa**: la app
+  emite `cancelled-recording-kept` y la interfaz muestra un aviso con un
+  boton para **descartarlo**. Un cancelado que deja una grabacion detras sin
+  decir nada es una sorpresa; un cancelado con un aviso y un boton para
+  tirarlo es una decision del usuario.
+- **Descartar una grabacion**: el boton del aviso borra la entrada y su WAV.
+  Tambien se puede desde el historial, que borra el archivo (es lo que ya
+  hacia antes).
+
+Lo que **no** hace: guardar en silencio una grabacion que el usuario
+esperaba descartar, ni borrar grabaciones existentes.
+
+### 2.10 Lo que NO se ha tocado
 
 - La dependencia nativa: el problema se esquiva desde la app. No se ha
   demostrado que haga falta tocarla.
@@ -255,7 +353,12 @@ carga:
 
 La espera tras soltar, que es lo que el usuario percibe, en los tres
 escenarios de carga. **Antes**: el binario de la etapa anterior. **Despues**:
-este trabajo.
+el fallback con la medida de retraso **anterior** (la del motor), que es la
+que produjo la regresion que se investiga en este documento.
+
+La seccion 4.8 mide el codigo **actual** (con la medida corregida) contra el
+mismo binario sin el fallback: esa es la comparacion que decide si el
+fallback aporta.
 
 | Escenario | N | p50 antes (ms) | p95 antes (ms) | max antes (ms) | p50 despues (ms) | p95 despues (ms) | max despues (ms) |
 |---|---|---|---|---|---|---|---|
@@ -444,6 +547,106 @@ grabacion se conserva con el WAV en el historial y el texto vacio. Antes de
 este cambio, ese mismo cancelado borraba el WAV sin dejar entrada: el audio
 capturado se perdia en silencio.
 
+### 4.8 La comparacion intercalada: el fallback con y sin
+
+La comparacion que decide si el fallback aporta o estorba: **el mismo
+binario**, la **misma carga** y las dos variantes **alternadas dentro de la
+misma repeticion** (`scripts/measure-fallback-ab.ps1`). La unica diferencia
+entre las dos es el limite de retraso, que en la variante "sin" se pone fuera
+de alcance para que el fallback no pueda dispararse.
+
+| Modo | N | p50 (ms) | p95 (ms) | maximo (ms) | minimo (ms) | media (ms) | CPU (%) | RAM (MB) |
+|---|---|---|---|---|---|---|---|---|
+| con fallback | 7 | 55 735 | 228 326 | 228 326 | 26 892 | 87 666 | 218,9 | 1 523,2 |
+| sin fallback | 7 | 134 219 | 716 545 | 716 545 | 39 152 | 218 420 | 214,4 | 1 365,3 |
+
+| Audio | s | con fallback (ms) | sin fallback (ms) | retraso pendiente con (ms) | ruta con |
+|---|---|---|---|---|---|
+| V1.wav | 3,30 | 26 892 | 52 109 | 2 196 | batch |
+| V2.wav | 6,02 | 45 326 | 39 152 | 4 916 | batch |
+| V3.wav | 14,40 | 42 710 | 134 219 | 13 300 | batch |
+| V4.wav | 17,82 | 132 070 | 288 249 | 14 524 | batch |
+| V5.wav | 22,34 | 55 735 | 197 054 | 16 736 | batch |
+| V6.wav | 28,03 | 82 600 | 716 545 | 26 932 | batch |
+| V7.wav | 37,44 | 228 326 | 101 609 | 36 340 | batch |
+
+Lo que decidio cada corrida, con la estimacion que lo respalda (las
+lineas de decision que el motor escribe al cerrar cada stream):
+
+| Audio | Modo | Espera (ms) | Pendiente real (ms) | Lo que dice el motor (ms) | Velocidad observada (x) | Terminar el stream ~ (ms) | Transcripcion completa ~ (ms) | Ruta |
+|---|---|---|---|---|---|---|---|---|
+| V1.wav | con | 26 892 | 2 296 | 1 000 | 0,30 | 7 575 | 11 962 | batch |
+| V1.wav | sin | 52 109 | 2 296 | 1 000 | 0,30 | 7 574 | 11 960 | live |
+| V2.wav | con | 45 326 | 5 016 | 1 000 | 0,17 | 29 148 | 38 454 | batch |
+| V2.wav | sin | 39 152 | 5 016 | 1 000 | 0,16 | 30 545 | 40 299 | live |
+| V3.wav | con | 42 710 | 13 400 | 1 000 | 0,07 | 192 955 | 228 090 | batch |
+| V3.wav | sin | 134 219 | 13 400 | 1 000 | 0,07 | 193 450 | 228 675 | live |
+| V4.wav | con | 132 070 | 14 624 | 1 030 | 0,18 | 81 798 | 109 667 | batch |
+| V4.wav | sin | 288 249 | 15 724 | 1 050 | 0,12 | 134 031 | 167 124 | live |
+| V5.wav | con | 55 735 | 16 836 | 1 090 | 0,25 | 68 570 | 100 068 | batch |
+| V5.wav | sin | 197 054 | 21 336 | 1 000 | 0,04 | 477 816 | 550 232 | live |
+| V6.wav | con | 82 600 | 27 032 | 1 000 | 0,04 | 761 471 | 868 604 | batch |
+| V6.wav | sin | 716 545 | 27 032 | 1 000 | 0,04 | 759 581 | 866 449 | live |
+| V7.wav | con | 228 326 | 36 440 | 1 000 | 0,03 | 1 365 551 | 1 543 327 | batch |
+| V7.wav | sin | 101 609 | 27 440 | 1 110 | 0,27 | 102 725 | 154 178 | live |
+
+### 4.8.1 Con carga moderada (2 nucleos ocupados)
+
+| Modo | N | p50 (ms) | p95 (ms) | maximo (ms) | minimo (ms) | media (ms) | CPU (%) | RAM (MB) |
+|---|---|---|---|---|---|---|---|---|
+| con fallback | 3 | 53 854 | 69 588 | 69 588 | 39 700 | 54 381 | 170,5 | 1 638,2 |
+| sin fallback | 3 | 134 170 | 288 873 | 288 873 | 116 770 | 179 938 | 171,4 | 1 367,3 |
+
+| Audio | s | con fallback (ms) | sin fallback (ms) | retraso pendiente con (ms) | ruta con |
+|---|---|---|---|---|---|
+| V5.wav | 22,34 | 39 700 | 288 873 | 17 836 | batch |
+| V6.wav | 28,03 | 69 588 | 116 770 | 26 932 | batch |
+| V7.wav | 37,44 | 53 854 | 134 170 | 24 040 | batch |
+
+### 4.8.2 El sesgo de orden
+
+En el comparativo anterior la variante con fallback iba siempre la primera.
+Si la maquina se va poniendo peor con el tiempo, esa variante paga el estado
+mejor y la comparacion esta sesgada a su favor. El banco alterna ahora el
+orden entre repeticiones, y esta es la comprobacion con los dos ordenes
+sobre el mismo audio:
+
+| Modo | N | p50 (ms) | p95 (ms) | maximo (ms) | minimo (ms) | media (ms) | CPU (%) | RAM (MB) |
+|---|---|---|---|---|---|---|---|---|
+| con fallback | 2 | 20 217 | 81 631 | 81 631 | 20 217 | 50 924 | 207,5 | 1 624,8 |
+| sin fallback | 2 | 51 660 | 160 389 | 160 389 | 51 660 | 106 024 | 236,3 | 1 364,5 |
+
+| Audio | s | con fallback (ms) | sin fallback (ms) | retraso pendiente con (ms) | ruta con |
+|---|---|---|---|---|---|
+| V6.wav | 28,03 | 20 217 | 51 660 | 15 732 | batch |
+
+Con los dos ordenes, el fallback gana: 20,2 s y 81,6 s con el, 51,7 s y
+160,4 s sin el. El sesgo de orden no explica la diferencia.
+
+**La lectura**: con la maquina saturada el fallback **compensa**: la mediana de
+la espera baja de 134,2 s a 55,7 s y el maximo de 716,5 s a 228,3 s. En las
+siete grabaciones gana en cinco y pierde en dos, y las dos donde pierde son
+la de 6 s (39,2 s -> 45,3 s) y la de 37 s (101,6 s -> 228,3 s).
+
+La razon de que gane: la ruta en vivo deja el trabajo del decodificador en la
+cola, y la cola **paga las pausas de la maquina una vez por fragmento
+encolado**. La pasada por lotes las paga una vez. Con cuatro nucleos
+ocupados, esa diferencia es la que separa 134 s de 56 s.
+
+El coste del fallback es **memoria**: la pasada por lotes necesita el audio
+completo en memoria y su pico medido es de ~160 MB mas que la ruta en vivo
+(1 365 MB -> 1 523 MB de media; 1 625 MB en la peor corrida). La ruta en
+vivo, que decodifica por fragmentos, se queda en 1 365 MB.
+
+**Y las estimaciones no sirven para decidir**: el cociente entre lo medido y
+lo estimado va de 0,11 a 3,55 en la misma corrida. La estimacion usa la
+velocidad que el motor demostro **durante la grabacion**, y la espera ocurre
+despues, con otra carga de la maquina. Por eso la decision **no** usa las
+estimaciones: usa el retraso pendiente, que si es estable (2 296 ms a
+36 440 ms en la misma corrida, y casi identico entre las dos variantes).
+Las estimaciones se quedan en el log, que es donde estan utiles: para ver
+cuanto se estimaba y cuanto salio de verdad.
+
 ---
 
 ## 5. Integridad del audio
@@ -492,6 +695,24 @@ Al terminar todas las corridas no queda **ningun** proceso `dixi.exe` vivo
 del banco (el motor se para al terminar cada corrida) ni ningun proceso de
 carga controlada. La comprobacion va en la seccion 10.
 
+**Sobre los procesos que aparecian en el inventario anterior**: eran el
+**momento de la observacion**, no un defecto de limpieza. El inventario se
+habia tomado mientras el banco aun estaba corriendo, asi que contaba (a) la
+instancia del banco con su worker de transcripcion, que es un `dixi.exe` mas
+(la app y su worker), y (b) los procesos de carga, que el banco lanza y
+mata al terminar.
+
+Lo que si era un defecto, y ya esta corregido: **el banco no comprobaba que
+el binario de la instancia fuera el que se le pedia**. Una instancia creada
+en una corrida anterior se quedaba con el binario viejo, y una medicion
+podia estar midiendo otra cosa sin que nada lo dijera. Ahora el banco
+compara el SHA-256 del ejecutable de la instancia con el que se le pide y lo
+refresca si no coincide (`-RefreshBinary`), y el comparativo intercalado lo
+comprueba en cada corrida.
+
+Ademas, el banco comprueba al terminar que no queda ningun proceso suyo
+vivo, y dice cuantos son.
+
 ### 5.2 Lo que esta integridad NO cubre
 
 La comparacion es del **texto** de la misma grabacion por dos rutas. No
@@ -503,23 +724,25 @@ muestreo del microfono (que no ha cambiado).
 
 ## 6. Problemas pendientes
 
-1. **El limite y la fraccion estan por calibrar, y el canje es real.** Con
-   los valores por defecto (2 000 ms de limite y fraccion 0,5) la pasada
-   completa **no** se dispara sin carga (el retraso sano es de ~1,1 s), se
-   dispara en el caso moderado y **en el caso extremo**. Lo que se midio:
-   - Sin carga: sin cambio (la pasada no se dispara).
-   - Carga moderada: la pasada **empeora** la espera (mediana 7,4 s ->
-     12,0 s; maximo 32,2 s -> 41,6 s).
-   - Carga alta: la pasada **acota el peor caso** (p95 552,6 s -> 143,0 s;
-     maximo igual) a cambio de la mediana (53,3 s -> 81,4 s) y del mejor
-     caso (4,4 s -> 15,6 s).
+1. **La regresion estaba en la medida, no en el umbral.** Con la cifra del
+   motor, el fallback se disparaba en momentos arbitrarios y en el caso
+   moderado empeoraba la espera (mediana 7,4 s -> 12,0 s). Con la cifra
+   correcta (el audio que el motor no ha terminado de decodificar), el
+   comparativo emparejado dice lo contrario en los dos escenarios con
+   carga: la mediana baja de 134,2 s a 55,7 s con cuatro nucleos ocupados,
+   y de 134,2 s a 53,9 s con dos. **El limite (2 000 ms) y la fraccion (0,5)
+   no se han tocado**: se corrigio lo que estaba mal medido.
 
-   Es decir: la pasada no hace la transcripcion mas rapida, cambia una
-   espera **desproporcionada** por una **proporcional al audio**. El valor
-   por defecto de la fraccion es la decision abierta: con 0,5 se dispara
-   tambien en el caso moderado, donde no compensa. Los dos parametros se
-   ajustan sin recompilar (`DIXI_STREAM_BACKLOG_LIMIT_MS`,
-   `DIXI_STREAM_BACKLOG_MIN_FRACTION`).
+   Lo que queda abierto:
+   - El fallback **cuesta ~160 MB de RAM** (1 365 MB -> 1 523 MB de media;
+     1 625 MB en la peor corrida). Con un equipo justo, ese es el precio.
+   - En dos de las siete grabaciones (6 s y 37 s) el fallback fue peor. Con
+     una grabacion muy corta, repetir todo el audio no compensa.
+   - Las **estimaciones no son fiables**: el cociente entre lo medido y lo
+     estimado va de 0,11 a 3,55. Se registran en el log, pero la decision
+     no las usa.
+   - Los dos parametros se ajustan sin recompilar
+     (`DIXI_STREAM_BACKLOG_LIMIT_MS`, `DIXI_STREAM_BACKLOG_MIN_FRACTION`).
 2. **La exactitud sigue sin medirse**: WER y CER son `NOT_MEASURED` porque
    las siete grabaciones no tienen referencia humana. El veredicto sobre
    Nemotron como motor principal no puede cerrarse sin la sesion guiada.
@@ -529,32 +752,39 @@ muestreo del microfono (que no ha cambiado).
    pendiente), pero el WAV y la entrada de historial **no** se han
    comprobado de extremo a extremo: el banco es headless y no escribe ni
    WAV ni historial. Verificarlo en la app exige la sesion guiada.
-4. **La cola de la app sigue sin limite.** El audio sigue creciendo en el
-   `mpsc::channel` del enrutador mientras la maquina no da abasto. La
-   recuperacion acota el *coste* del cierre, no el *consumo* de memoria.
-   Acotarla de verdad exigiria un limite duro con backpressure (que
-   bloquearia al microfono) o un almacenamiento temporal del PCM.
-5. **La magnitud del retraso no ve el decodificador del motor.** Lo que
-   se mide es el retraso de las **colas** (y el bucle del motor), no el
-   trabajo que le queda al decodificador, que va por detras y no se
-   reporta. En la corrida de control (seccion 4.3.1) el retraso medido fue
-   de 1 030 ms y la espera llego a 196 s: cuando el cuello de botella es
-   el decodificador, la pasada completa **no** se dispara. Es la
-   limitacion de esta magnitud y la razon de que el escape para ese caso
-   sea **cancelar** (que si es prompt y no pierde el audio).
+4. **El tope de la cola es una red de seguridad, no un mecanismo de uso
+   normal.** La cola del supervisor tiene un tope de 120 s de audio; con los
+   cuatro nucleos ocupados el retraso pendiente medido llego a 36 s, muy por
+   debajo del tope: **no se disparo en ninguna corrida**. Lo que haria
+   falta para que la RAM no crezca con la duracion de la grabacion, sin
+   audio temporal en disco, es una cola circular con escritura a disco; el
+   tope actual es la version simple y segura. El enrutador de la app, que
+   es la otra cola, sigue sin limite (en la practica va vacio: su
+   trabajador entrega al supervisor tan rapido como llega el audio).
+5. **La magnitud nueva ya ve el decodificador, pero no el futuro.** Mide el
+   audio que el motor no ha terminado de decodificar (los fragmentos sin
+   contestar), que es lo que la cola del decodificador tiene atras. Lo que
+   no puede saber es como va a estar la maquina dentro de medio minuto, y
+   por eso las estimaciones no sirven para decidir (el cociente entre lo
+   medido y lo estimado va de 0,11 a 3,55). El escape para el caso
+   impredecible sigue siendo **cancelar**, que si es prompt y no pierde el
+   audio.
 6. **La espera sigue siendo larga con la maquina ocupada.** Con los cuatro
    nucleos ocupados, la mediana de la espera tras soltar es de decenas de
    segundos: no es un defecto de la app, es que la maquina no puede
    decodificar 37 s de audio en 37 s. Lo que hace este trabajo es que esa
    espera sea **predecible** (proporcional al audio) y **cancelable**
    sin perder lo grabado, no que sea corta.
-7. **Cuando la ruta en vivo no devuelve texto, la app repite por lotes.**
-   Es un camino preexistente (`Live transcription produced no text; retrying
-   in batch`), no de esta etapa, pero sale en las mediciones: 2 de 21
-   corridas sin carga. El coste es el de una pasada completa (8 259 ms y
-   17 493 ms en las dos). **Por que el stream en vivo devuelve el texto
-   vacio no esta investigado**: es el siguiente paso si el equipo vuelve a
-   verse lento sin carga.
+7. **La ruta en vivo no devolvio texto vacio en ninguna corrida medida.**
+   El camino de reintento (`Live transcription produced no text; retrying
+   in batch`) no aparece en el log de ninguna de las corridas: el motor
+   en vivo siempre devolvio texto (45 a 521 caracteres segun el clip). Las
+   dos corridas que figuraban como "pasada completa" en una version
+   anterior de estas tablas eran de una corrida hecha con el binario
+   anterior (la instancia del banco tenia el binario viejo) y no se
+   reproduce con el codigo actual. El banco comprueba ahora el hash del
+   ejecutable de la instancia antes de medir, precisamente para que eso no
+   vuelva a pasar.
 8. **Los dos modos de dictado siguen sin implementarse** (ver
    `docs/dixi-asr-modes-proposal.md`).
 
@@ -687,15 +917,19 @@ Lo que no se ha tocado:
    el motor no puede ver las colas: con la magnitud del motor, una maquina
    saturada parece sana. Con esa magnitud se puede decidir, y se decide.
 
-3. **La recuperacion no descarta audio y acota el peor caso.** Cuando la
-   maquina ha perdido la carrera (el retraso pendiente es mas de la mitad
-   de la grabacion), Dixi termina la grabacion en una sola pasada sobre el
-   audio original completo, avisa al usuario y no pierde ni una muestra. Con
-   los cuatro nucleos ocupados, el p95 de la espera paso de **9,2 minutos**
-   a **2,4 minutos**. El canje esta medido y documentado: la mediana de la
-   espera en ese escenario empeora (53,3 s -> 81,4 s). La pasada no hace la
-   transcripcion mas rapida: cambia una espera desproporcionada por una
-   proporcional al audio.
+3. **La recuperacion no descarta audio y el comparativo emparejado dice que
+   compensa.** Cuando la maquina ha perdido la carrera (el retraso pendiente
+   es mas de la mitad de la grabacion), Dixi termina la grabacion en una
+   sola pasada sobre el audio original completo, avisa al usuario y no
+   pierde ni una muestra. Con el **mismo binario** y la **misma carga**, y
+   alternando las dos variantes: con el fallback la mediana de la espera es
+   de 55,7 s y el maximo de 228,3 s; sin el, de 134,2 s y 716,5 s. Con dos
+   nucleos ocupados: 39,7 s y 288,9 s con el fallback, contra 116,8 s y
+   134,2 s sin el. El coste son ~160 MB de RAM.
+   La regresion que se habia medido antes (mediana de 7,4 s a 12,0 s en el
+   caso moderado) venia de comparar corridas **sin emparejar** y de medir
+   el retraso con una cifra que no veia la cola del decodificador. Corregidas
+   las dos cosas, el fallback no empeora el caso moderado: lo mejora.
 
 4. **Cancelar ya no pierde la voz.** Con audio pendiente, el WAV se
    conserva y queda en el historial con el texto vacio, listo para
