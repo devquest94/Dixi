@@ -94,6 +94,16 @@ if ($Language) { $instanceSettings['selected_language'] = $Language }
 
 @{
     settings = $instanceSettings
-} | ConvertTo-Json -Depth 5 | Set-Content -Path (Join-Path $InstanceDir 'Data\settings_store.json') -Encoding UTF8
+} | ConvertTo-Json -Depth 5 | ForEach-Object {
+    # Sin BOM: `Set-Content -Encoding UTF8` en PowerShell 5.1 escribe un BOM, y
+    # el plugin `store` parsea el JSON con serde_json, que no acepta un BOM:
+    # el fichero se descartaba y la app arrancaba con los ajustes por defecto
+    # (idioma `auto` en vez del forzado, y sin el timeout de descarga).
+    [System.IO.File]::WriteAllText(
+        (Join-Path $InstanceDir 'Data\settings_store.json'),
+        $_,
+        (New-Object System.Text.UTF8Encoding($false))
+    )
+}
 
 Write-Host "[setup] instancia lista en $InstanceDir"

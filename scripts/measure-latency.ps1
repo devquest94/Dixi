@@ -145,7 +145,15 @@ if ($Language) { $instanceSettings['selected_language'] = $Language }
 
 @{
     settings = $instanceSettings
-} | ConvertTo-Json -Depth 5 | Set-Content -Path (Join-Path $InstanceDir 'Data\settings_store.json') -Encoding UTF8
+} | ConvertTo-Json -Depth 5 | ForEach-Object {
+    # Sin BOM: ver la nota en new-bench-instance.ps1. Con BOM, el plugin
+    # `store` descarta el fichero y la app arranca con los ajustes por defecto.
+    [System.IO.File]::WriteAllText(
+        (Join-Path $InstanceDir 'Data\settings_store.json'),
+        $_,
+        (New-Object System.Text.UTF8Encoding($false))
+    )
+}
 
 $instanceBinary = Join-Path $InstanceDir 'dixi.exe'
 
