@@ -156,18 +156,39 @@ def duracion_wav(path):
         return None
 
 
+# Cuanto puede desviarse una dictacion de su frase de referencia y seguir
+# siendo la misma frase. Por encima, el emparejamiento no es creible y el
+# WER no se calcula: se marca NOT_MEASURED.
+MAX_DESVIACION = 0.45
+
+
 def mejor_frase(texto, fases):
-    """La frase del guion que mas se parece a lo transcrito."""
+    """La frase del guion que mas se parece a lo transcrito.
+
+    Devuelve (frase, desviacion) o (None, None) si no hay ninguna frase
+    creíble: una dictación espontánea no se parece a ninguna frase del guion,
+    y puntuarla contra la más parecida daría un WER sin sentido.
+    """
     if not fases:
-        return None
+        return None, None
     hip = palabras(texto)
+    if not hip:
+        return None, None
     mejor = None
     for fase in fases:
         ref = palabras(fase["esperado"])
+        if not ref:
+            continue
         d = ediciones(hip, ref)
         if mejor is None or d < mejor[0]:
             mejor = (d, fase)
-    return mejor[1] if mejor else None
+    if mejor is None:
+        return None, None
+    d, fase = mejor
+    desviacion = d / float(len(palabras(fase["esperado"])))
+    if desviacion > MAX_DESVIACION:
+        return None, desviacion
+    return fase, desviacion
 
 
 def main():
@@ -210,10 +231,12 @@ def main():
         usados.add(idx)
 
         wav = os.path.join(RECORDINGS_DIR, entrada["file_name"])
-        fase = mejor_frase(entrada["texto"], fases)
 
+        fase, desviacion = mejor_frase(entrada["texto"], fases)
         ref_palabras = palabras(fase["esperado"]) if fase else []
         hip_palabras = palabras(entrada["texto"])
+        # Sin un emparejamiento creible no hay referencia: el WER y el CER
+        # se quedan en NOT_MEASURED en vez de inventar un numero.
         wer = (ediciones(hip_palabras, ref_palabras) / len(ref_palabras)) if ref_palabras else None
         cer = None
         if fase:

@@ -202,155 +202,201 @@ Las mediciones de esta evaluacion se hicieron **despues** del arreglo.
 
 ---
 
-## 5. FASE D — Benchmark: 7 grabaciones, 3 motores, mismas condiciones
+## 5. FASE D — Benchmark corregido: 7 grabaciones, 3 motores
 
-### 5.1 Como se midio
+Las siete grabaciones reales del usuario, en **copias** con
+identificadores anonimos (`V1`..`V7`); los originales no se tocaron.
+La **ruta real de la app**: `--live-file` alimenta el audio al ritmo de
+una grabacion (100 ms cada 100 ms) por el mismo worker, el mismo router
+y la misma `transcribe_recording`. 5 repeticiones por grabacion: **35
+ejecuciones por motor**. CPU unicamente, sin Vulkan. Idioma forzado a
+`es` (que el motor resuelve a `es-US`).
 
-- Las siete grabaciones reales del usuario, **en copias** con identificadores
-  anonimos (`V1`..`V7`); los originales no se tocaron y no se subieron a
-  ningun servicio.
-- La **ruta real de la app**: `--live-file` alimenta el audio al ritmo de una
-  grabacion (100 ms cada 100 ms) por el mismo worker, el mismo router y la
-  misma `transcribe_recording` que usa la aplicacion. La espera que se
-  reporta es la de verdad: desde que el usuario suelta hasta que el texto
-  esta listo.
-- 5 repeticiones por muestra; se informa el **minimo** (el estimador menos
-  ruidoso del tiempo real del motor), el **p50** y el **p95**.
-- CPU unicamente, sin Vulkan. El idioma forzado a `es` (que el motor resuelve
-  a `es-US`).
+**Aviso sobre el corpus**: siete grabaciones son un corpus pequeno, y
+medir cinco veces los mismos audios no son cinco muestras
+independientes: son cinco observaciones de la misma muestra. Los
+percentiles describen la dispersion de la maquina durante la medicion,
+no la de la poblacion de dictaciones.
 
-| Muestra | Audio (s) |
-|---|---|
-| V1 | 3,30 |
-| V2 | 6,02 |
-| V3 | 14,40 |
-| V4 | 17,82 |
-| V5 | 22,34 |
-| V6 | 28,03 |
-| V7 | 37,44 |
+### Metodologia: tres estadisticas que no son lo mismo
 
-**Aviso sobre el corpus**: siete grabaciones son un corpus pequeno, y medir
-cinco veces los mismos audios no son cinco muestras independientes: son
-cinco observaciones de la misma muestra. Los percentiles de aqui describen
-la dispersion de la maquina durante la medicion, no la dispersion de la
-poblacion de dictaciones.
+El banco por lotes y el de la ruta en vivo guardan ahora **una fila
+por ejecucion** (`ejecuciones*.json`). Sobre esa lista se calculan tres
+cosas distintas, y antes se confundian:
 
-### 5.2 Motor A — Whisper Base Q8_0 (la ruta real de la app)
+1. **POR GRABACION**: la distribucion de las N repeticiones de cada
+   grabacion. Es lo que describe una grabacion concreta.
+2. **AGRUPADA**: la distribucion de TODAS las ejecuciones del motor
+   (7 grabaciones x 5 repeticiones = 35). Es lo que describe el motor.
+3. **POR SUBCONJUNTO**: las ejecuciones de las grabaciones cortas
+   frente a las largas.
 
-Con Whisper la app **no decodifica nada durante la grabacion**: la familia
-whisper no implementa streaming (`stream_begin = nullptr`), asi que la
-grabacion entera se decodifica al final.
+> El error corregido: los percentiles "globales" se calculaban sobre
+> una fila por grabacion que ya era el MINIMO de sus repeticiones. El
+> "p50 global" era la mediana de 7 minimos, y el "p95 global" era un
+> percentil sobre 7 valores. Ninguno de los dos era el p50 o el p95 de
+> las 35 ejecuciones.
 
-| Muestra | Audio (s) | min (ms) | p50 (ms) | p95 (ms) | Ruta |
+
+### Resultados agrupados (35 ejecuciones por motor)
+
+| Motor | N | min | p50 | p95 | max |
 |---|---|---|---|---|---|
-| V1 | 3,30 | 818 | 1 606 | 2 245 | batch |
-| V2 | 6,02 | 816 | 845 | 1 162 | batch |
-| V3 | 14,40 | 958 | 1 013 | 3 151 | batch |
-| V4 | 17,82 | 1 022 | 1 084 | 1 393 | batch |
-| V5 | 22,34 | 1 176 | 1 246 | 7 322 | batch |
-| V6 | 28,03 | 1 184 | 2 132 | 2 974 | batch |
-| V7 | 37,44 | 2 251 | 7 924 | 10 801 | batch |
-| **Global** | | **816** | **1 022** | **2 251** | |
+| Whisper Base, espera tras soltar (ms) | 35 | 980 | 1864 | 7206 | 7640 |
+| Nemotron streaming, espera tras soltar (ms) | 35 | 164 | 389 | 1749 | 1973 |
+| Nemotron por lotes, inferencia ASR (ms) | 35 | 792 | 3834 | 7457 | 7928 |
 
-Carga del modelo en frio: 171-513 ms.
+### Por subconjunto (corte en 16 s de audio)
 
-### 5.3 Motor C — Nemotron 3.5 Q8_0 en streaming (la ruta real de la app)
+| Motor | Subconjunto | N | min | p50 | p95 | max |
+|---|---|---|---|---|---|---|
+| Whisper Base | <= 16 s | 15 | 980 | 1199 | 3798 | 3798 |
+| Whisper Base | > 16 s | 20 | 1346 | 2552 | 7206 | 7640 |
+| Nemotron streaming | <= 16 s | 15 | 223 | 424 | 1973 | 1973 |
+| Nemotron streaming | > 16 s | 20 | 164 | 264 | 782 | 1312 |
 
-| Muestra | Audio (s) | min (ms) | p50 (ms) | p95 (ms) | Ruta |
-|---|---|---|---|---|---|
-| V1 | 3,30 | 1 661 | 1 853 | 2 458 | live |
-| V2 | 6,02 | 1 661 | 1 738 | 2 410 | live |
-| V3 | 14,40 | 3 481 | 5 005 | 6 021 | live |
-| V4 | 17,82 | 184 | 325 | 496 | live |
-| V5 | 22,34 | 271 | 278 | 325 | live |
-| V6 | 28,03 | 143 | 173 | 194 | live |
-| V7 | 37,44 | 168 | 173 | 377 | live |
-| **Global** | | **143** | **271** | **496** | |
+### Whisper Base, por grabacion
 
-Carga del modelo en frio: 1 165-2 493 ms (el modelo pesa 716 MB; el de
-Whisper, 81 MB).
+| Grabacion | Audio (s) | N | p50 | p95 | min | max |
+|---|---|---|---|---|---|---|
+| V1.wav | 3.30 | 5 | 994 | 1625 | 980 | 1625 |
+| V2.wav | 6.02 | 5 | 1199 | 1958 | 1082 | 1958 |
+| V3.wav | 14.40 | 5 | 1514 | 3798 | 1149 | 3798 |
+| V4.wav | 17.82 | 5 | 1556 | 3073 | 1346 | 3073 |
+| V5.wav | 22.34 | 5 | 1864 | 3357 | 1420 | 3357 |
+| V6.wav | 28.03 | 5 | 3189 | 7206 | 2057 | 7206 |
+| V7.wav | 37.44 | 5 | 4267 | 7640 | 3257 | 7640 |
 
-### 5.4 Motor B — Nemotron 3.5 Q8_0 por lotes (el coste del motor, sin streaming)
+### Nemotron streaming, por grabacion
 
-| Muestra | Audio (s) | ASR min (ms) | ASR p50 (ms) | ASR p95 (ms) |
-|---|---|---|---|---|
-| V1 | 3,30 | 574 | 629 | 1 177 |
-| V2 | 6,02 | 1 047 | 1 318 | 2 112 |
-| V3 | 14,40 | 2 385 | 2 495 | 2 504 |
-| V4 | 17,82 | 2 674 | 2 803 | 3 649 |
-| V5 | 22,34 | 3 786 | 4 404 | 6 874 |
-| V6 | 28,03 | 4 556 | 4 838 | 6 992 |
-| V7 | 37,44 | 5 890 | 6 312 | 6 477 |
+| Grabacion | Audio (s) | N | p50 | p95 | min | max |
+|---|---|---|---|---|---|---|
+| V1.wav | 3.30 | 5 | 424 | 1166 | 356 | 1166 |
+| V2.wav | 6.02 | 5 | 1044 | 1973 | 223 | 1973 |
+| V3.wav | 14.40 | 5 | 399 | 593 | 289 | 593 |
+| V4.wav | 17.82 | 5 | 185 | 546 | 164 | 546 |
+| V5.wav | 22.34 | 5 | 389 | 452 | 244 | 452 |
+| V6.wav | 28.03 | 5 | 430 | 1312 | 264 | 1312 |
+| V7.wav | 37.44 | 5 | 213 | 782 | 183 | 782 |
 
-**Nemotron por lotes es mas lento que Whisper por lotes** (4 404 ms contra
-1 246 ms para 22,34 s). La ganancia de Nemotron **no esta en el motor**: esta
-en que decodifica mientras el usuario habla.
+### Nemotron por lotes, por grabacion (inferencia ASR)
 
-### 5.5 El umbral, y por que existe
+| Grabacion | Audio (s) | N | p50 | p95 | min | max |
+|---|---|---|---|---|---|---|
+| V1.wav | 3.30 | 5 | 958 | 1312 | 792 | 1312 |
+| V2.wav | 6.02 | 5 | 1219 | 3026 | 1044 | 3026 |
+| V3.wav | 14.40 | 5 | 3022 | 5472 | 2945 | 5472 |
+| V4.wav | 17.82 | 5 | 3395 | 4560 | 2672 | 4560 |
+| V5.wav | 22.34 | 5 | 4978 | 6565 | 4716 | 6565 |
+| V6.wav | 28.03 | 5 | 4853 | 5078 | 4528 | 5078 |
+| V7.wav | 37.44 | 5 | 7073 | 7928 | 6366 | 7928 |
 
-El streaming de Nemotron tiene dos regimes muy distintos, y el log de la
-app los separa:
+## 6. El comportamiento entre 14 y 18 s: lo que se investigo
 
-| Muestra | Compute del modelo | Factor | Espera tras soltar |
+La evaluacion anterior afirmaba un **umbral** entre 14,40 s y 17,82 s de
+audio: por debajo, Nemotron tardaba ~5 s tras soltar la tecla; por encima,
+325 ms. **Esa afirmacion era erroneous: era un artefacto de la medicion, no
+una propiedad de la duracion.** Aqui esta el desmontaje, con los tres
+experimentos que lo desmienten.
+
+### 6.1 El barrido de duraciones
+
+Se corto la misma grabacion en prefijos de 10 a 22 s. El contenido de voz es
+identico (es un prefijo); lo unico que cambia es la duracion
+(`scripts/make-length-sweep.py`).
+
+| Audio (s) | min | p50 | p95 |
 |---|---|---|---|
-| V1 (3,30 s) | 4,25 s | 0,78x tiempo real | 1 661-2 458 ms |
-| V2 (6,02 s) | 6,77 s | 0,89x tiempo real | 1 661-2 410 ms |
-| V3 (14,40 s) | 16,89 s | 0,85x tiempo real | 3 481-6 021 ms |
-| V4 (17,82 s) | 2,99 s | 4,90x tiempo real | 184-496 ms |
-| V6 (28,03 s) | 5,70 s | 4,91x tiempo real | 143-194 ms |
-| V7 (37,44 s) | 10,06 s | 3,72x tiempo real | 168-377 ms |
+| 10 | 294 | 515 | 9 979 |
+| 12 | 216 | 378 | 379 |
+| 13 | 406 | 541 | 1 205 |
+| 14 | 700 | 710 | 1 766 |
+| 15 | 171 | 255 | 316 |
+| 16 | 169 | 200 | 597 |
+| 17 | 151 | 2 850 | 3 132 |
+| 18 | 176 | 366 | 4 227 |
+| 20 | 673 | 1 384 | 5 123 |
+| 22 | 242 | 467 | 2 242 |
 
-Por debajo de ~15 s de audio, el modelo **no llega a seguir a la voz**
-(el compute va a 0,74-0,9x tiempo real): al soltar la tecla, el retraso se
-descarga entero de golpe. Por encima de ~17 s, el compute va a 3,7-4,9x
-tiempo real: llega de sobra, y al soltar la tecla solo queda la cola.
+**No hay umbral.** El minimo esta entre 151 y 700 ms en todas las
+duraciones, incluidas las de 10 y 13 s que antes se median como lentas. Y
+la dispersion es enorme: los 15 s dan 255 ms de mediana y los 17 s dan
+2 850 ms.
 
-La sesion de streaming tiene un **coste fijo de arranque** que un dictado
-corto no amortiza. Cuanto vale exactamente y de donde sale
-(la asignacion y el vaciado de las caches por capa del codificador
-cache-aware) queda **NOT_MEASURED**: el contador nativo de pasos
-(`chunk_step`) no se exporta por la API publica.
+### 6.2 El mismo audio, con y sin carga
 
-Lo que si se puede afirmar: el umbral esta entre 14,40 s y 17,82 s de audio,
-y es reproducible (los dos bancos lo coinciden).
+La misma grabacion de 22,34 s, el mismo modelo, la misma sesion, cinco
+repeticiones cada vez, ocupando 0, 2 o 4 nucleos con un proceso de carga
+controlado:
 
-### 5.6 RAM y CPU del arbol de procesos
+| Carga de la maquina | min | p50 | p95 | max |
+|---|---|---|---|---|
+| 0 nucleos | 273 | 429 | 436 | 436 |
+| 2 nucleos | 298 | 393 | **18 891** | 18 891 |
+| 4 nucleos | 319 | 469 | **68 806** | 68 806 |
 
-El ASR corre en un proceso hijo, asi que la medicion suma la app, el worker
-del motor y sus hijos.
+**La mediana no se mueve; la cola se dispara.** Y el "model compute" que
+registra la app explica por que:
 
-| | Whisper Base | Nemotron 3.5 |
-|---|---|---|
-| RAM del arbol de procesos (mediana) | 198 MB | 1 384 MB |
-| RAM del arbol de procesos (pico) | 248 MB | ~1 400 MB |
-| Carga del modelo en frio | 171-513 ms | 1 165-2 493 ms |
+| Carga | Compute del modelo (ratio sobre tiempo real) |
+|---|---|
+| 0 nucleos | 5,90-8,73 s (2,56x-3,79x) |
+| 2 nucleos | 39,51 s y 40,30 s (0,55x-0,57x) en dos de las cinco |
+| 4 nucleos | 90,21 s (0,25x) en una de las cinco |
 
-Muestreo continuo durante los tres motores (3 098 muestras, una cada 500 ms):
-RAM del arbol entre 13 MB (sin modelo cargado) y **1 547 MB de pico**, con
-**1 179 MB de mediana**; CPU **media del 204 % y pico del 847 %** sobre 8
-nucleos logicos, es decir, la decodificacion satura el procesador. Ese
-pico de CPU es la razon por la que la espera de Whisper, que ocurre entera
-despues de soltar, es tan sensible a lo que haga la maquina: con Nemotron
-esa carga se reparte mientras el usuario habla.
+Cuando el ratio baja de 1, el modelo **no llega a seguir a la voz** y el
+retraso se descarga de golpe al soltar.
 
-Medir el arbol entero es obligatorio: el ASR corre en un proceso hijo, y
-medir solo la app daria una foto de la memoria sin el modelo cargado.
+### 6.3 El mecanismo, verificado en el codigo nativo
 
-El pico de RAM de Whisper se midio con el modelo cargado y la decodificacion
-en curso. Los 716 MB del GGUF se traduzen en ~1,2 GB de memoria residente
-del proceso del motor.
+Un subagente leyo la ruta cache-aware de `transcribe-cpp-sys-0.4.0`:
 
----
+1. El motor decodifica en fragmentos de ~1,1 s de audio. Su coste por
+   fragmento es **constante** y el numero de fragmentos es proporcional al
+   audio: **el compute es lineal** (`encoder.cpp:830-836`,
+   `model.cpp:3579-3641`).
+2. El unico minimo del camino es `chunk_advance + right_edge_margin`
+   (`model.cpp:3599-3603`): con los parametros del GGUF (chunk de 105
+   frames mel, margen de 2), **1 070 ms** el primer corte y 1 140 ms los
+   siguientes. **No existe ningun umbral de 15, 17 o 30 s en el codigo.**
+3. La app encola los tramos de audio **sin limite** (`transcription.rs:181`)
+   y el `Finalize` se encola **detras** de todos (`transcription.rs:848`):
+   la espera tras soltar es el vaciado del retraso pendiente.
+4. Al finalizar, el motor mete **todo** el audio pendiente en **un solo
+   fragmento** (`model.cpp:3774`), cuya atencion es cuadratica en lo
+   pendiente. Ahi esta el super-lineal que castiga al que se retraso.
 
-## 6. FASE E — Exactitud
+**El mecanismo completo**: si el equipo llega, el retraso es cero y la
+espera son ~400 ms; si no llega, el retraso crece y al final se paga de
+forma super-lineal. El disparador es **la capacidad de la maquina en ese
+momento**, no la duracion del dictado.
+
+### 6.4 Lo que queda sin medir
+
+El numero de pasos del encoder (`chunk_step`) existe en el nativo
+(`parakeet.h:225`) pero **no se exporta** por la API publica
+(`transcribe.h:2119-2129`). Para medirlo habria que tocar el motor.
+
+Lo que si exporta el motor y Dixi no lee en la ruta live: los tiempos de
+mel, codificador y decodificador (`transcribe_get_timings`,
+`transcribe-asr.cpp:1827-1828`), y el `buffered_ms` /
+`audio_committed_ms` que la app ya registra en el log.
+
+## 7. FASE E — Exactitud
 
 **WER = NOT_MEASURED. CER = NOT_MEASURED.**
 
 Las siete grabaciones no tienen transcripcion de referencia humana: son
 dictaciones espontaneas, no la lectura de un guion. Sin referencia no hay
-WER ni CER que.no sean inventados, y **no se usa la salida de Whisper como
+WER ni CER que no sean inventados, y **no se usa la salida de Whisper como
 referencia verdadera para puntuar Nemotron**: eso compararia un modelo
 contra si mismo con distinto reconocedor de idioma.
+
+El colector (`scripts/collect-voice-validation.py`) ahora distingue los dos
+casos: si una dictacion se parece a alguna frase del guion con una
+desviacion menor del 45 %, se puntua; si no se parece a ninguna, se queda
+en `NOT_MEASURED` en vez desacarle un numero. Con las siete grabaciones
+actuales, las dos quedan sin puntuar, que es lo correcto.
 
 Lo que si se puede comparar, sobre las mismas siete grabaciones:
 
@@ -361,26 +407,28 @@ Lo que si se puede comparar, sobre las mismas siete grabaciones:
 | Alucinaciones del tipo "Thank you" que nadie dijo | Si (muestra de 37 s) | No |
 | Mayusculas y puntuacion | Irregular | Regular |
 | Terminos tecnicos en ingles | "clavufla R2", "Clouf R2" | "Clawflow R2", "Cloud R2" |
-| Es panlatino (voseo, lunfardo) | Parcialmente ("pusheá" -> "puse a") | Parcialmente ("pusheá" -> "pusheá") |
+| Es panlatino (voseo, lunfardo) | Parcialmente ("pushea" -> "puse a") | Parcialmente ("pushea" -> "pushea") |
 
 La comparacion honesta es de **calidad subjetiva sobre siete muestras**, no
-de exactitud estadistica. Para el WER hace falta la sesion guiada de
-`docs/validation-voice/frases-voz.txt`: diez frases con texto conocido,
-dictadas por la persona.
+de exactitud estadistica.
 
-Lo que el propio modelo publica como referencia (FLEURS, WER con Q8_0) es
-**es = 6,3** para Nemotron, frente a un 65,9 medido con Whisper Base en el
-corpus sintetico. Ese 65,9 no es comparable: como se mostro en la seccion
-5 del informe de validacion, el corpus sintetico hace que Whisper
-alucine, y con el idioma forzado la salida sale en japones. Sobre voz real
-Whisper Base transcribe bien. **Ninguna de las dos cifras dice cual es
-mejor para tu voz: eso lo decide la sesion guiada.**
+**La sesion guiada esta preparada** (`docs/validation-voice/README.md` y
+`docs/validation-voice/frases-voz.txt`): diez frases rioplatenses con
+terminologia tecnica en ingles y su texto de referencia. El colector une la
+traza de latencia, la entrada del historial y el WAV, y calcula el WER y el
+CER de cada diccion. **No se ha grabado audio nuevo**: la sesion la hace la
+persona, con el guion delante.
+
+El WER publicado por el propio modelo (FLEURS, Q8_0) es **es = 6,3** para
+Nemotron, frente al 65,9 medido con Whisper Base en el corpus sintetico.
+Ese 65,9 no es comparable: como se mostro en la seccion 4, el corpus
+sintetico hace que Whisper alucine, y con el idioma forzado la salida sale
+en japones. Sobre voz real Whisper Base transcribe bien. **Ninguna de las
+dos cifras dice cual es mejor para tu voz: eso lo decide la sesion guiada.**
 
 ---
 
----
-
-## 7. FASE F — Estabilidad y regresiones
+## 8. FASE F — Estabilidad y regresiones
 
 Descargar y medir Nemotron no puede cambiar el uso cotidiano. Comprobado:
 
@@ -388,19 +436,21 @@ Descargar y medir Nemotron no puede cambiar el uso cotidiano. Comprobado:
 |---|---|
 | Modelo activo sin cambios | `canary-180m-flash` sigue seleccionado |
 | Preferencias del usuario sin cambios | `selected_language = es`, `remote_desktop_*` sin tocar |
+| Historial sin tocar | Sin entradas anadidas ni modificadas por la evaluacion |
+| Atajos sin tocar | Los mismos atajos; el modo propuesto no esta implementado |
 | Suite Rust completa | **576 PASS, 0 FAIL**, 20 ignorados |
 | TypeScript (`tsc --noEmit`) | PASS |
 | ESLint | PASS |
 | Pruebas de frontend (3 suites) | PASS |
 | Validador de traducciones | PASS, 25 idiomas, 806 claves |
-| Pruebas de descarga de modelos | PASS (incluye reanudacion, SHA-256 y descarte de parcial) |
+| Pruebas de descarga de modelos | PASS (reanudacion, SHA-256 y descarte de parciales) |
 | Catalogo coherente con el binario | 69 modelos sembrados |
-| Recuperacion ante error del motor | El motor devuelve `TRANSCRIBE_ERR_UNSUPPORTED_LANGUAGE` si el idioma no esta en su tabla: aborta en vez de seguir en silencio |
-| Cierre de los workers | El worker del motor se cierra al soltar el modelo; la app lo detiene en la salida |
+| Recuperacion ante error del motor | El motor aborta con `TRANSCRIBE_ERR_UNSUPPORTED_LANGUAGE` si el idioma no esta en su tabla: no sigue en silencio |
+| Integracion de mRemoteNG | Sin tocar: `remote_desktop_enabled=false`, `remote_desktop_auto_mode=false` |
 
 Lo que **no** se toco: la carpeta de modelos del usuario (solo se anadio un
-fichero), el historial, los atajos, el VAD, el diccionario, los snippets, los
-perfiles, el posprocesado con MiniMax, la insercion de texto, el
+fichero), el historial, los atajos, el VAD, el diccionario, los snippets,
+los perfiles, el posprocesado con MiniMax, la insercion de texto, el
 portapapeles y la interfaz de configuracion.
 
 El unico cambio de comportamiento en toda la evaluacion es el nuevo
@@ -409,7 +459,7 @@ la aplicacion.
 
 ---
 
-## 8. FASE G — Temporales: inventario, sin borrar nada
+## 9. FASE G — Temporales: inventario, sin borrar nada
 
 No se ejecuto `scripts/cleanup-bench-instances.ps1 -Execute`. No se limpio
 ninguna de las siete carpetas de la sesion anterior.
@@ -439,68 +489,57 @@ una sola vez.
 
 ---
 
-## 9. Veredicto
+## 10. Veredicto corregido
 
-**PROMISING**.
+**PROMISING**, con una correccion importante respecto a la evaluacion
+anterior: **no hay un umbral de duracion**. Lo que hay es un margen de
+capacidad de la maquina.
 
-### Lo que se/demo
+### Lo que se demuestra
 
-1. **Nemotron hace streaming de verdad dentro de Dixi**, y no por la
-   bandera del catalogo: Whisper no tiene `stream_begin` (su codigo no
-   existe), mientras que parakeet implementa el encoder cache-aware con
-   reutilizacion de la cache entre pasos, y el audio cruza al proceso del
-   motor mientras se graba.
-2. **Para dictaciones de 17 s o mas, la espera tras soltar la tecla se
-   desploma**: de 1 084-7 924 ms (p50 de Whisper) a **173-325 ms**
-   (p50 de Nemotron). Entre 4,6x y 45x menos espera, y con una varianza
-   mucho menor: el usuario deja de notar la maquina ocupada.
-3. **Por lotes Nemotron es mas lento** (4 404 ms contra 1 246 ms para
-   22,34 s). La ganancia es enteramente del momento de la decodificacion.
-4. **El texto es igual o mejor** en las siete muestras: sin la cola en
-   griego, sin el "Thank you" inventado, con puntuacion y mayusculas mas
-   regulares.
+1. **Nemotron hace streaming de verdad en Dixi** (seccion 3): Whisper no
+   tiene `stream_begin`, parakeet si, con reutilizacion de la cache entre
+   pasos.
+2. **En las 35 ejecuciones, Nemotron streaming gana en todos los cortes**:
+   p50 de 389 ms contra 1 864 ms de Whisper (4,8x menos), y tambien en el
+   subconjunto corto (424 ms contra 1 199 ms). El p95 tambien: 1 749 ms
+   contra 7 206 ms.
+3. **El texto es igual o mejor** en las mismas siete grabaciones (seccion 7).
+4. **Por lotes Nemotron es mas lento** (p50 de 3 834 ms de inferencia): la
+   ganancia esta en el momento de decodificar, no en el motor.
 
-### Lo que frena la recomendacion
+### Lo que lo matiza
 
-1. **Para dictaciones de 14 s o menos, Nemotron es PEOR**: 1 661-6 021 ms
-   frente a 816-1 013 ms de Whisper. La sesion de streaming tiene un coste
-   fijo de arranque que un dictado corto no amortiza. El umbral esta entre
-   14,40 s y 17,82 s.
-2. **La exactitud no esta medida**: sin transcripcion de referencia humana
-   no hay WER ni CER defendibles, y la comparacion disponible es
-   cualitativa sobre siete muestras.
-3. **Cuesta 1,2 GB mas de RAM** (1 384 MB contra 198 MB) y **1,2 s mas de
-   carga en frio** (1 165-2 493 ms contra 171-513 ms).
-4. **No traduce a ingles** (`supports_translate=false`) y cubre **28
-   idiomas en vez de 99**. Si usas la traduccion automatica, Nemotron no
-   puede sustituir a Whisper.
+1. **La cola adversa es brutal si el equipo no llega**: con 2 o 4 nucleos
+   ocupados, una repeticion de 22,34 s tardo 18,9 s y 68,8 s en entregar el
+   texto. Whisper no tiene ese modo de fallo: su espera es el coste de
+   decodificar y crece de forma proporcional.
+2. **No hay un umbral fijo, pero si un punto de inflexion en la capacidad**:
+   el motor tiene que ir a mas de 1x tiempo real para que el retraso no
+   crezca. En este equipo el margen es de 1,6x a 5,1x segun la carga.
+3. **La exactitud no esta medida**: WER y CER son `NOT_MEASURED` porque las
+   siete grabaciones no tienen referencia humana.
+4. **Cuesta 1,2 GB mas de RAM** y **1,2 s mas de carga en frio**; cubre 28
+   idiomas en vez de 99 y **no traduce a ingles**.
 
-### Propuesta de activacion (para tu aprobacion, no aplicada)
+### La conclusion operativa
 
-El tradeoff no es "Nemotron o Whisper": es "Nemotron a partir de cierta
-duracion". La app ya sabe cuanto se ha grabado cuando el usuario suelta, y
-el punto de corte medido esta entre 14,40 s y 17,82 s.
+El modo prolongado es mejor **en la mediana y en el p95, a cualquier
+duracion**, pero su peor caso es mucho peor. Eso hace que la decision no
+sea "cual modelo" sino **"que se hace cuando el equipo no llega"**, y la
+respuesta esta en la seccion 6: acotar el retraso pendiente o, al menos,
+hacer visible que el texto ya esta escrito mientras se habla (la vista
+previa en vivo ya existe).
 
-Propuesta: dejar **Whisper Base como modelo por defecto** y ofrecer Nemotron
-como el modelo de las dictaciones largas, con un ajuste que lo selecte a
-partir de ~17 s de audio. Con los numeros de aqui:
-
-| Duracion de la dictacion | Whisper Base | Nemotron streaming |
-|---|---|---|
-| <= 14 s | **mejor** (816-1 013 ms) | peor (1 661-6 021 ms) |
-| >= 17 s | 1 084-7 924 ms | **mejor** (173-325 ms) |
-
-Implementarlo bien requiere una decision de producto (un selector
-automatico por duracion, o dos atajos) y la sesion guiada para validar la
-exactitud. **Ninguna de las dos se ha hecho**: el modelo activo sigue siendo
-canary y no se ha tocado nada de la configuracion del usuario.
+La propuesta de los dos modos, con los riesgos de mantener los dos motores
+cargados y lo que hay que decidir, esta en
+`docs/dixi-asr-modes-proposal.md`. **No esta implementada.**
 
 ### Lo que sigue pendiente
 
-1. **La sesion guiada** con `docs/validation-voice/frases-voz.txt`: es lo que
-   convierte esta evaluacion en una recomendacion con numero de exactitud.
-2. **La seleccion por duracion**, si decides que el tradeoff merece la pena.
-3. **El coste fijo del arranque del streaming** en el motor nativo: con un
-   contador de pasos exportado se podria saber si es la asignacion de las
-   caches y si se puede evitar.
-4. **La limpieza de los 557,7 MB** de temporales, con autorizacion.
+1. **La sesion guiada** (`docs/validation-voice/README.md`): es lo que
+   convierte esto en una recomendacion con numeros de exactitud.
+2. **Acotar el retraso pendiente** en el motor, o medir cuanto audio se
+   pierde al hacerlo.
+3. **Exponer el `chunk_step`** del motor para poder medir los recalculos.
+4. **La limpieza de los 605 MB** de temporales, con autorizacion.
