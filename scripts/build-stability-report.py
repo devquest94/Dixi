@@ -22,6 +22,8 @@ import unicodedata
 
 def load_rows(directory):
     path = os.path.join(directory, "ejecuciones-estabilidad.json")
+    if not os.path.isfile(path):
+        return []
     with open(path, encoding="utf-8-sig") as f:
         return json.load(f)
 
@@ -234,6 +236,35 @@ def table_summary(scenarios):
     return "\n".join(lines)
 
 
+def table_clip_comparison(control_rows, catchup_rows):
+    """Per clip: the wait with the catch-up and without it."""
+    def by_clip(rows):
+        grouped = {}
+        for r in rows:
+            grouped.setdefault(r["Audio"], []).append(r)
+        return grouped
+
+    gc, gb = by_clip(control_rows), by_clip(catchup_rows)
+    lines = [
+        "| Audio | Sin la pasada (ms) | Con la pasada (ms) |",
+        "|---|---|---|",
+    ]
+    for clip in sorted(set(gc) | set(gb)):
+        c = [r["EsperaMs"] for r in gc.get(clip, [])]
+        b = [r["EsperaMs"] for r in gb.get(clip, [])]
+        if not c or not b:
+            continue
+        lines.append(
+            "| %s | %s | %s - %s |" % (
+                clip,
+                fmt(min(c)),
+                fmt(min(b)),
+                fmt(max(b)),
+            )
+        )
+    return "\n".join(lines)
+
+
 def table_user_state(path):
     """The verification of the user's own state, as it was read from disk."""
     if not path or not os.path.isfile(path):
@@ -301,6 +332,9 @@ def main():
         "ESCENARIO-CARGA-ALTA-SIN-PASADA": table_scenario(
             "sin pasada", optional(args.alta_sin_pasada)
         ),
+        "COMPARACION-CLIPS": table_clip_comparison(
+            optional(args.alta_sin_pasada), optional(args.alta_despues)
+        ),
         "SOLO-UMBRAL": table_scenario("solo umbral", optional(args.umbral_solo)),
         "POR-GRABACION": table_per_audio(antes, despues),
         "RUTAS-DESPUES": table_paths(despues),
@@ -315,8 +349,14 @@ def main():
 
     for name, body in tables.items():
         marker = f"<!--TABLA:{name}-->"
-        if marker in report:
-            report = report.replace(marker, body)
+        if marker not in report:
+            continue
+        # Una tabla sin datos no se escribe: se deja el marcador para que se
+        # vea que falta la medicion, en vez de una tabla con guiones.
+        if "| - |" in body or not body.strip():
+            print(f"  sin datos: {name} (marcador intacto)")
+            continue
+        report = report.replace(marker, body)
 
     with open(args.informe, "w", encoding="utf-8", newline="") as f:
         f.write(report)

@@ -50,6 +50,10 @@ param(
     # Fraccion de la grabacion que tiene que estar pendiente para que la
     # pasada completa compense. 0 = la que trae la app.
     [double]$BacklogMinFraction = 0,
+    # Refresca el binario de la instancia. Sin esto, una instancia que ya
+    # existe se queda con el binario de una corrida anterior y se mide otra
+    # cosa: el hash del ejecutable se comprueba contra el que se pide.
+    [switch]$RefreshBinary,
     [switch]$KeepText,
     [string]$ModelsDir = "$env:APPDATA\com.dixi.app\models",
     [string[]]$ExtraModelsDir = @()
@@ -85,6 +89,14 @@ if (-not (Test-Path $FixturesDir)) {
 # binario y el "despues" con el nuevo).
 # ---------------------------------------------------------------------------
 $instanceBinary = Join-Path $InstanceDir 'dixi.exe'
+if ($RefreshBinary -and (Test-Path $instanceBinary)) {
+    $wanted = (Get-FileHash $Exe -Algorithm SHA256).Hash
+    $have = (Get-FileHash $instanceBinary -Algorithm SHA256).Hash
+    if ($wanted -ne $have) {
+        Write-Host "[setup] refrescando el binario de la instancia" -ForegroundColor Yellow
+        Copy-Item $Exe $instanceBinary -Force
+    }
+}
 if (-not (Test-Path $instanceBinary)) {
     & (Join-Path $PSScriptRoot 'new-bench-instance.ps1') -InstanceDir $InstanceDir -Exe $Exe -Model $Model -Language $Language -ModelsDir $ModelsDir -ExtraModelsDir $ExtraModelsDir
 } else {
@@ -343,6 +355,7 @@ Banco sobre la ruta que usa la app mientras el usuario habla, con la maquina
 en el estado de carga indicado.
 
 - Binario: ``$instanceBinary``
+- SHA-256 del binario medido: ``$((Get-FileHash $instanceBinary -Algorithm SHA256).Hash)``
 - Modelo: ``$Model``
 - Instancia aislada: ``$InstanceDir``
 - Corpus: ``$FixturesDir``
