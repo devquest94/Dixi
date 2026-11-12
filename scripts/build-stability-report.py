@@ -279,7 +279,7 @@ def table_commits(repo):
     import subprocess
 
     out = subprocess.run(
-        ["git", "-C", repo, "log", "--oneline", "--no-decorate", "-n", "12"],
+        ["git", "-C", repo, "log", "--oneline", "--no-decorate", "b42d103..develop"],
         capture_output=True,
         text=True,
     ).stdout.strip()

@@ -534,20 +534,28 @@ muestreo del microfono (que no ha cambiado).
    recuperacion acota el *coste* del cierre, no el *consumo* de memoria.
    Acotarla de verdad exigiria un limite duro con backpressure (que
    bloquearia al microfono) o un almacenamiento temporal del PCM.
-5. **La espera sigue siendo larga con la maquina ocupada.** Con los cuatro
+5. **La magnitud del retraso no ve el decodificador del motor.** Lo que
+   se mide es el retraso de las **colas** (y el bucle del motor), no el
+   trabajo que le queda al decodificador, que va por detras y no se
+   reporta. En la corrida de control (seccion 4.3.1) el retraso medido fue
+   de 1 030 ms y la espera llego a 196 s: cuando el cuello de botella es
+   el decodificador, la pasada completa **no** se dispara. Es la
+   limitacion de esta magnitud y la razon de que el escape para ese caso
+   sea **cancelar** (que si es prompt y no pierde el audio).
+6. **La espera sigue siendo larga con la maquina ocupada.** Con los cuatro
    nucleos ocupados, la mediana de la espera tras soltar es de decenas de
    segundos: no es un defecto de la app, es que la maquina no puede
    decodificar 37 s de audio en 37 s. Lo que hace este trabajo es que esa
    espera sea **predecible** (proporcional al audio) y **cancelable**
    sin perder lo grabado, no que sea corta.
-6. **Cuando la ruta en vivo no devuelve texto, la app repite por lotes.**
+7. **Cuando la ruta en vivo no devuelve texto, la app repite por lotes.**
    Es un camino preexistente (`Live transcription produced no text; retrying
    in batch`), no de esta etapa, pero sale en las mediciones: 2 de 21
    corridas sin carga. El coste es el de una pasada completa (8 259 ms y
    17 493 ms en las dos). **Por que el stream en vivo devuelve el texto
    vacio no esta investigado**: es el siguiente paso si el equipo vuelve a
    verse lento sin carga.
-7. **Los dos modos de dictado siguen sin implementarse** (ver
+8. **Los dos modos de dictado siguen sin implementarse** (ver
    `docs/dixi-asr-modes-proposal.md`).
 
 ---
@@ -563,9 +571,11 @@ Resumen de `docs/dixi-asr-modes-proposal.md`, con las tres correcciones:
    integracion con mRemoteNG. La seleccion de modo es manual, desde ajustes
    y desde la bandeja, reutilizando el atajo de dictado que ya existe.
 3. **La saturacion ya no se resuelve descartando audio.** Si el retraso
-   pendiente pasa del limite, Dixi avisa ("terminando la grabacion") y
-   termina la grabacion en una pasada completa. El usuario ve el texto
-   completo; lo unico que cambia es cuanto tarda.
+   pendiente pasa del limite **y** es mas de la mitad de la grabacion, Dixi
+   avisa ("terminando la grabacion") y termina la grabacion en una pasada
+   completa sobre el audio original. El usuario ve el texto completo; lo
+   unico que cambia es cuanto tarda. El texto resultante es **identico** al
+   de la ruta en vivo (seccion 5).
 
 Lo que queda por decidir: el valor del limite, y si el aviso debe llegar
 antes de entrar en la pasada completa o al entrar.
@@ -598,18 +608,17 @@ principal para espanol es **PROMISING**, no RECOMMENDED.
 
 | Commit | Descripcion |
 |---|---|
+| `c810aa5` | docs: la integridad del texto comparada entre la ruta en vivo y la pasada completa |
+| `7421abc` | docs: el informe de estabilidad del streaming y la propuesta de modos corregida |
 | `1bb1534` | feat(bench): calibrar el limite de retraso y generar las tablas del informe |
 | `6e902ec` | fix(stream): la pasada completa solo cuando el retraso es casi toda la grabacion |
 | `5205082` | feat(bench): medir el streaming con carga controlada y con cancelacion |
 | `969254c` | fix(dictation): la cancelacion con audio pendiente conserva la grabacion |
 | `538afae` | feat(overlay): avisar cuando Dixi termina la grabacion en una pasada |
 | `1d99ea9` | feat(stream): medir el retraso pendiente y terminar en una pasada cuando la maquina no da abasto |
-| `b42d103` | docs: el informe corregido, la propuesta de dos modos y la sesion guiada |
-| `bdeb6b7` | feat(bench): barrido de duraciones y biseccionamiento por contenido |
-| `d41aea8` | fix(bench): los percentiles globales se calculaban sobre 7 minimos |
-| `150ad6d` | docs: la evaluacion real de Nemotron 3.5 Streaming en Dixi |
-| `6b114d5` | feat(bench): muestreador de RAM y CPU del arbol de procesos del motor |
-| `5cfaa7c` | fix(bench): los ajustes de la instancia se escribian con BOM y la app los ignoraba |
+
+Los commits de esta etapa son los de la tabla **mas el commit que anade
+este informe** (el ultimo de la serie).
 
 La rama es `develop`. No se ha creado ninguna rama ni worktree, no se ha
 tocado `master` y no se ha hecho push.
