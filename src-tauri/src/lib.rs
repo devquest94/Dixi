@@ -494,6 +494,26 @@ mod headless_guard_tests {
 fn run_headless_transcription(app: &AppHandle, args: &CliArgs) -> i32 {
     use std::time::Instant;
 
+    // --download-model: the app's own downloader, pointed at the source the
+    // catalog pins. It verifies the bytes against the catalog SHA-256 and
+    // publishes the file only when it is complete. It does NOT touch the
+    // selected model.
+    if let Some(model_id) = args.download_model.clone() {
+        let model_manager = app.state::<Arc<ModelManager>>();
+        let result =
+            tauri::async_runtime::block_on(model_manager.download_model_from_source(&model_id));
+        return match result {
+            Ok(()) => {
+                println!("Modelo descargado y verificado: {}", model_id);
+                0
+            }
+            Err(e) => {
+                eprintln!("error: la descarga de {} fallo: {}", model_id, e);
+                1
+            }
+        };
+    }
+
     // --list-devices: print registered compute devices (with indices) and exit.
     // Useful on multi-GPU machines to discover the index for --device-index.
     if args.list_devices {
@@ -975,6 +995,7 @@ pub fn run(cli_args: CliArgs) {
     // note below), not forward to an already-running app.
     let headless_mode = cli_args.transcribe_file.is_some()
         || cli_args.live_file.is_some()
+        || cli_args.download_model.is_some()
         || cli_args.list_devices
         || cli_args.list_models;
 

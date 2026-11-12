@@ -1816,7 +1816,7 @@ impl ModelManager {
     /// Direct-HTTP download of a catalog model's file from a mirror into the
     /// models dir (HF-model resolution accepts that location too). Returns
     /// `Ok(true)` on completion, `Ok(false)` if cancelled (partial kept).
-    async fn download_from_mirror(
+    pub(crate) async fn download_from_mirror(
         &self,
         model_id: &str,
         filename: &str,
@@ -1852,6 +1852,70 @@ impl ModelManager {
                 Ok(true)
             }
         }
+    }
+
+    /// Downloads a catalog model into the models directory from its
+    /// Hugging Face resolve URL, with the catalog size and the catalog
+    /// SHA-256 as the trust anchor.
+    ///
+    /// Same transport as the mirror path — resumable, HTTPS, a `.partial` of
+    /// its own, size and hash checked, published by rename — pointed at the
+    /// preferred source. The difference with the plain Hugging Face path is
+    /// where the file lands: here it is Dixi's own models folder, not a
+    /// cache shared with other applications.
+    ///
+    /// A `.partial` that is already complete is verified and published
+    /// instead of downloaded again, so a file fetched by other means (and
+    /// already checked) does not have to cross the network twice.
+    pub async fn download_model_from_source(&self, model_id: &str) -> Result<()> {
+        let model_info = {
+            let models = self.available_models.lock().unwrap();
+            models.get(model_id).cloned()
+        }
+        .ok_or_else(|| anyhow::anyhow!("Model not found: {}", model_id))?;
+
+        let ModelSource::HuggingFace { repo_id, revision } = &model_info.source else {
+            return Err(anyhow::anyhow!(
+                "Model {} is not a Hugging Face catalog model",
+                model_id
+            ));
+        };
+
+        // The catalog hash is the trust anchor: without it there is nothing
+        // to check the bytes against, and an unverified model is never
+        // published.
+        let (_, file) = crate::catalog::file_in_catalog(&model_info.filename, Some(repo_id))
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "No catalog entry for {}: the trust anchor is mandatory",
+                    model_info.filename
+                )
+            })?;
+        let Some(sha256) = file.sha256.as_deref() else {
+            return Err(anyhow::anyhow!(
+                "The catalog entry for {} has no SHA-256",
+                model_info.filename
+            ));
+        };
+
+        let source = crate::catalog::MirrorFile {
+            url: format!(
+                "https://huggingface.co/{}/resolve/{}/{}",
+                repo_id, revision, model_info.filename
+            ),
+            sha256: sha256.to_string(),
+            size_bytes: file.size_bytes,
+        };
+
+        let token = CancellationToken::new();
+        let completed = self
+            .download_from_mirror(model_id, &model_info.filename, &source, token)
+            .await?;
+        if !completed {
+            return Err(anyhow::anyhow!("Download of {} was cancelled", model_id));
+        }
+        self.update_download_status()?;
+        Ok(())
     }
 
     pub async fn download_model(&self, model_id: &str) -> Result<()> {

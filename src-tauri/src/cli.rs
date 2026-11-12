@@ -42,6 +42,17 @@ pub struct CliArgs {
     #[arg(long, value_name = "WAV")]
     pub live_file: Option<PathBuf>,
 
+    /// Download a catalog model into Dixi's own models folder.
+    ///
+    /// Uses the app's own transport: resumable, HTTPS, a `.partial` of its
+    /// own, the catalog size and SHA-256 as the trust anchor, and the file is
+    /// published by rename only when it is complete and verified. The source
+    /// is the Hugging Face resolve URL of the revision the catalog pins.
+    ///
+    /// It does NOT change the selected model.
+    #[arg(long, value_name = "ID")]
+    pub download_model: Option<String>,
+
     /// Feed the live bench faster than real time. Development only: the
     /// latency it reports is only meaningful at 1x.
     #[arg(long)]
