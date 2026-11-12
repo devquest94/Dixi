@@ -1149,7 +1149,10 @@
     "modelLoadFailedUnknown": "unbekanntes Modell",
     "pasteFailedTitle": "Text konnte nicht eingefügt werden",
     "pasteFailed": "Der Text konnte nicht in die aktive Anwendung eingefügt werden.",
-    "transcriptionFailedTitle": "Transkription fehlgeschlagen"
+    "transcriptionFailedTitle": "Transkription fehlgeschlagen",
+    "cancelledRecordingKept": "Diktieren abgebrochen",
+    "cancelledRecordingKeptDescription": "Das Audio wurde noch nicht transkribiert, daher wurde es im Verlauf behalten.",
+    "cancelledRecordingDiscard": "Verwerfen"
   },
   "appLanguage": {
     "title": "Anwendungssprache",

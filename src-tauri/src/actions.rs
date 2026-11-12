@@ -23,6 +23,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tauri::Manager;
 use tauri::{AppHandle, Emitter};
+use tauri_specta::Event;
 
 const CANCELLATION_POLL_INTERVAL: Duration = Duration::from_millis(25);
 
@@ -134,21 +135,24 @@ async fn preserve_cancelled_recording(
     sample_count: usize,
     hm: &HistoryManager,
     post_process: bool,
+    app: &AppHandle,
 ) {
     let wav_saved = await_wav_saved(handle, path, sample_count).await;
     if !wav_saved {
         warn!("The recording was not written to disk; the history entry has no audio");
     }
-    if let Err(err) = hm.save_entry(
-        file_name.to_string(),
-        String::new(),
-        post_process,
-        None,
-        None,
-    ) {
-        error!("Failed to save the cancelled recording in the history: {}", err);
+    match hm.save_entry(file_name.to_string(), String::new(), post_process, None, None) {
+        Ok(entry) => {
+            info!(
+                "The cancelled recording was kept in the history with empty text (entry {})",
+                entry.id
+            );
+            // The user has to KNOW that the audio was kept: a cancel that
+            // leaves a recording behind without saying so is a surprise.
+            let _ = crate::managers::transcription::CancelledRecordingKept { id: entry.id }.emit(app);
+        }
+        Err(err) => error!("Failed to save the cancelled recording in the history: {}", err),
     }
-    info!("The cancelled recording was kept in the history with empty text");
 }
 
 // Shortcut Action Trait
@@ -981,6 +985,7 @@ impl ShortcutAction for TranscribeAction {
                                     sample_count,
                                     &hm,
                                     post_process,
+                                    &ah,
                                 )
                                 .await;
                                 utils::hide_recording_overlay(&ah);

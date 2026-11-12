@@ -1149,7 +1149,10 @@
     "modelLoadFailedUnknown": "neznámý model",
     "pasteFailedTitle": "Vložení textu se nezdařilo",
     "pasteFailed": "Text nebylo možné vložit do aktivní aplikace.",
-    "transcriptionFailedTitle": "Přepis selhal"
+    "transcriptionFailedTitle": "Přepis selhal",
+    "cancelledRecordingKept": "Dictování zrušeno",
+    "cancelledRecordingKeptDescription": "Zvuk ještě nebyl přepsán, proto byl ponechán v historii.",
+    "cancelledRecordingDiscard": "Zahodit"
   },
   "appLanguage": {
     "title": "Jazyk aplikace",

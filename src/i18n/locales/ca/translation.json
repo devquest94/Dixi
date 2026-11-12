@@ -1152,7 +1152,10 @@
     "modelLoadFailedUnknown": "model desconegut",
     "pasteFailedTitle": "No s'ha pogut enganxar el text",
     "pasteFailed": "No s'ha pogut enganxar el text a l'aplicació activa.",
-    "transcriptionFailedTitle": "La transcripció ha fallat"
+    "transcriptionFailedTitle": "La transcripció ha fallat",
+    "cancelledRecordingKept": "Dictat cancel·lat",
+    "cancelledRecordingKeptDescription": "L'àudio encara no s'ha transcrit, així que s'ha conservat a l'historial.",
+    "cancelledRecordingDiscard": "Descarta"
   },
   "appLanguage": {
     "title": "Llengua de l'aplicació",

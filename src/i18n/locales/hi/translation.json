@@ -1152,7 +1152,10 @@
     "modelLoadFailedUnknown": "अज्ञात मॉडल",
     "pasteFailedTitle": "टेक्स्ट पेस्ट नहीं हो सका",
     "pasteFailed": "खुले हुए ऐप्लिकेशन में टेक्स्ट पेस्ट नहीं किया जा सका.",
-    "transcriptionFailedTitle": "ट्रांसक्रिप्शन नहीं हो सका"
+    "transcriptionFailedTitle": "ट्रांसक्रिप्शन नहीं हो सका",
+    "cancelledRecordingKept": "डिक्टेशन रद्द किया गया",
+    "cancelledRecordingKeptDescription": "ऑडियो अभी तक ट्रांसक्राइब नहीं हुआ था, इसलिए उसे इतिहास में रखा गया।",
+    "cancelledRecordingDiscard": "छोड़ें"
   },
   "appLanguage": {
     "title": "ऐप्लिकेशन की भाषा",

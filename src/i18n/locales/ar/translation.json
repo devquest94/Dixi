@@ -1149,7 +1149,10 @@
     "modelLoadFailedUnknown": "نموذج غير معروف",
     "pasteFailedTitle": "فشل لصق النص",
     "pasteFailed": "تعذر لصق النص في التطبيق النشط.",
-    "transcriptionFailedTitle": "فشل التفريغ النصي"
+    "transcriptionFailedTitle": "فشل التفريغ النصي",
+    "cancelledRecordingKept": "تم إلغاء الإملاء",
+    "cancelledRecordingKeptDescription": "لم يتم تفريغ الصوت بعد، لذلك تم الاحتفاظ به في السجل.",
+    "cancelledRecordingDiscard": "تجاهل"
   },
   "appLanguage": {
     "title": "لغة التطبيق",

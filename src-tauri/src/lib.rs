@@ -970,6 +970,7 @@ pub fn run(cli_args: CliArgs) {
             managers::history::HistoryUpdatePayload,
             managers::transcription::StreamTextEvent,
             managers::transcription::StreamPhaseEvent,
+            managers::transcription::CancelledRecordingKept,
         ]);
 
     // The TypeScript bindings are the frontend's contract with the Rust

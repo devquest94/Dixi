@@ -1149,7 +1149,10 @@
     "modelLoadFailedUnknown": "modelo desconocido",
     "pasteFailedTitle": "Error al pegar el texto",
     "pasteFailed": "No se pudo pegar el texto en la aplicación activa.",
-    "transcriptionFailedTitle": "Error de transcripción"
+    "transcriptionFailedTitle": "Error de transcripción",
+    "cancelledRecordingKept": "Dictado cancelado",
+    "cancelledRecordingKeptDescription": "El audio aún no se había transcrito, así que se conservó en el historial.",
+    "cancelledRecordingDiscard": "Descartar"
   },
   "appLanguage": {
     "title": "Idioma de la aplicación",

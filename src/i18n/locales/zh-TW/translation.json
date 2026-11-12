@@ -1149,7 +1149,10 @@
     "modelLoadFailedUnknown": "未知模型",
     "pasteFailedTitle": "貼上文字失敗",
     "pasteFailed": "無法將文字貼上至目前作用中的應用程式。",
-    "transcriptionFailedTitle": "轉錄失敗"
+    "transcriptionFailedTitle": "轉錄失敗",
+    "cancelledRecordingKept": "已取消語音輸入",
+    "cancelledRecordingKeptDescription": "音訊尚未轉寫，因此已保留在歷史記錄中。",
+    "cancelledRecordingDiscard": "丟棄"
   },
   "appLanguage": {
     "title": "應用程式語言",

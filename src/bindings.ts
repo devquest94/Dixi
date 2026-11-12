@@ -1832,10 +1832,12 @@ async isLaptop() : Promise<Result<boolean, string>> {
 
 
 export const events = __makeEvents__<{
+cancelledRecordingKept: CancelledRecordingKept,
 historyUpdatePayload: HistoryUpdatePayload,
 streamPhaseEvent: StreamPhaseEvent,
 streamTextEvent: StreamTextEvent
 }>({
+cancelledRecordingKept: "cancelled-recording-kept",
 historyUpdatePayload: "history-update-payload",
 streamPhaseEvent: "stream-phase-event",
 streamTextEvent: "stream-text-event"
@@ -2004,6 +2006,18 @@ export type AutoBlock =
 export type AutoSubmitKey = "enter" | "ctrl_enter" | "cmd_enter"
 export type AvailableAccelerators = { transcribe: string[]; gpu_devices: GpuDeviceOption[] }
 export type BindingResponse = { success: boolean; binding: ShortcutBinding | null; error: string | null }
+/**
+ * Emitted when a cancelled dictation keeps its audio in the history.
+ * 
+ * The user asked to cancel and the audio had not been recognized yet: it
+ * is kept, and this event says so, with the history entry that holds it so
+ * the interface can offer to discard it.
+ */
+export type CancelledRecordingKept = { 
+/**
+ * The history entry that holds the recording.
+ */
+id: number }
 /**
  * What was known about a failed attempt.
  * 

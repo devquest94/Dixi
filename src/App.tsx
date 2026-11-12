@@ -202,6 +202,30 @@ function App() {
     };
   }, [t]);
 
+  // A cancelled dictation whose audio had not been recognized yet keeps its
+  // recording in the history. The user has to be told: a cancel that leaves
+  // a recording behind without saying so is a surprise. The toast offers to
+  // discard it, which is the explicit way of throwing it away.
+  useEffect(() => {
+    const unlisten = listen<{ id: number }>(
+      "cancelled-recording-kept",
+      (event) => {
+        toast(t("errors.cancelledRecordingKept"), {
+          description: t("errors.cancelledRecordingKeptDescription"),
+          action: {
+            label: t("errors.cancelledRecordingDiscard"),
+            onClick: () => {
+              void commands.deleteHistoryEntry(event.payload.id);
+            },
+          },
+        });
+      },
+    );
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, [t]);
+
   // Listen for model loading failures and show a toast
   useEffect(() => {
     const unlisten = listen<ModelStateEvent>("model-state-changed", (event) => {

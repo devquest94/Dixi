@@ -1149,7 +1149,10 @@
     "modelLoadFailedUnknown": "modelo desconhecido",
     "pasteFailedTitle": "Falha ao colar o texto",
     "pasteFailed": "Não foi possível colar o texto no aplicativo ativo.",
-    "transcriptionFailedTitle": "Falha na transcrição"
+    "transcriptionFailedTitle": "Falha na transcrição",
+    "cancelledRecordingKept": "Ditado cancelado",
+    "cancelledRecordingKeptDescription": "O áudio ainda não foi transcrito, por isso foi mantido no histórico.",
+    "cancelledRecordingDiscard": "Descartar"
   },
   "appLanguage": {
     "title": "Idioma da Aplicação",

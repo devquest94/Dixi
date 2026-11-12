@@ -1149,7 +1149,10 @@
     "modelLoadFailedUnknown": "modello sconosciuto",
     "pasteFailedTitle": "Impossibile incollare il testo",
     "pasteFailed": "Non è stato possibile incollare il testo nell'applicazione attiva.",
-    "transcriptionFailedTitle": "Trascrizione non riuscita"
+    "transcriptionFailedTitle": "Trascrizione non riuscita",
+    "cancelledRecordingKept": "Dettatura annullata",
+    "cancelledRecordingKeptDescription": "L'audio non era ancora trascritto, quindi è stato conservato nella cronologia.",
+    "cancelledRecordingDiscard": "Scarta"
   },
   "appLanguage": {
     "title": "Lingua Applicazione",

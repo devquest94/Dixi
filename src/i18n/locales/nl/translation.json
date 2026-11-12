@@ -1152,7 +1152,10 @@
     "modelLoadFailedUnknown": "onbekend model",
     "pasteFailedTitle": "Tekst plakken mislukt",
     "pasteFailed": "Tekst kon niet worden geplakt in de actieve applicatie.",
-    "transcriptionFailedTitle": "Transcriptie mislukt"
+    "transcriptionFailedTitle": "Transcriptie mislukt",
+    "cancelledRecordingKept": "Dictaat geannuleerd",
+    "cancelledRecordingKeptDescription": "De audio was nog niet omgezet en is daarom in de geschiedenis bewaard.",
+    "cancelledRecordingDiscard": "Weggooien"
   },
   "appLanguage": {
     "title": "Interfacetaal",

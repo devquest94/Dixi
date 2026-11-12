@@ -1149,7 +1149,10 @@
     "modelLoadFailedUnknown": "bilinmeyen model",
     "pasteFailedTitle": "Metin yapıştırılamadı",
     "pasteFailed": "Metin etkin uygulamaya yapıştırılamadı.",
-    "transcriptionFailedTitle": "Transkripsiyon başarısız oldu"
+    "transcriptionFailedTitle": "Transkripsiyon başarısız oldu",
+    "cancelledRecordingKept": "Sözlü komut iptal edildi",
+    "cancelledRecordingKeptDescription": "Ses henüz yazıya dökülmediği için geçmişte saklandı.",
+    "cancelledRecordingDiscard": "Vazgeç"
   },
   "appLanguage": {
     "title": "Uygulama Dili",

@@ -1152,7 +1152,10 @@
     "modelLoadFailedUnknown": "अज्ञात मोडेल",
     "pasteFailedTitle": "टेक्स्ट पेस्ट गर्न सकिएन",
     "pasteFailed": "सक्रिय एपमा टेक्स्ट पेस्ट गर्न सकिएन।",
-    "transcriptionFailedTitle": "ट्रान्सक्रिप्सन गर्न सकिएन"
+    "transcriptionFailedTitle": "ट्रान्सक्रिप्सन गर्न सकिएन",
+    "cancelledRecordingKept": "डिक्टेशन रद्द भयो",
+    "cancelledRecordingKeptDescription": "अडियो अझै अभै ट्रान्सक्राइब भएको थिएन, त्यसैले इतिहासमा राखियो।",
+    "cancelledRecordingDiscard": "हटाउनुहोस्"
   },
   "appLanguage": {
     "title": "एपको भाषा",

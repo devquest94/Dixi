@@ -1149,7 +1149,10 @@
     "modelLoadFailedUnknown": "неизвестен модел",
     "pasteFailedTitle": "Неуспешно поставяне на текст",
     "pasteFailed": "Текстът не можа да бъде поставен в активното приложение.",
-    "transcriptionFailedTitle": "Неуспешна транскрипция"
+    "transcriptionFailedTitle": "Неуспешна транскрипция",
+    "cancelledRecordingKept": "Отменено диктоване",
+    "cancelledRecordingKeptDescription": "Аудиото все още не е разпознато, затова е запазено в историята.",
+    "cancelledRecordingDiscard": "Отхвърли"
   },
   "appLanguage": {
     "title": "Език на приложението",

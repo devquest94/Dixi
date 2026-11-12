@@ -1149,7 +1149,10 @@
     "modelLoadFailedUnknown": "неизвестная модель",
     "pasteFailedTitle": "Не удалось вставить текст",
     "pasteFailed": "Не удалось вставить текст в активное приложение.",
-    "transcriptionFailedTitle": "Ошибка транскрипции"
+    "transcriptionFailedTitle": "Ошибка транскрипции",
+    "cancelledRecordingKept": "Диктовка отменена",
+    "cancelledRecordingKeptDescription": "Звук ещё не был расшифрован, поэтому он сохранён в истории.",
+    "cancelledRecordingDiscard": "Отбросить"
   },
   "appLanguage": {
     "title": "Язык приложения",

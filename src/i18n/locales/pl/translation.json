@@ -1149,7 +1149,10 @@
     "modelLoadFailedUnknown": "nieznany model",
     "pasteFailedTitle": "Nie udało się wkleić tekstu",
     "pasteFailed": "Nie można było wkleić tekstu do aktywnej aplikacji.",
-    "transcriptionFailedTitle": "Transkrypcja nie powiodła się"
+    "transcriptionFailedTitle": "Transkrypcja nie powiodła się",
+    "cancelledRecordingKept": "Dyktowanie anulowane",
+    "cancelledRecordingKeptDescription": "Dźwięk nie został jeszcze przepisany, dlatego zachowano go w historii.",
+    "cancelledRecordingDiscard": "Odrzuć"
   },
   "appLanguage": {
     "title": "Język aplikacji",

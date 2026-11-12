@@ -1149,7 +1149,10 @@
     "modelLoadFailedUnknown": "невідома модель",
     "pasteFailedTitle": "Не вдалося вставити текст",
     "pasteFailed": "Не вдалося вставити текст до активної програми.",
-    "transcriptionFailedTitle": "Помилка транскрипції"
+    "transcriptionFailedTitle": "Помилка транскрипції",
+    "cancelledRecordingKept": "Диктування скасовано",
+    "cancelledRecordingKeptDescription": "Звук ще не було розпізнано, тому його збережено в історії.",
+    "cancelledRecordingDiscard": "Відкинути"
   },
   "appLanguage": {
     "title": "Мова інтерфейсу",
