@@ -193,20 +193,97 @@ function Stat {
     }
 }
 
-$stats = @(
-    Stat -Name 'Espera tras soltar (ms)' -Selector { $_.PostMsMin }
-    Stat -Name 'Decodificacion final (ms)' -Selector { $_.FinalMsMin }
-    Stat -Name 'Audio pendiente al soltar (s)' -Selector { $_.PendingSecsMin }
-    Stat -Name 'Ultimo fragmento (ms)' -Selector { $_.LastChunkMsMin }
+# Todas las ejecuciones sueltas, una fila por repeticion. Los percentiles
+# "globales" se calculan sobre ESTA lista (7 grabaciones x N repeticiones),
+# no sobre las siete filas por grabacion: un percentil sobre siete minimos no
+# es el percentil de las ejecuciones.
+$ejecuciones = @()
+foreach ($r in $results) {
+    foreach ($d in $r.Detalle) {
+        $ejecuciones += [pscustomobject]@{
+            Fixture     = $r.Fixture
+            AudioSecs   = $r.AudioSecs
+            Corrida     = $d.run
+            PostMs      = [double]$d.post_release_ms
+            FinalMs     = [double]$d.stages.stages.finalize
+            TotalMs     = [double]$d.stages.total_ms
+            Camino      = $d.path
+            PendienteS = [double]$d.pending_secs_at_release
+        }
+    }
+}
+
+# El corte entre "dictado corto" y "dictado prolongado" esta medido, no
+# supuesto: el cambio de regimen del streaming ocurre entre 14,40 s y
+# 17,82 s de audio. El corte se pone en 16 s, en medio de ese intervalo.
+$CORTE_SEGUNDOS = 16.0
+
+function StatDe {
+    param([string]$Nombre, [object[]]$Valores)
+    if (-not $Valores -or $Valores.Count -eq 0) { return $null }
+    [pscustomobject]@{
+        Metrica  = $Nombre
+        N        = $Valores.Count
+        Media    = [math]::Round(($Valores | Measure-Object -Average).Average, 1)
+        Min      = [math]::Round(($Valores | Measure-Object -Minimum).Minimum, 1)
+        P50      = [math]::Round((Get-Percentile -Values $Valores -Percentile 50), 1)
+        P95      = [math]::Round((Get-Percentile -Values $Valores -Percentile 95), 1)
+        Max      = [math]::Round(($Valores | Measure-Object -Maximum).Maximum, 1)
+    }
+}
+
+# 1) POR GRABACION: cada fila es una grabacion, con la distribucion de SUS
+#    repeticiones.
+$porGrabacion = @()
+foreach ($r in $results) {
+    $vals = @($r.Detalle | ForEach-Object { [double]$_.post_release_ms })
+    $s = StatDe -Nombre ("grabacion " + $r.Fixture) -Valores $vals
+    $porGrabacion += [pscustomobject]@{
+        Grabacion  = $r.Fixture
+        AudioSegs  = $r.AudioSecs
+        N          = $vals.Count
+        Min        = $s.Min
+        P50        = $s.P50
+        P95        = $s.P95
+        Max        = $s.Max
+    }
+}
+
+# 2) AGRUPADA: todas las ejecuciones del motor.
+$agrupada = @(
+    (StatDe -Nombre 'AGRUPADO - espera tras soltar (ms)' -Valores @($ejecuciones | ForEach-Object { $_.PostMs })),
+    (StatDe -Nombre 'AGRUPADO - decodificacion final (ms)' -Valores @($ejecuciones | ForEach-Object { $_.FinalMs }))
 )
 
-$stats | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $OutDir 'estadisticas-live.json') -Encoding UTF8
+# 3) POR SUBCONJUNTO: cortas frente a largas.
+$cortas = @($ejecuciones | Where-Object { $_.AudioSecs -le $CORTE_SEGUNDOS })
+$largas = @($ejecuciones | Where-Object { $_.AudioSecs -gt $CORTE_SEGUNDOS })
+$porSubconjunto = @(
+    (StatDe -Nombre ("SUBCONJUNTO <= " + $CORTE_SEGUNDOS + " s - espera tras soltar (ms)") -Valores @($cortas | ForEach-Object { $_.PostMs })),
+    (StatDe -Nombre ("SUBCONJUNTO > " + $CORTE_SEGUNDOS + " s - espera tras soltar (ms)") -Valores @($largas | ForEach-Object { $_.PostMs }))
+)
+
+# El resumen por grabacion que se hacia antes (minimo por grabacion) se
+# conserva, pero con otro nombre: es un statistic POR GRABACION, no global.
+$stats = @(
+    (StatDe -Nombre 'POR GRABACION - minimo de la espera tras soltar (ms)' -Valores @($results | ForEach-Object { [double]$_.PostMsMin })),
+    (StatDe -Nombre 'POR GRABACION - p50 de la espera tras soltar (ms)' -Valores @($results | ForEach-Object { [double]$_.PostMsP50 })),
+    (StatDe -Nombre 'POR GRABACION - p95 de la espera tras soltar (ms)' -Valores @($results | ForEach-Object { [double]$_.PostMsP95 }))
+)
+
+$todasEstadisticas = @($agrupada + $porSubconjunto + $stats | Where-Object { $null -ne $_ })
+
+$todasEstadisticas | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $OutDir 'estadisticas-live.json') -Encoding UTF8
+# Una fila por ejecucion: la base desde la que se recalcula cualquier
+# percentil, sin volver a medir.
+$ejecuciones | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $OutDir 'ejecuciones-live.json') -Encoding UTF8
+$porGrabacion | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $OutDir 'por-grabacion-live.json') -Encoding UTF8
 $results | Select-Object -ExcludeProperty Detalle | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $OutDir 'resultados-live.json') -Encoding UTF8
 # El detalle por corrida se guarda aparte: es el unico sitio donde queda el
 # fragmento a fragmento.
 $results | Select-Object Fixture, Detalle | ConvertTo-Json -Depth 8 | Set-Content -Path (Join-Path $OutDir 'detalle-live.json') -Encoding UTF8
 
-$rows = foreach ($s in $stats) { "| $($s.Metrica) | $($s.Media) | $($s.P50) | $($s.P95) | $($s.Max) |" }
+$rows = foreach ($s in $todasEstadisticas) { "| $($s.Metrica) | $($s.N) | $($s.Media) | $($s.Min) | $($s.P50) | $($s.P95) | $($s.Max) |" }
 $detail = foreach ($r in $results) {
     "| $($r.Fixture) | $($r.AudioSecs) | $($r.Path) | $($r.ChunksWhile) | $($r.PendingSecsMin) | $($r.FinalMsMin) | $($r.PostMsMin) | $($r.LastChunkMsMin) |"
 }
@@ -224,8 +301,8 @@ el momento de soltar la tecla.
 - Repeticiones por audio: $Repeat
 - Idioma forzado: $(if ($Language) { $Language } else { 'auto (el de la app)' })
 
-| Metrica | Media | p50 | p95 | Maximo |
-|---|---|---|---|---|
+| Metrica | N | Media | Min | p50 | p95 | Maximo |
+|---|---|---|---|---|---|---|
 $($rows -join "`n")
 
 ## Detalle por audio

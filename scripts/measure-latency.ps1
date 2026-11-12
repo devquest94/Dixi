@@ -290,6 +290,7 @@ foreach ($fixture in (Get-ChildItem $benchAudioDir -Filter '*.wav' | Sort-Object
         RulesMs    = $rulesMin
         TotalMs    = $totalMin
         Text       = $(if ($NoText) { '' } else { $data.text })
+        Ejecuciones = @($data.runs)
     }
 }
 
@@ -312,29 +313,64 @@ function Stat {
     }
 }
 
+# Una fila por ejecucion. Los percentiles agrupados se calculan sobre
+# ESTA lista, no sobre las siete filas por grabacion.
+$ejecuciones = @()
+foreach ($r in $results) {
+    foreach ($d in $r.Ejecuciones) {
+        $ejecuciones += [pscustomobject]@{
+            Fixture   = $r.Fixture
+            AudioSecs = $r.AudioSecs
+            Corrida   = $d.run
+            AsrMs     = [double]$d.stages.asr
+            TotalMs   = [double]$d.total_ms
+        }
+    }
+}
+
+$CORTE_SEGUNDOS = 16.0
+
+function StatDe {
+    param([string]$Nombre, [object[]]$Valores)
+    if (-not $Valores -or $Valores.Count -eq 0) { return $null }
+    [pscustomobject]@{
+        Metrica = $Nombre
+        N       = $Valores.Count
+        Media   = [math]::Round(($Valores | Measure-Object -Average).Average, 1)
+        Min     = [math]::Round(($Valores | Measure-Object -Minimum).Minimum, 1)
+        P50     = [math]::Round((Get-Percentile -Values $Valores -Percentile 50), 1)
+        P95     = [math]::Round((Get-Percentile -Values $Valores -Percentile 95), 1)
+        Max     = [math]::Round(($Valores | Measure-Object -Maximum).Maximum, 1)
+    }
+}
+
+$cortas = @($ejecuciones | Where-Object { $_.AudioSecs -le $CORTE_SEGUNDOS })
+$largas = @($ejecuciones | Where-Object { $_.AudioSecs -gt $CORTE_SEGUNDOS })
+
 $stats = @(
-    Stat -Name 'Carga del modelo (ms)' -Selector { $_.LoadMs }
-    Stat -Name 'Inferencia ASR min (ms)' -Selector { $_.AsrMs }
-    Stat -Name 'Inferencia ASR p50 (ms)' -Selector { $_.AsrP50Ms }
-    Stat -Name 'Inferencia ASR p95 (ms)' -Selector { $_.AsrP95Ms }
-    Stat -Name 'Total trazado p50 (ms)' -Selector { $_.TotalP50Ms }
-    Stat -Name 'Total trazado p95 (ms)' -Selector { $_.TotalP95Ms }
-    Stat -Name 'Reglas de texto (ms)' -Selector { $_.RulesMs }
-    Stat -Name 'Total trazado min (ms)' -Selector { $_.TotalMs }
+    (StatDe -Nombre 'AGRUPADO - inferencia ASR (ms)' -Valores @($ejecuciones | ForEach-Object { $_.AsrMs })),
+    (StatDe -Nombre ('SUBCONJUNTO <= ' + $CORTE_SEGUNDOS + ' s - inferencia ASR (ms)') -Valores @($cortas | ForEach-Object { $_.AsrMs })),
+    (StatDe -Nombre ('SUBCONJUNTO > ' + $CORTE_SEGUNDOS + ' s - inferencia ASR (ms)') -Valores @($largas | ForEach-Object { $_.AsrMs })),
+    (StatDe -Nombre 'POR GRABACION - minimo de la inferencia ASR (ms)' -Valores @($results | ForEach-Object { [double]$_.AsrMs })),
+    (StatDe -Nombre 'POR GRABACION - p50 de la inferencia ASR (ms)' -Valores @($results | ForEach-Object { [double]$_.AsrP50Ms })),
+    (StatDe -Nombre 'POR GRABACION - p95 de la inferencia ASR (ms)' -Valores @($results | ForEach-Object { [double]$_.AsrP95Ms })),
+    (StatDe -Nombre 'Carga del modelo (ms)' -Valores @($results | ForEach-Object { [double]$_.LoadMs }))
 )
+$stats = @($stats | Where-Object { $null -ne $_ })
 
 $audioTotal = ($results | Measure-Object -Property AudioSecs -Sum).Sum
 $asrTotal = ($results | Measure-Object -Property AsrMs -Sum).Sum
 $rtfGlobal = if ($asrTotal -gt 0) { [math]::Round($audioTotal / ($asrTotal / 1000), 3) } else { 0 }
 
 $stats | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $OutDir 'estadisticas.json') -Encoding UTF8
+$ejecuciones | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $OutDir 'ejecuciones.json') -Encoding UTF8
 # El texto se guarda: es la evidencia del WER/CER (scripts/measure-wer.py).
 # El corpus es audio sintetico de frases conocidas, no voz ni datos del
 # usuario.
 $results | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $OutDir 'resultados.json') -Encoding UTF8
 
 $rows = foreach ($s in $stats) {
-    "| $($s.Metrica) | $($s.Media) | $($s.P50) | $($s.P95) | $($s.Max) |"
+    "| $($s.Metrica) | $($s.N) | $($s.Media) | $($s.Min) | $($s.P50) | $($s.P95) | $($s.Max) |"
 }
 $detail = foreach ($r in $results) {
     "| $($r.Fixture) | $($r.AudioSecs) | $($r.LoadMs) | $($r.AsrMs) | $($r.AsrP50Ms) | $($r.AsrP95Ms) | $($r.TotalP50Ms) | $($r.TotalP95Ms) | $($r.Rtf) |"
@@ -352,8 +388,8 @@ audio y quedandose con la mejor pasada.
 - Instancia aislada: ``$InstanceDir`` (modelos por junction)
 - CPU / RAM de referencia: 4 nucleos, 16 GB
 
-| Metrica | Media | p50 | p95 | Maximo |
-|---|---|---|---|---|
+| Metrica | N | Media | Min | p50 | p95 | Maximo |
+|---|---|---|---|---|---|---|
 $($rows -join "`n")
 
 Factor de tiempo real global (audio total / inferencia total): **$rtfGlobal x**
