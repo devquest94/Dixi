@@ -193,23 +193,76 @@ comparticion sin restriccion; **ninguna obligacion sobre las salidas**. La
 unica obligacion es conservar la licencia y los avisos si se redistribuye
 el material del modelo. Para el uso personal de Dixi no impose nada.
 
-### Lo que falta
+### Descarga y verificacion
 
-**La descarga (716 MB) no esta hecha: falta autorizacion expresa.** El
-modelo no se ha descargado, no se ha medido y no se ha cambiado el modelo
-activo de Dixi.
+- Descargado a `%TEMP%\dixi-nemotron` (carpeta **aislada**: la carpeta de
+  modelos del usuario no se toco).
+- Revision fijada por el catalogo: `6d44e540bc31b0de1dbe174a3cea87f53a7f22fb`.
+- 751 094 240 bytes (716,3 MB) y **sha256 verificado byte a byte** contra el
+  del catalogo: `b94545b313b3223fda7b2857a52681da813935c2127643d1e9ff0c23d988089c`.
+- Cargado en transcribe-cpp 0.4.0 sin tocar el motor: el propio motor
+  reporta `supports_streaming=true`.
 
-Lo que se puede decir sin medir, y lo que no:
+### La comparacion, en las mismas condiciones
 
-| | Sin medir | Con medir |
+Mismo equipo, misma sesion, mismas 5 repeticiones, misma voz real, el mismo
+banco en vivo (minimo de las 5 repeticiones):
+
+| Audio | Whisper Base (ruta batch) | Nemotron 3.5 (streaming) | Ganancia |
+|---|---|---|---|
+| 3,30 s | 970 ms | **329 ms** | -66 % |
+| 22,34 s | 1 312 ms | **247 ms** | **-81 %** |
+| 37,44 s | 2 319 ms | **1 022 ms** | -56 % |
+
+El percentil 50 de Nemotron en la dictacion de 22 s es de **256 ms**, frente
+a los 1 517 ms de Whisper.
+
+### El matiz que decide el resultado
+
+**Por lotes, Nemotron es mas lento que Whisper**: 22,34 s de voz ->
+5 215 ms (factor de tiempo real 4,3) contra los 1 312 ms de Whisper.
+
+La ganancia **no esta en el motor, esta en el momento**: Nemotron decodifica
+mientras el usuario habla, asi que al soltar la tecla solo queda la cola.
+Por eso el banco tiene que alimentar el audio a la velocidad de una
+grabacion; medido por lotes, Nemotron perderia.
+
+### La calidad del texto, sobre la misma voz real
+
+Whisper Base, dictacion de 22,34 s (cola en griego que nadie dijo):
+
+> Los íconos de Super Stock hay que mejorarlos y actualizarlos. El ícono se
+> guarda en la carpeta de estátics de los iconos y también se guarda en
+> clavufla R2 y el método principal de Búsqueda es el de Clouf R2 y si no lo
+> encuentra ahí lo va. **και να καρπέτω ευτάτυξ**
+
+Nemotron 3.5, la misma grabacion:
+
+> Los iconos de Superstock hay que mejorarlos y actualizarlos, el icono se
+> guarda en la carpeta de Statics de los iconos y también se guarda en
+> Clawflow R2. Y el método principal de búsqueda es el de Cloud R2. Y si no
+> lo encuentra ahí, lo busca en la carpeta de Statics.
+
+Sin la cola basura, con puntuacion y con mayusculas. En la dictacion de
+37,44 s, Whisper termina con un "Thank you" que nadie dijo; Nemotron no.
+
+### Lo que cuesta a cambio
+
+| | Whisper Base | Nemotron 3.5 |
 |---|---|---|
-| Latencia | El codificador cache-aware no recalcula lo ya decodificado, asi que el coste posterior a soltar deberia ser solo la cola. **Es una expectativa, no un resultado.** | El banco en vivo, en igualdad de condiciones |
-| Exactitud | El WER publicado por el propio modelo en FLEURS es 6,3 para espanol (Q8_0). Whisper Base no tiene equivalente comparable aqui. | El guion de `docs/validation-voice/frases-voz.txt` con voz real |
-| Memoria | 716 MB en disco. **Medido con Whisper Base**: el arbol de procesos completo (4 procesos: la app, el worker del motor y sus hijos) ocupa **216 MB de mediana y 248 MB de pico**. Nemotron todavia no se ha medido | La misma medicion con el modelo cargado |
+| RAM del arbol de procesos | 198 MB | **1 384 MB** |
+| Carga en frio | ~190 ms | ~1 300 ms |
+| Idiomas | 99 | 28 |
+| Traducir a ingles | si | **no** |
 
-**No se recomienda sustituir Whisper Base por Nemotron hasta que el banco
-diga que la experiencia real mejora.** La expectativa es buena y la
-compatibilidad esta probada, pero una expectativa no es una medicion.
+La carga en frio no entra en la espera tras soltar: el modelo se carga
+mientras se graba. Con `model_unload_timeout=never` el modelo queda
+caliente.
+
+**El cambio de modelo activo es decision del usuario**: la evidencia dice
+que para dictado en espanol la espera se reduce entre 2,9 y 5,3 veces y el
+texto es mejor, a cambio de 1,2 GB mas de RAM y de perder la traduccion
+automatica al ingles.
 
 ---
 
@@ -333,8 +386,9 @@ Todo corre sin ventana: `scripts/run-hidden.ps1` y `CreateNoWindow`.
 
 ## 9. Lo que queda pendiente
 
-1. **La descarga de Nemotron (716 MB)**: pendiente de autorizacion. Es lo
-   que bloquea la comparacion en igualdad de condiciones.
+1. **Instalar Nemotron 3.5 como modelo activo**: la descarga y la
+   comparacion ya estan hechas (seccion 4). Falta la decision del usuario y
+   el cambio de ajuste.
 2. **La sesion guiada de dictacion** (`docs/validation-voice/frases-voz.txt`):
    sin ella no hay WER ni CER de voz real.
 3. **La limpieza de los 440 MB**: pendiente de autorizacion.

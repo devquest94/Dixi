@@ -24,7 +24,10 @@ param(
     [Parameter(Mandatory = $true)][string]$Exe,
     [Parameter(Mandatory = $true)][string]$Model,
     [string]$Language = "",
-    [string]$ModelsDir = "$env:APPDATA\com.dixi.app\models"
+    [string]$ModelsDir = "$env:APPDATA\com.dixi.app\models",
+    # Carpetas adicionales de donde enlazar modelos (por ejemplo una
+    # descarga aislada que todavia no esta en la carpeta del usuario).
+    [string[]]$ExtraModelsDir = @()
 )
 
 $ErrorActionPreference = 'Stop'
@@ -47,10 +50,16 @@ if (Test-Path $resourcesSource) {
 }
 
 $instanceModels = Join-Path $InstanceDir 'Data\models'
-if (Test-Path $ModelsDir) {
+# De donde se enlazan los modelos: la carpeta del usuario y las extra.
+$sources = @($ModelsDir) + @($ExtraModelsDir) | Where-Object { $_ -and (Test-Path $_) }
+if ($sources.Count -gt 0) {
     New-Item -ItemType Directory -Force -Path $instanceModels | Out-Null
     $linked = 0
-    foreach ($modelFile in (Get-ChildItem $ModelsDir -File -ErrorAction SilentlyContinue)) {
+    $allModels = @()
+    foreach ($source in $sources) {
+        $allModels += @(Get-ChildItem $source -File -Filter '*.gguf' -ErrorAction SilentlyContinue)
+    }
+    foreach ($modelFile in ($allModels | Sort-Object Name)) {
         $target = Join-Path $instanceModels $modelFile.Name
         if (Test-Path $target) {
             # Ya enlazado en una corrida anterior: cuenta igual, el enlace

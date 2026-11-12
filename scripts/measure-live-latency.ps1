@@ -39,7 +39,9 @@ param(
     # No guarda el texto transcrito. OBLIGATORIO con audio de voz real: la
     # transcripcion es contenido privado y no debe quedar en un informe.
     [switch]$NoText,
-    [string]$ModelsDir = "$env:APPDATA\com.dixi.app\models"
+    [string]$ModelsDir = "$env:APPDATA\com.dixi.app\models",
+    # Carpetas adicionales de modelos (una descarga aislada, por ejemplo).
+    [string[]]$ExtraModelsDir = @()
 )
 
 $ErrorActionPreference = 'Stop'
@@ -64,7 +66,7 @@ if (-not (Test-Path $FixturesDir)) {
 # Instancia aislada
 # ---------------------------------------------------------------------------
 Write-Host "[setup] instancia aislada en $InstanceDir" -ForegroundColor Cyan
-& (Join-Path $PSScriptRoot 'new-bench-instance.ps1') -InstanceDir $InstanceDir -Exe $Exe -Model $Model -Language $Language -ModelsDir $ModelsDir
+& (Join-Path $PSScriptRoot 'new-bench-instance.ps1') -InstanceDir $InstanceDir -Exe $Exe -Model $Model -Language $Language -ModelsDir $ModelsDir -ExtraModelsDir $ExtraModelsDir
 
 $instanceBinary = Join-Path $InstanceDir 'dixi.exe'
 
