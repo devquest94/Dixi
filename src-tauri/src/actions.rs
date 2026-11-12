@@ -120,6 +120,37 @@ async fn await_wav_saved(
     }
 }
 
+/// Keeps the recording of a cancelled dictation whose audio was never
+/// recognized, linked to a history entry with empty text.
+///
+/// A cancel that arrives while the engine is behind leaves audio nobody
+/// transcribed. Removing the file would lose the user's speech in silence,
+/// so the recording stays in the history, where it can be transcribed again
+/// from there.
+async fn preserve_cancelled_recording(
+    handle: tauri::async_runtime::JoinHandle<Result<(), anyhow::Error>>,
+    path: &std::path::Path,
+    file_name: &str,
+    sample_count: usize,
+    hm: &HistoryManager,
+    post_process: bool,
+) {
+    let wav_saved = await_wav_saved(handle, path, sample_count).await;
+    if !wav_saved {
+        warn!("The recording was not written to disk; the history entry has no audio");
+    }
+    if let Err(err) = hm.save_entry(
+        file_name.to_string(),
+        String::new(),
+        post_process,
+        None,
+        None,
+    ) {
+        error!("Failed to save the cancelled recording in the history: {}", err);
+    }
+    info!("The cancelled recording was kept in the history with empty text");
+}
+
 // Shortcut Action Trait
 pub trait ShortcutAction: Send + Sync {
     fn start(&self, app: &AppHandle, binding_id: &str, shortcut_str: &str);
@@ -934,9 +965,24 @@ impl ShortcutAction for TranscribeAction {
                                 debug!(
                                     "Transcription operation cancelled after transcription error"
                                 );
-                                // The recording has no history entry to link to: without one
-                                // it would stay on disk forever. Remove it with the dictation.
-                                discard_wav(wav_handle, &wav_path_for_verify).await;
+                                // The audio was never recognized: the cancel arrived while
+                                // the engine was behind. Removing the recording would lose
+                                // the user's speech in silence, so it is kept in the
+                                // history with empty text and can be transcribed again
+                                // from there.
+                                info!(
+                                    "Cancelled dictation: {} ms of pending audio",
+                                    tm.stream_backlog_ms()
+                                );
+                                preserve_cancelled_recording(
+                                    wav_handle,
+                                    &wav_path_for_verify,
+                                    &file_name,
+                                    sample_count,
+                                    &hm,
+                                    post_process,
+                                )
+                                .await;
                                 utils::hide_recording_overlay(&ah);
                                 set_tray_state(&ah, TrayIconState::Idle);
                                 return;
