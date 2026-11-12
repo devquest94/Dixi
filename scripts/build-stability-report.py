@@ -265,6 +265,89 @@ def table_clip_comparison(control_rows, catchup_rows):
     return "\n".join(lines)
 
 
+def table_ab(ab_dir):
+    """La comparacion intercalada: el fallback con y sin, por modo y por clip."""
+    if not ab_dir or not os.path.isdir(ab_dir):
+        return "_(sin datos)_"
+    path = os.path.join(ab_dir, "ab-ejecuciones.json")
+    if not os.path.isfile(path):
+        return "_(sin datos)_"
+    rows = json.load(open(path, encoding="utf-8-sig"))
+
+    lines = [
+        "| Modo | N | p50 (ms) | p95 (ms) | maximo (ms) | minimo (ms) | media (ms) | CPU (%) | RAM (MB) |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    for mode in ("con", "sin"):
+        group = [r for r in rows if r.get("Modo") == mode]
+        if not group:
+            continue
+        w = [float(r["EsperaMs"]) for r in group]
+        c = [float(r["CpuPct"]) for r in group]
+        m = [float(r["RamPrivMB"]) for r in group]
+        lines.append(
+            "| %s | %d | %s | %s | %s | %s | %s | %s | %s |" % (
+                "con fallback" if mode == "con" else "sin fallback",
+                len(group),
+                fmt(stats(w)["p50"]), fmt(stats(w)["p95"]), fmt(max(w)),
+                fmt(min(w)), fmt(stats(w)["media"]),
+                fmt(stats(c)["media"], 1), fmt(stats(m)["media"], 1),
+            )
+        )
+
+    # Por clip: la pareja medida en la misma ventana.
+    lines += [
+        "",
+        "| Audio | s | con fallback (ms) | sin fallback (ms) | retraso pendiente con (ms) | ruta con |",
+        "|---|---|---|---|---|---|",
+    ]
+    clips = sorted({r["Audio"] for r in rows})
+    for clip in clips:
+        rc = [r for r in rows if r["Audio"] == clip and r.get("Modo") == "con"]
+        rs = [r for r in rows if r["Audio"] == clip and r.get("Modo") == "sin"]
+        if not rc or not rs:
+            continue
+        a = rc[0]
+        b = rs[0]
+        lines.append(
+            "| %s | %s | %s | %s | %s | %s |" % (
+                clip,
+                fmt(a["AudioSegs"], 2),
+                fmt(a["EsperaMs"]), fmt(b["EsperaMs"]),
+                fmt(a.get("RetrasoMs", 0)), a.get("Ruta", "-"),
+            )
+        )
+    return "\n".join(lines)
+
+
+def table_decisions(ab_dir):
+    """Las lineas de decision del log: el pendiente real, la cifra del motor,
+    la velocidad observada y las dos estimaciones."""
+    if not ab_dir or not os.path.isdir(ab_dir):
+        return "_(sin datos)_"
+    path = os.path.join(ab_dir, "ab-decision.json")
+    if not os.path.isfile(path):
+        return "_(sin datos)_"
+    rows = json.load(open(path, encoding="utf-8"))
+
+    lines = [
+        "| Audio | Modo | Espera (ms) | Pendiente real (ms) | Lo que dice el motor (ms) "
+        "| Velocidad observada (x) | Terminar el stream ~ (ms) | Transcripcion completa ~ (ms) | Ruta |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    for r in rows:
+        lines.append(
+            "| %s | %s | %s | %s | %s | %s | %s | %s | %s |" % (
+                r["Audio"],
+                "con" if r["Modo"] == "con" else "sin",
+                fmt(r["EsperaMs"]), fmt(r["PendienteMs"]), fmt(r["MotorMs"]),
+                fmt(r["Velocidad"], 2), fmt(r["EstStreamMs"]), fmt(r["EstBatchMs"]),
+                r["Ruta"],
+            )
+        )
+    return "\n".join(lines)
+
+
 def table_user_state(path):
     """The verification of the user's own state, as it was read from disk."""
     if not path or not os.path.isfile(path):
@@ -306,6 +389,9 @@ def main():
     parser.add_argument("--umbral-solo", default="")
     parser.add_argument("--repo", default=r"D:\Codigo\Dixi")
     parser.add_argument("--estado-usuario", default="")
+    parser.add_argument("--ab", default="")
+    parser.add_argument("--ab-moderada", default="")
+    parser.add_argument("--ab-orden", default="")
     parser.add_argument("--informe", required=True)
     args = parser.parse_args()
 
@@ -344,6 +430,10 @@ def main():
             optional(args.moderada_antes), optional(args.integridad_pasada)
         ),
         "CANCELACION": table_cancel(cancel),
+        "COMPARACION-AB": table_ab(args.ab),
+        "COMPARACION-AB-MODERADA": table_ab(args.ab_moderada),
+        "COMPARACION-AB-ORDEN": table_ab(args.ab_orden),
+        "DECISIONES-AB": table_decisions(args.ab),
         "COMMITS": table_commits(args.repo),
         "ESTADO-USUARIO": table_user_state(args.estado_usuario),
     }
