@@ -209,6 +209,40 @@ def table_cancel(rows):
     return "\n".join(lines)
 
 
+def table_summary(scenarios):
+    """One row per scenario: the wait before and after, in one table."""
+    lines = [
+        "| Escenario | N | p50 antes (ms) | p95 antes (ms) | max antes (ms) "
+        "| p50 despues (ms) | p95 despues (ms) | max despues (ms) |",
+        "|---|---|---|---|---|---|---|---|",
+    ]
+    for label, before, after in scenarios:
+        sb = stats([r["EsperaMs"] for r in before]) if before else None
+        sa = stats([r["EsperaMs"] for r in after]) if after else None
+        lines.append(
+            "| %s | %s | %s | %s | %s | %s | %s | %s |" % (
+                label,
+                sb["n"] if sb else 0,
+                fmt(sb["p50"]) if sb else "-",
+                fmt(sb["p95"]) if sb else "-",
+                fmt(sb["max"]) if sb else "-",
+                fmt(sa["p50"]) if sa else "-",
+                fmt(sa["p95"]) if sa else "-",
+                fmt(sa["max"]) if sa else "-",
+            )
+        )
+    return "\n".join(lines)
+
+
+def table_user_state(path):
+    """The verification of the user's own state, as it was read from disk."""
+    if not path or not os.path.isfile(path):
+        return "_(sin verificacion)_"
+    with open(path, encoding="utf-8") as f:
+        lines = [line.rstrip() for line in f if line.strip()]
+    return "```\n" + "\n".join(lines) + "\n```"
+
+
 def table_commits(repo):
     """The commits of this stage, taken from git."""
     import subprocess
@@ -236,7 +270,10 @@ def main():
     parser.add_argument("--moderada-despues", default="")
     parser.add_argument("--alta-antes", default="")
     parser.add_argument("--alta-despues", default="")
+    parser.add_argument("--alta-sin-pasada", default="")
+    parser.add_argument("--umbral-solo", default="")
     parser.add_argument("--repo", default=r"D:\Codigo\Dixi")
+    parser.add_argument("--estado-usuario", default="")
     parser.add_argument("--informe", required=True)
     args = parser.parse_args()
 
@@ -248,17 +285,29 @@ def main():
         return load_rows(directory) if directory and os.path.isdir(directory) else []
 
     tables = {
+        "RESUMEN": table_summary([
+            ("Sin carga", antes, despues),
+            ("Carga moderada (2 nucleos)",
+             optional(args.moderada_antes), optional(args.moderada_despues)),
+            ("Carga alta (4 nucleos)",
+             optional(args.alta_antes), optional(args.alta_despues)),
+        ]),
         "ESCENARIO-SIN-CARGA-ANTES": table_scenario("antes", antes),
         "ESCENARIO-SIN-CARGA-DESPUES": table_scenario("despues", despues),
         "ESCENARIO-CARGA-MODERADA-ANTES": table_scenario("antes", optional(args.moderada_antes)),
         "ESCENARIO-CARGA-MODERADA-DESPUES": table_scenario("despues", optional(args.moderada_despues)),
         "ESCENARIO-CARGA-ALTA-ANTES": table_scenario("antes", optional(args.alta_antes)),
         "ESCENARIO-CARGA-ALTA-DESPUES": table_scenario("despues", optional(args.alta_despues)),
+        "ESCENARIO-CARGA-ALTA-SIN-PASADA": table_scenario(
+            "sin pasada", optional(args.alta_sin_pasada)
+        ),
+        "SOLO-UMBRAL": table_scenario("solo umbral", optional(args.umbral_solo)),
         "POR-GRABACION": table_per_audio(antes, despues),
         "RUTAS-DESPUES": table_paths(despues),
         "INTEGRIDAD": table_integrity(antes, despues),
         "CANCELACION": table_cancel(cancel),
         "COMMITS": table_commits(args.repo),
+        "ESTADO-USUARIO": table_user_state(args.estado_usuario),
     }
 
     with open(args.informe, encoding="utf-8") as f:

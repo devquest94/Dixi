@@ -44,12 +44,29 @@ param(
     # Cancela la transcripcion N ms despues de soltar, como hace el atajo de
     # cancelar. 0 = sin cancelacion.
     [int]$CancelAfterMs = 0,
+    # Limite de retraso pendiente que usa el banco (ms). 0 = el que trae la
+    # app. Un limite enorme desactiva la pasada completa, para comparar.
+    [int]$BacklogLimitMs = 0,
+    # Fraccion de la grabacion que tiene que estar pendiente para que la
+    # pasada completa compense. 0 = la que trae la app.
+    [double]$BacklogMinFraction = 0,
     [switch]$KeepText,
     [string]$ModelsDir = "$env:APPDATA\com.dixi.app\models",
     [string[]]$ExtraModelsDir = @()
 )
 
 $ErrorActionPreference = 'Stop'
+
+# El banco hereda el entorno: con esto se puede cambiar el limite de retraso
+# sin recompilar (y comparar la pasada completa contra el cierre del motor).
+if ($BacklogLimitMs -gt 0) {
+    $env:DIXI_STREAM_BACKLOG_LIMIT_MS = "$BacklogLimitMs"
+    Write-Host "[banco] limite de retraso: $BacklogLimitMs ms" -ForegroundColor Yellow
+}
+if ($BacklogMinFraction -gt 0) {
+    $env:DIXI_STREAM_BACKLOG_MIN_FRACTION = "$BacklogMinFraction"
+    Write-Host "[banco] fraccion minima de retraso: $BacklogMinFraction" -ForegroundColor Yellow
+}
 
 if (-not $InstanceDir) {
     $InstanceDir = Join-Path $env:TEMP ("dixi-estab-{0}-{1}" -f $Label, (Get-Date -Format 'HHmmss'))
